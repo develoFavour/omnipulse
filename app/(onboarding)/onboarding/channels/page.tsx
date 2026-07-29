@@ -18,6 +18,7 @@ import { createPortal } from "react-dom";
 import { OnboardingLayout } from "@/components/features/onboarding/OnboardingLayout";
 import { ChannelConnectCard } from "@/components/features/onboarding/ChannelConnectCard";
 import { TelegramConnectionForm } from "@/components/features/onboarding/TelegramConnectionForm";
+import { WhatsAppConnectionForm } from "@/components/features/onboarding/WhatsAppConnectionForm";
 import { Button } from "@/components/ui/button";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
@@ -64,13 +65,14 @@ export default function ChannelsSetupPage() {
 	});
 	const {
 		connectTelegram,
+		connectWhatsApp,
 		loading: connectionLoading,
 		error: connectionError,
 		reset: resetError,
 	} = useChannelConnection({
-		onSuccess: () => {
-			toast.success("Telegram connected!", {
-				description: "Your Telegram channel is ready to broadcast.",
+		onSuccess: (data) => {
+			toast.success("Channel connected!", {
+				description: `${data.platform_name} is ready for broadcasting.`,
 			});
 			setActiveChannelModal(null);
 			refetch();
@@ -242,15 +244,25 @@ export default function ChannelsSetupPage() {
 										/>
 									)}
 
+									{/* WhatsApp Form */}
+									{activeChannelModal === "whatsapp" && (
+										<WhatsAppConnectionForm
+											onSubmit={async (creds) => {
+												await connectWhatsApp(creds);
+											}}
+											isLoading={connectionLoading}
+											error={connectionError}
+											onClose={() => setActiveChannelModal(null)}
+										/>
+									)}
+
 									{/* Placeholder for other channels */}
-									{activeChannelModal !== "telegram" && (
+									{activeChannelModal !== "telegram" && activeChannelModal !== "whatsapp" && (
 										<div className="text-center py-8">
 											<p className="text-sm text-zinc-400 mb-4">
-												{activeChannelModal === "whatsapp"
-													? "WhatsApp connection coming soon"
-													: activeChannelModal === "instagram"
-														? "Instagram connection coming soon"
-														: "X connection coming soon"}
+												{activeChannelModal === "instagram"
+													? "Instagram connection coming soon"
+													: "X connection coming soon"}
 											</p>
 											<Button
 												onClick={() => setActiveChannelModal(null)}
