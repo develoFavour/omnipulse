@@ -42,12 +42,17 @@ export function useChannelConnection(options?: UseChannelConnectionOptions) {
 	);
 
 	const connectWhatsApp = useCallback(
-		async (code: string) => {
+		async (credentials: { phone_number_id: string; access_token: string; verify_token: string }) => {
 			setLoading(true);
 			setError(null);
 
 			try {
-				const result = await channelService.connectWhatsApp(code);
+				const payload: ChannelPayload = {
+					platform_name: "whatsapp",
+					sender_identity: "WhatsApp Business",
+					encrypted_credentials: credentials,
+				};
+				const result = await channelService.createChannel(payload);
 				setData(result);
 				options?.onSuccess?.(result);
 				return result;
@@ -55,7 +60,7 @@ export function useChannelConnection(options?: UseChannelConnectionOptions) {
 				const errorMessage =
 					err.response?.data?.error ||
 					err.message ||
-					"Failed to connect WhatsApp.";
+					"Failed to connect WhatsApp Business.";
 				setError(errorMessage);
 				options?.onError?.(errorMessage);
 				throw err;
