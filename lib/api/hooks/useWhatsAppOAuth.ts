@@ -223,13 +223,11 @@ export function useWhatsAppOAuth(
 					{
 						config_id: oauthConfig.config_id,
 						response_type: "code",
-						override: "whatsapp_business_messaging",
+						override_default_response_type: true,
 						extras: {
-							target_app_id: oauthConfig.app_id,
-							feature: "whatsapp_embedded_signup",
-							setup: {
-								business_name: "",
-							},
+							setup: {},
+							featureType: "",
+							sessionInfoVersion: "3",
 						},
 					},
 				);
