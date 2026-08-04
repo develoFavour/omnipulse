@@ -187,8 +187,15 @@ export function useWhatsAppOAuth(
 				code?: string;
 				error?: { message: string };
 			}>((resolve) => {
+				console.info("[Meta OAuth] Launch config", { config_id: oauthConfig.config_id, redirect_uri: oauthConfig.redirect_uri });
+
 				window.FB.login(
 					(fbResponse: Record<string, unknown>) => {
+					console.info("[Meta OAuth] FB.login response", {
+						status: fbResponse.status,
+						authResponseKeys: Object.keys((fbResponse.authResponse as Record<string, unknown>) || {}),
+						errorMessage: (fbResponse.error as { message?: string } | undefined)?.message,
+					});
 						const authResp = fbResponse.authResponse as
 							| Record<string, unknown>
 							| undefined;
