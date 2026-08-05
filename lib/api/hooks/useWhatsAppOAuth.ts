@@ -229,7 +229,6 @@ export function useWhatsAppOAuth(
 					},
 					{
 						config_id: oauthConfig.config_id,
-						redirect_uri: oauthConfig.redirect_uri,
 						response_type: "code",
 						override_default_response_type: true,
 						extras: {
