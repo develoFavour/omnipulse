@@ -256,14 +256,11 @@ export function useWhatsAppOAuth(
 				setIsLoading(false);
 				return;
 			}
-
-			// Exchange the auth code with our backend, passing captured waba_id / phone_number_id and redirect_uri if present
-			const currentRedirectURI = oauthConfig.redirect_uri || (typeof window !== "undefined" ? window.location.origin + "/connections" : "");
+			// Exchange the code once; the JS SDK controls the OAuth redirect URI.
 			const result = await channelService.exchangeWhatsAppOAuthCode(
 				response.code,
-				capturedWabaId,
-				capturedPhoneNumberId,
-				currentRedirectURI,
+					capturedWabaId,
+					capturedPhoneNumberId,
 			);
 
 			const connRes = {
