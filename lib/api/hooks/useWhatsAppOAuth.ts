@@ -258,11 +258,13 @@ export function useWhatsAppOAuth(
 				return;
 			}
 
-			// Exchange the auth code with our backend, passing captured waba_id / phone_number_id if present
+			// Exchange the auth code with our backend, passing captured waba_id / phone_number_id and redirect_uri if present
+			const currentRedirectURI = oauthConfig.redirect_uri || (typeof window !== "undefined" ? window.location.origin + "/connections" : "");
 			const result = await channelService.exchangeWhatsAppOAuthCode(
 				response.code,
 				capturedWabaId,
 				capturedPhoneNumberId,
+				currentRedirectURI,
 			);
 
 			const connRes = {

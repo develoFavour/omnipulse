@@ -80,11 +80,12 @@ class ChannelService {
 		code: string,
 		waba_id?: string,
 		phone_number_id?: string,
+		redirect_uri?: string,
 	): Promise<WhatsAppOAuthCallbackResponse> {
 		const response = await apiClient.post<{
 			success: boolean;
 			data: WhatsAppOAuthCallbackResponse;
-		}>(ENDPOINTS.WHATSAPP.OAUTH_CALLBACK, { code, waba_id, phone_number_id });
+		}>(ENDPOINTS.WHATSAPP.OAUTH_CALLBACK, { code, waba_id, phone_number_id, redirect_uri });
 		return response.data.data;
 	}
 }
