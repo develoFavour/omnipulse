@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useAuth } from "@clerk/nextjs";
 import {
 	channelService,
 	type WhatsAppOAuthConfig,
@@ -54,6 +55,7 @@ interface UseWhatsAppOAuthReturn {
 export function useWhatsAppOAuth(
 	options?: UseWhatsAppOAuthOptions,
 ): UseWhatsAppOAuthReturn {
+	const { getToken, isLoaded, isSignedIn } = useAuth();
 	const [isLoading, setIsLoading] = useState(false);
 	const [isDisconnecting, setIsDisconnecting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -73,8 +75,15 @@ export function useWhatsAppOAuth(
 		let cancelled = false;
 
 		const fetchConfig = async () => {
+			if (!isLoaded || !isSignedIn) return;
+
 			try {
+				console.info("[Meta OAuth] stage=config_request");
 				const oauthConfig = await channelService.getWhatsAppOAuthConfig();
+				console.info("[Meta OAuth] stage=config_received", {
+					config_id: oauthConfig.config_id,
+					redirect_uri: oauthConfig.redirect_uri,
+				});
 				if (!cancelled) {
 					setConfig(oauthConfig);
 					configRef.current = oauthConfig;
@@ -99,7 +108,7 @@ export function useWhatsAppOAuth(
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [isLoaded, isSignedIn]);
 
 	// Load Facebook SDK dynamically when config is available.
 	// This runs exactly once when config becomes available.
@@ -162,16 +171,28 @@ export function useWhatsAppOAuth(
 
 // Handle the authorization code returned to /connections by the direct OAuth dialog.
 useEffect(() => {
-	if (!config || typeof window === "undefined") return
+	if (!isLoaded || !isSignedIn || typeof window === "undefined") return
 	const params = new URLSearchParams(window.location.search)
 	const code = params.get("code")
 	if (!code || callbackHandledRef.current) return
 	callbackHandledRef.current = true
 
-	setIsLoading(true)
-	channelService
-		.exchangeWhatsAppOAuthCode(code)
-		.then((result) => {
+	const exchangeCode = async () => {
+		console.info("[Meta OAuth] stage=received_code", {
+			code_length: code.length,
+			redirect_uri: `${window.location.origin}${window.location.pathname}`,
+		})
+		setIsLoading(true)
+		try {
+			// Wait for a real Clerk session token before making the exchange.
+			// isSignedIn can become true a moment before getToken is available.
+			const token = await getToken()
+			if (!token) {
+				throw new Error("Authentication token is not ready. Please try again.")
+			}
+
+			const result = await channelService.exchangeWhatsAppOAuthCode(code)
+			console.info("[Meta OAuth] stage=token_received")
 			const connRes = {
 				sender_identity: result.sender_identity,
 				waba_id: result.waba_id,
@@ -182,15 +203,20 @@ useEffect(() => {
 			setError(null)
 			window.history.replaceState({}, document.title, window.location.pathname)
 			options?.onSuccess?.(connRes)
-		})
-		.catch((err: unknown) => {
-			const apiErr = err as { response?: { data?: { error?: string } }; message?: string }
+		} catch (err: unknown) {
+			const apiErr = err as { response?: { status?: number; data?: { error?: string } }; message?: string }
 			const msg = apiErr.response?.data?.error || apiErr.message || "Failed to complete WhatsApp connection via Meta"
+			console.error("[Meta OAuth] stage=exchange_failed", { message: msg })
+			if (apiErr.response?.status === 401) callbackHandledRef.current = false
 			setError(msg)
 			options?.onError?.(msg)
-		})
-		.finally(() => setIsLoading(false))
-}, [config, options])
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	exchangeCode()
+}, [getToken, isLoaded, isSignedIn, options])
 const disconnect = useCallback(async () => {
 		setIsDisconnecting(true);
 		setError(null);

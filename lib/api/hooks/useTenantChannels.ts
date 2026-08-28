@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { channelService, ChannelResponse } from "@/lib/services/channel.service";
 
 export interface TenantChannel {
@@ -16,11 +17,14 @@ interface UseTenantChannelsOptions {
 }
 
 export function useTenantChannels(options?: UseTenantChannelsOptions) {
+	const { isLoaded, isSignedIn } = useAuth();
 	const [channels, setChannels] = useState<TenantChannel[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
 	const fetchChannels = useCallback(async () => {
+		if (!isLoaded || !isSignedIn) return;
+
 		try {
 			setLoading(true);
 			const data = await channelService.getChannels();
@@ -33,7 +37,7 @@ export function useTenantChannels(options?: UseTenantChannelsOptions) {
 		} finally {
 			setLoading(false);
 		}
-	}, []);
+	}, [isLoaded, isSignedIn]);
 
 	// Initial fetch
 	useEffect(() => {
