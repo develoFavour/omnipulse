@@ -48,10 +48,15 @@ apiClient.interceptors.response.use(
       // Only redirect if we are NOT already on an auth page (prevents loops)
       const isOnAuthPage = AUTH_PATHS.some((path) => currentPath.startsWith(path));
       if (!isOnAuthPage) {
-        window.location.href = APP_ROUTES.AUTH.SIGN_IN;
+        // Preserve OAuth callback parameters while Clerk authentication settles.
+        // Without this, a temporary 401 sends the user to /sign-in and drops
+        // Meta's one-time `code`, so the backend never receives the callback.
+        const returnUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+        const signInUrl = new URL(APP_ROUTES.AUTH.SIGN_IN, window.location.origin);
+        signInUrl.searchParams.set("redirect_url", returnUrl);
+        window.location.href = signInUrl.toString();
       }
     }
     return Promise.reject(error);
   }
 );
-
