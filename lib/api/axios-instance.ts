@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { APP_ROUTES } from '@/lib/constants/routes.const';
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -31,32 +30,11 @@ apiClient.interceptors.request.use(async (config) => {
   return Promise.reject(error);
 });
 
-// Auth pages that should never trigger a redirect (prevents infinite loops)
-const AUTH_PATHS = [
-  APP_ROUTES.AUTH.SIGN_IN,
-  APP_ROUTES.AUTH.SIGN_UP,
-  APP_ROUTES.AUTH.GET_STARTED,
-];
-
-// Add a response interceptor to handle 401 Unauthorized globally
+// Do not navigate from an API interceptor. Route authentication belongs in
+// proxy.ts, where redirects happen before protected pages render. Navigating
+// here can discard one-time OAuth query parameters and creates sign-in flashes
+// when the Clerk token is still being initialized.
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
-      const currentPath = window.location.pathname;
-
-      // Only redirect if we are NOT already on an auth page (prevents loops)
-      const isOnAuthPage = AUTH_PATHS.some((path) => currentPath.startsWith(path));
-      if (!isOnAuthPage) {
-        // Preserve OAuth callback parameters while Clerk authentication settles.
-        // Without this, a temporary 401 sends the user to /sign-in and drops
-        // Meta's one-time `code`, so the backend never receives the callback.
-        const returnUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-        const signInUrl = new URL(APP_ROUTES.AUTH.SIGN_IN, window.location.origin);
-        signInUrl.searchParams.set("redirect_url", returnUrl);
-        window.location.href = signInUrl.toString();
-      }
-    }
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
