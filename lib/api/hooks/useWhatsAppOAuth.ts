@@ -158,6 +158,8 @@ export function useWhatsAppOAuth(
 	oauthUrl.searchParams.set("client_id", oauthConfig.app_id)
 	oauthUrl.searchParams.set("config_id", oauthConfig.config_id)
 	oauthUrl.searchParams.set("response_type", "code")
+	// Required for the backend to list the connected business portfolio and WABA.
+	oauthUrl.searchParams.set("scope", "business_management,whatsapp_business_management")
 	oauthUrl.searchParams.set("redirect_uri", redirectUri)
 	oauthUrl.searchParams.set("state", crypto.randomUUID())
 
