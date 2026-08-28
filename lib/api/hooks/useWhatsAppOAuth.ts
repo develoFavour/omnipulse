@@ -65,7 +65,8 @@ export function useWhatsAppOAuth(
 		phone_number_id: string;
 	} | null>(null);
 	const configRef = useRef<WhatsAppOAuthConfig | null>(null);
-	const fbLoadedRef = useRef(false);
+	const fbLoadedRef = useRef(false)
+	const callbackHandledRef = useRef(false);
 
 	// Fetch the OAuth config on mount
 	useEffect(() => {
@@ -132,164 +133,65 @@ export function useWhatsAppOAuth(
 	}, [config]);
 
 	const connectWithMeta = useCallback(async () => {
-		const oauthConfig = configRef.current;
-		if (!oauthConfig) {
-			const msg =
-				"Meta OAuth is not configured. Please check your environment variables.";
-			setError(msg);
-			options?.onError?.(msg);
-			return;
-		}
+	const oauthConfig = configRef.current
+	if (!oauthConfig) {
+		const msg = "Meta OAuth is not configured. Please check your environment variables."
+		setError(msg)
+		options?.onError?.(msg)
+		return
+	}
 
-		if (!fbLoadedRef.current) {
-			const msg =
-				"Facebook SDK is still loading. Please try again in a moment.";
-			setError(msg);
-			options?.onError?.(msg);
-			return;
-		}
+	setError(null)
+	setIsLoading(true)
 
-		setIsLoading(true);
-		setError(null);
+	const redirectUri = oauthConfig.redirect_uri || window.location.origin + "/connections"
+	const oauthUrl = new URL("https://www.facebook.com/v21.0/dialog/oauth")
+	oauthUrl.searchParams.set("client_id", oauthConfig.app_id)
+	oauthUrl.searchParams.set("config_id", oauthConfig.config_id)
+	oauthUrl.searchParams.set("response_type", "code")
+	oauthUrl.searchParams.set("redirect_uri", redirectUri)
+	oauthUrl.searchParams.set("state", crypto.randomUUID())
 
-		try {
-			// Prepare session refs for Meta postMessage listener
-			let capturedWabaId: string | undefined;
-			let capturedPhoneNumberId: string | undefined;
+	console.info("[Meta OAuth] Direct dialog launch", {
+		config_id: oauthConfig.config_id,
+		redirect_uri: redirectUri,
+	})
 
-			const messageHandler = (event: MessageEvent) => {
-				if (
-					event.origin !== "https://www.facebook.com" &&
-					event.origin !== "https://web.facebook.com"
-				) {
-					return;
-				}
-				try {
-					const data =
-						typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-					if (data.type === "WA_EMBEDDED_SIGNUP") {
-						if (data.data?.waba_id) {
-							capturedWabaId = data.data.waba_id;
-						}
-						if (data.data?.phone_number_id) {
-							capturedPhoneNumberId = data.data.phone_number_id;
-						}
-					}
-				} catch {
-					// Ignore unparseable postMessages
-				}
-			};
+	window.location.assign(oauthUrl.toString())
+}, [options])
 
-			window.addEventListener("message", messageHandler);
+// Handle the authorization code returned to /connections by the direct OAuth dialog.
+useEffect(() => {
+	if (!config || typeof window === "undefined") return
+	const params = new URLSearchParams(window.location.search)
+	const code = params.get("code")
+	if (!code || callbackHandledRef.current) return
+	callbackHandledRef.current = true
 
-			// Launch Meta Embedded Signup dialog
-			const response = await new Promise<{
-				code?: string;
-				error?: { message: string };
-			}>((resolve) => {
-				console.info("[Meta OAuth] Launch config", { config_id: oauthConfig.config_id, redirect_uri: oauthConfig.redirect_uri });
-
-				window.FB.login(
-					(fbResponse: Record<string, unknown>) => {
-					console.info("[Meta OAuth] FB.login response", {
-						status: fbResponse.status,
-						authResponseKeys: Object.keys((fbResponse.authResponse as Record<string, unknown>) || {}),
-						errorMessage: (fbResponse.error as { message?: string } | undefined)?.message,
-					});
-						const authResp = fbResponse.authResponse as
-							| Record<string, unknown>
-							| undefined;
-						if (authResp?.code) {
-							resolve({ code: authResp.code as string });
-						} else if (fbResponse.status === "not_authorized") {
-							resolve({
-								error: {
-									message: "You declined the authorization. Please try again.",
-								},
-							});
-						} else if (fbResponse.status === "unknown") {
-							resolve({
-								error: {
-									message:
-										"Facebook login was cancelled or could not be completed.",
-								},
-							});
-						} else {
-							const errResp = fbResponse.error as
-								| { message?: string }
-								| undefined;
-							resolve({
-								error: {
-									message:
-										errResp?.message ||
-										"An unknown error occurred during Facebook login.",
-								},
-							});
-						}
-					},
-					{
-						config_id: oauthConfig.config_id,
-						response_type: "code",
-						override_default_response_type: true,
-						extras: {
-							setup: {},
-							featureType: "whatsapp_business_app_onboarding",
-							sessionInfoVersion: "3",
-						},
-					},
-				);
-			});
-
-			window.removeEventListener("message", messageHandler);
-
-			if (response.error) {
-				setError(response.error.message);
-				options?.onError?.(response.error.message);
-				setIsLoading(false);
-				return;
-			}
-
-			if (!response.code) {
-				const msg = "No authorization code received from Meta.";
-				setError(msg);
-				options?.onError?.(msg);
-				setIsLoading(false);
-				return;
-			}
-			// Exchange the code once; the JS SDK controls the OAuth redirect URI.
-			const result = await channelService.exchangeWhatsAppOAuthCode(
-				response.code,
-					capturedWabaId,
-					capturedPhoneNumberId,
-			);
-
+	setIsLoading(true)
+	channelService
+		.exchangeWhatsAppOAuthCode(code)
+		.then((result) => {
 			const connRes = {
 				sender_identity: result.sender_identity,
 				waba_id: result.waba_id,
 				phone_number_id: result.phone_number_id,
-			};
-
-			setConnectionResult(connRes);
-			setIsConnected(true);
-			setError(null);
-			options?.onSuccess?.(connRes);
-		} catch (err: unknown) {
-			const apiErr = err as {
-				response?: { data?: { error?: string } };
-				message?: string;
-			};
-			const msg =
-				apiErr.response?.data?.error ||
-				apiErr.message ||
-				"Failed to complete WhatsApp connection via Meta";
-			setError(msg);
-			options?.onError?.(msg);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [options]);
-
-	const disconnect = useCallback(async () => {
+			}
+			setConnectionResult(connRes)
+			setIsConnected(true)
+			setError(null)
+			window.history.replaceState({}, document.title, window.location.pathname)
+			options?.onSuccess?.(connRes)
+		})
+		.catch((err: unknown) => {
+			const apiErr = err as { response?: { data?: { error?: string } }; message?: string }
+			const msg = apiErr.response?.data?.error || apiErr.message || "Failed to complete WhatsApp connection via Meta"
+			setError(msg)
+			options?.onError?.(msg)
+		})
+		.finally(() => setIsLoading(false))
+}, [config, options])
+const disconnect = useCallback(async () => {
 		setIsDisconnecting(true);
 		setError(null);
 		try {
