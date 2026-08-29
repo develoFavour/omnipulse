@@ -144,59 +144,75 @@ export function useWhatsAppOAuth(
 		document.body.appendChild(script);
 	}, [config]);
 
-	const completeEmbeddedSignup = useCallback(async () => {
-		const code = pendingCodeRef.current;
-		const assets = signupAssetsRef.current;
-		if (!code || !assets || exchangeInFlightRef.current) return;
+	const completeEmbeddedSignup = useCallback(
+		async (forcedCode?: string) => {
+			const code = forcedCode || pendingCodeRef.current;
+			const assets = signupAssetsRef.current;
+			if (!code || exchangeInFlightRef.current) return;
 
-		exchangeInFlightRef.current = true;
-		callbackHandledRef.current = true;
-		setIsLoading(true);
-		console.info("[Meta OAuth] stage=received_code", {
-			code_length: code.length,
-			waba_id: assets.waba_id,
-			phone_number_id: assets.phone_number_id,
-		});
+			exchangeInFlightRef.current = true;
+			callbackHandledRef.current = true;
+			setIsLoading(true);
+			console.info("[Meta OAuth] stage=received_code", {
+				code_length: code.length,
+				waba_id: assets?.waba_id,
+				phone_number_id: assets?.phone_number_id,
+			});
 
-		try {
-			const result = await channelService.exchangeWhatsAppOAuthCode(
-				code,
-				assets.waba_id,
-				assets.phone_number_id,
-				configRef.current?.redirect_uri,
-			);
-			const connRes = {
-				sender_identity: result.sender_identity,
-				waba_id: result.waba_id,
-				phone_number_id: result.phone_number_id,
-			};
-			console.info("[Meta OAuth] stage=token_received", connRes);
-			setConnectionResult(connRes);
-			setIsConnected(true);
-			setError(null);
-			window.history.replaceState({}, document.title, window.location.pathname);
-			options?.onSuccess?.(connRes);
-		} catch (err: unknown) {
-			const apiErr = err as { response?: { data?: { error?: string } }; message?: string };
-			const msg = apiErr.response?.data?.error || apiErr.message || "Failed to complete WhatsApp connection via Meta";
-			console.error("[Meta OAuth] stage=exchange_failed", { message: msg });
-			setError(msg);
-			options?.onError?.(msg);
-		} finally {
-			pendingCodeRef.current = null;
-			exchangeInFlightRef.current = false;
-			setIsLoading(false);
-		}
-	}, [options]);
+			try {
+				const result = await channelService.exchangeWhatsAppOAuthCode(
+					code,
+					assets?.waba_id,
+					assets?.phone_number_id,
+					configRef.current?.redirect_uri,
+				);
+				const connRes = {
+					sender_identity: result.sender_identity,
+					waba_id: result.waba_id,
+					phone_number_id: result.phone_number_id,
+				};
+				console.info("[Meta OAuth] stage=token_received", connRes);
+				setConnectionResult(connRes);
+				setIsConnected(true);
+				setError(null);
+				window.history.replaceState({}, document.title, window.location.pathname);
+				options?.onSuccess?.(connRes);
+			} catch (err: unknown) {
+				const apiErr = err as {
+					response?: { data?: { error?: string } };
+					message?: string;
+				};
+				const msg =
+					apiErr.response?.data?.error ||
+					apiErr.message ||
+					"Failed to complete WhatsApp connection via Meta";
+				console.error("[Meta OAuth] stage=exchange_failed", { message: msg });
+				setError(msg);
+				options?.onError?.(msg);
+			} finally {
+				pendingCodeRef.current = null;
+				exchangeInFlightRef.current = false;
+				setIsLoading(false);
+			}
+		},
+		[options],
+	);
 
 	// Meta sends the WABA and phone IDs through postMessage when Embedded Signup finishes.
 	useEffect(() => {
 		const handleMetaMessage = (event: MessageEvent) => {
-			if (event.origin !== "https://www.facebook.com" && event.origin !== "https://web.facebook.com") return;
+			if (
+				event.origin !== "https://www.facebook.com" &&
+				event.origin !== "https://web.facebook.com"
+			)
+				return;
 
 			let payload: Record<string, unknown>;
 			try {
-				payload = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+				payload =
+					typeof event.data === "string"
+						? JSON.parse(event.data)
+						: event.data;
 			} catch {
 				return;
 			}
@@ -211,9 +227,14 @@ export function useWhatsAppOAuth(
 				phone_number_id_present: Boolean(phoneNumberID),
 			});
 
-			if (wabaID && phoneNumberID) {
-				signupAssetsRef.current = { waba_id: wabaID, phone_number_id: phoneNumberID };
-				void completeEmbeddedSignup();
+			if (wabaID || phoneNumberID) {
+				signupAssetsRef.current = {
+					waba_id: wabaID,
+					phone_number_id: phoneNumberID,
+				};
+				if (pendingCodeRef.current && !exchangeInFlightRef.current) {
+					void completeEmbeddedSignup(pendingCodeRef.current);
+				}
 			}
 		};
 
@@ -224,13 +245,15 @@ export function useWhatsAppOAuth(
 	const connectWithMeta = useCallback(async () => {
 		const oauthConfig = configRef.current;
 		if (!oauthConfig) {
-			const msg = "Meta OAuth is not configured. Please check your environment variables.";
+			const msg =
+				"Meta OAuth is not configured. Please check your environment variables.";
 			setError(msg);
 			options?.onError?.(msg);
 			return;
 		}
 		if (!fbLoadedRef.current || !window.FB) {
-			const msg = "Meta Embedded Signup is still loading. Please try again in a moment.";
+			const msg =
+				"Meta Embedded Signup is still loading. Please try again in a moment.";
 			setError(msg);
 			options?.onError?.(msg);
 			return;
@@ -248,7 +271,9 @@ export function useWhatsAppOAuth(
 
 		window.FB.login(
 			(response) => {
-				const authResponse = response.authResponse as { code?: string } | undefined;
+				const authResponse = response.authResponse as
+					| { code?: string }
+					| undefined;
 				const code = authResponse?.code;
 				console.info("[Meta OAuth] FB.login response", {
 					status: response.status,
@@ -256,11 +281,13 @@ export function useWhatsAppOAuth(
 				});
 				if (!code) {
 					setIsLoading(false);
-					setError("Meta Embedded Signup did not return an authorization code.");
+					setError(
+						"Meta Embedded Signup was cancelled or did not return an authorization code.",
+					);
 					return;
 				}
 				pendingCodeRef.current = code;
-				void completeEmbeddedSignup();
+				void completeEmbeddedSignup(code);
 			},
 			{
 				config_id: oauthConfig.config_id,
