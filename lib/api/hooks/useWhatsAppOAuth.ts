@@ -251,105 +251,89 @@ export function useWhatsAppOAuth(
 			options?.onError?.(msg);
 			return;
 		}
-		if (!fbLoadedRef.current || !window.FB) {
-			const msg =
-				"Meta Embedded Signup is still loading. Please try again in a moment.";
-			setError(msg);
-			options?.onError?.(msg);
-			return;
-		}
 
 		setError(null);
 		setIsLoading(true);
 		pendingCodeRef.current = null;
 		signupAssetsRef.current = null;
 
-		console.info("[Meta OAuth] Embedded Signup launch", {
+		const redirectURI = `${window.location.origin}/connections`;
+		const oauthURL = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${oauthConfig.app_id}&config_id=${oauthConfig.config_id}&redirect_uri=${encodeURIComponent(redirectURI)}&response_type=code`;
+
+		console.info("[Meta OAuth] Direct OAuth Launch", {
+			app_id: oauthConfig.app_id,
 			config_id: oauthConfig.config_id,
-			redirect_uri: oauthConfig.redirect_uri,
+			redirect_uri: redirectURI,
 		});
 
-		window.FB.login(
-			(response) => {
-				const authResponse = response.authResponse as
-					| { code?: string }
-					| undefined;
-				const code = authResponse?.code;
-				console.info("[Meta OAuth] FB.login response", {
-					status: response.status,
-					code_present: Boolean(code),
-				});
-				if (!code) {
-					setIsLoading(false);
-					setError(
-						"Meta Embedded Signup was cancelled or did not return an authorization code.",
+		window.location.href = oauthURL;
+	}, [options]);
+
+	// Handle the authorization code returned to /connections by the direct OAuth dialog.
+	useEffect(() => {
+		if (!isLoaded || !isSignedIn || typeof window === "undefined") return;
+		const params = new URLSearchParams(window.location.search);
+		const code = params.get("code");
+		if (!code || callbackHandledRef.current) return;
+		callbackHandledRef.current = true;
+
+		const exchangeCode = async () => {
+			const redirectURI = `${window.location.origin}${window.location.pathname}`;
+			console.info("[Meta OAuth] stage=received_code", {
+				code_length: code.length,
+				redirect_uri: redirectURI,
+			});
+			setIsLoading(true);
+			try {
+				const token = await getToken();
+				if (!token) {
+					throw new Error(
+						"Authentication token is not ready. Please try again.",
 					);
-					return;
 				}
-				pendingCodeRef.current = code;
-				void completeEmbeddedSignup(code);
-			},
-			{
-				config_id: oauthConfig.config_id,
-				response_type: "code",
-				override_default_response_type: true,
-				extras: {
-					setup: {},
-					featureType: "whatsapp_business_app_onboarding",
-					sessionInfoVersion: "3",
-				},
-			},
-		);
-	}, [completeEmbeddedSignup, options]);
 
-// Handle the authorization code returned to /connections by the direct OAuth dialog.
-useEffect(() => {
-	if (!isLoaded || !isSignedIn || typeof window === "undefined") return
-	const params = new URLSearchParams(window.location.search)
-	const code = params.get("code")
-	if (!code || callbackHandledRef.current) return
-	callbackHandledRef.current = true
-
-	const exchangeCode = async () => {
-		console.info("[Meta OAuth] stage=received_code", {
-			code_length: code.length,
-			redirect_uri: `${window.location.origin}${window.location.pathname}`,
-		})
-		setIsLoading(true)
-		try {
-			// Wait for a real Clerk session token before making the exchange.
-			// isSignedIn can become true a moment before getToken is available.
-			const token = await getToken()
-			if (!token) {
-				throw new Error("Authentication token is not ready. Please try again.")
+				const result = await channelService.exchangeWhatsAppOAuthCode(
+					code,
+					undefined,
+					undefined,
+					redirectURI,
+				);
+				console.info("[Meta OAuth] stage=token_received", result);
+				const connRes = {
+					sender_identity: result.sender_identity,
+					waba_id: result.waba_id,
+					phone_number_id: result.phone_number_id,
+				};
+				setConnectionResult(connRes);
+				setIsConnected(true);
+				setError(null);
+				window.history.replaceState(
+					{},
+					document.title,
+					window.location.pathname,
+				);
+				options?.onSuccess?.(connRes);
+			} catch (err: unknown) {
+				const apiErr = err as {
+					response?: { status?: number; data?: { error?: string } };
+					message?: string;
+				};
+				const msg =
+					apiErr.response?.data?.error ||
+					apiErr.message ||
+					"Failed to complete WhatsApp connection via Meta";
+				console.error("[Meta OAuth] stage=exchange_failed", { message: msg });
+				if (apiErr.response?.status === 401)
+					callbackHandledRef.current = false;
+				setError(msg);
+				options?.onError?.(msg);
+			} finally {
+				setIsLoading(false);
 			}
+		};
 
-			const result = await channelService.exchangeWhatsAppOAuthCode(code)
-			console.info("[Meta OAuth] stage=token_received")
-			const connRes = {
-				sender_identity: result.sender_identity,
-				waba_id: result.waba_id,
-				phone_number_id: result.phone_number_id,
-			}
-			setConnectionResult(connRes)
-			setIsConnected(true)
-			setError(null)
-			window.history.replaceState({}, document.title, window.location.pathname)
-			options?.onSuccess?.(connRes)
-		} catch (err: unknown) {
-			const apiErr = err as { response?: { status?: number; data?: { error?: string } }; message?: string }
-			const msg = apiErr.response?.data?.error || apiErr.message || "Failed to complete WhatsApp connection via Meta"
-			console.error("[Meta OAuth] stage=exchange_failed", { message: msg })
-			if (apiErr.response?.status === 401) callbackHandledRef.current = false
-			setError(msg)
-			options?.onError?.(msg)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	exchangeCode()
-}, [getToken, isLoaded, isSignedIn, options])
+		exchangeCode();
+	}, [getToken, isLoaded, isSignedIn, options]);
 const disconnect = useCallback(async () => {
 		setIsDisconnecting(true);
 		setError(null);
