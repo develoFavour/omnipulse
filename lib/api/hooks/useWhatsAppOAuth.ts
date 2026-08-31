@@ -164,7 +164,7 @@ export function useWhatsAppOAuth(
 					code,
 					assets?.waba_id,
 					assets?.phone_number_id,
-					configRef.current?.redirect_uri,
+					"",
 				);
 				const connRes = {
 					sender_identity: result.sender_identity,
@@ -279,17 +279,54 @@ export function useWhatsAppOAuth(
 			return;
 		}
 
+		// Launch the Meta Embedded Signup onboarding popup wizard via FB.login
+		if (fbLoadedRef.current && window.FB) {
+			console.info("[Meta OAuth] Launching Embedded Signup Onboarding Wizard via FB.login", {
+				config_id: oauthConfig.config_id,
+			});
+			window.FB.login(
+				(response) => {
+					const authResponse = response.authResponse as
+						| { code?: string }
+						| undefined;
+					const code = authResponse?.code;
+					console.info("[Meta OAuth] FB.login response", {
+						status: response.status,
+						code_present: Boolean(code),
+					});
+					if (!code) {
+						setIsLoading(false);
+						return;
+					}
+					pendingCodeRef.current = code;
+					void completeEmbeddedSignup(code);
+				},
+				{
+					config_id: oauthConfig.config_id,
+					response_type: "code",
+					override_default_response_type: true,
+					extras: {
+						setup: {},
+						featureType: "whatsapp_business_app_onboarding",
+						sessionInfoVersion: "3",
+					},
+				},
+			);
+			return;
+		}
+
+		// Fallback: Direct OAuth URL
 		const redirectURI = `${window.location.origin}/connections`;
 		const oauthURL = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${oauthConfig.app_id}&config_id=${oauthConfig.config_id}&redirect_uri=${encodeURIComponent(redirectURI)}&response_type=code`;
 
-		console.info("[Meta OAuth] Direct OAuth Dialog Launch", {
+		console.info("[Meta OAuth] Direct OAuth Dialog Fallback", {
 			app_id: oauthConfig.app_id,
 			config_id: oauthConfig.config_id,
 			redirect_uri: redirectURI,
 		});
 
 		window.location.href = oauthURL;
-	}, [options]);
+	}, [completeEmbeddedSignup, options]);
 
 	// Handle the authorization code returned to /connections by the direct OAuth dialog.
 	useEffect(() => {
