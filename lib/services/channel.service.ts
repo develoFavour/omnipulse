@@ -81,6 +81,7 @@ class ChannelService {
 		waba_id?: string,
 		phone_number_id?: string,
 		redirect_uri?: string,
+		source?: string,
 	): Promise<WhatsAppOAuthCallbackResponse> {
 		const response = await apiClient.post<{
 			success: boolean;
@@ -90,6 +91,7 @@ class ChannelService {
 			waba_id,
 			phone_number_id,
 			redirect_uri,
+			source,
 		});
 		return response.data.data;
 	}
