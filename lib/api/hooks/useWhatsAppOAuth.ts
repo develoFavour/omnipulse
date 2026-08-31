@@ -161,11 +161,12 @@ export function useWhatsAppOAuth(
 			});
 
 			try {
+				const redirectURI = `${window.location.origin}/connections`;
 				const result = await channelService.exchangeWhatsAppOAuthCode(
 					code,
 					assets?.waba_id,
 					assets?.phone_number_id,
-					"",
+					redirectURI,
 					"embedded_signup",
 				);
 				const connRes = {
