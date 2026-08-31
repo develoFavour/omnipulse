@@ -315,6 +315,7 @@ export function useWhatsAppOAuth(
 					config_id: oauthConfig.config_id,
 					response_type: "code",
 					override_default_response_type: true,
+					redirect_uri: `${window.location.origin}/connections`,
 					extras: {
 						setup: {},
 						featureType: "whatsapp_business_app_onboarding",
