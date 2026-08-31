@@ -243,19 +243,41 @@ export function useWhatsAppOAuth(
 	}, [completeEmbeddedSignup]);
 
 	const connectWithMeta = useCallback(async () => {
-		const oauthConfig = configRef.current;
-		if (!oauthConfig) {
-			const msg =
-				"Meta OAuth is not configured. Please check your environment variables.";
-			setError(msg);
-			options?.onError?.(msg);
-			return;
-		}
-
 		setError(null);
 		setIsLoading(true);
 		pendingCodeRef.current = null;
 		signupAssetsRef.current = null;
+
+		let oauthConfig = configRef.current;
+		if (!oauthConfig) {
+			try {
+				oauthConfig = await channelService.getWhatsAppOAuthConfig();
+				setConfig(oauthConfig);
+				configRef.current = oauthConfig;
+			} catch (fetchErr: unknown) {
+				const apiErr = fetchErr as {
+					response?: { data?: { error?: string } };
+					message?: string;
+				};
+				const msg =
+					apiErr.response?.data?.error ||
+					apiErr.message ||
+					"Meta OAuth configuration is not ready. Please try again in a moment.";
+				setError(msg);
+				setIsLoading(false);
+				options?.onError?.(msg);
+				return;
+			}
+		}
+
+		if (!oauthConfig || !oauthConfig.app_id || !oauthConfig.config_id) {
+			const msg =
+				"Meta OAuth is not configured on the server. Please check your environment variables.";
+			setError(msg);
+			setIsLoading(false);
+			options?.onError?.(msg);
+			return;
+		}
 
 		const redirectURI = `${window.location.origin}/connections`;
 		const oauthURL = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${oauthConfig.app_id}&config_id=${oauthConfig.config_id}&redirect_uri=${encodeURIComponent(redirectURI)}&response_type=code`;
