@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useWhatsAppQR } from "@/lib/api/hooks/useWhatsAppQR";
 import { QRCodeSVG } from "qrcode.react";
 import { FiSmartphone, FiCheck, FiRefreshCw, FiX, FiWifi } from "react-icons/fi";
@@ -36,16 +37,11 @@ export function WhatsAppQRModal({
 		onClose();
 	};
 
-	const handleOpen = () => {
-		if (status === "idle" || status === "error") {
+	useEffect(() => {
+		if (isOpen && (status === "idle" || status === "error")) {
 			void requestQR();
 		}
-	};
-
-	// Trigger QR generation when modal opens
-	if (isOpen && status === "idle") {
-		handleOpen();
-	}
+	}, [isOpen, status, requestQR]);
 
 	if (!isOpen) return null;
 
