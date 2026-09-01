@@ -52,6 +52,7 @@ export const ENDPOINTS = {
 		QR: `${API_VERSION}/channels/whatsapp/qr`,
 		STATUS: `${API_VERSION}/channels/whatsapp/status`,
 		DISCONNECT: `${API_VERSION}/channels/whatsapp/disconnect`,
+		SYNC_CONTACTS: `${API_VERSION}/channels/whatsapp/sync-contacts`,
 	},
 
 	// Webhooks (Inbound Event Flywheel)

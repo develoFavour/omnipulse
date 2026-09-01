@@ -1,11 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, Webhook, CheckCircle2, Copy } from "lucide-react";
+import { Users, Webhook, CheckCircle2, Copy, RefreshCw, Loader2 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 import { useContacts } from "@/lib/api/hooks/useContacts";
 import { useAppStore } from "@/lib/store";
 import { useState } from "react";
 import { webhookService } from "@/lib/services/webhook.service";
+import { channelService } from "@/lib/services/channel.service";
 import { getPlatformIcon } from "@/lib/utils/platform.utils";
 import { toast } from "sonner";
 
@@ -13,11 +15,30 @@ export default function AudiencePage() {
   const { contacts, isLoading, refetch } = useContacts();
   const tenant = useAppStore((state) => state.tenant);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isSyncingWA, setIsSyncingWA] = useState(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" ? window.location.origin : "");
   const webhookUrl = tenant 
     ? `${apiUrl}/api/v1/webhooks/telegram/${tenant.id}`
     : "Loading...";
+
+  const handleSyncWhatsApp = async () => {
+    setIsSyncingWA(true);
+    try {
+      const res = await channelService.syncWhatsAppContacts();
+      toast.success(res.message || "WhatsApp contacts synced!", {
+        description: `Imported ${res.synced_count} contacts to your Audience directory.`,
+      });
+      refetch();
+    } catch (error: any) {
+      const msg = error.response?.data?.error || error.message || "Failed to sync WhatsApp contacts";
+      toast.error(msg, {
+        description: "Ensure your WhatsApp is connected under Channels & Connections.",
+      });
+    } finally {
+      setIsSyncingWA(false);
+    }
+  };
 
   const handleSimulateWebhook = async () => {
     if (!tenant) return;
@@ -40,7 +61,6 @@ export default function AudiencePage() {
         }
       };
 
-      // In a real app this hits the public gateway URL, but here we can just post directly to our backend
       await webhookService.simulateTelegramWebhook(tenant.id, payload);
       toast.success("Simulated inbound message from Telegram!");
       refetch();
@@ -58,13 +78,43 @@ export default function AudiencePage() {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="max-w-6xl mx-auto pt-4 pb-12"
     >
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 font-heading">
-          Audience Directory
-        </h1>
-        <p className="mt-2 text-gray-500 font-medium">
-          Manage your contacts across all channels.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 font-heading">
+            Audience Directory
+          </h1>
+          <p className="mt-2 text-gray-500 font-medium">
+            Manage your audience and sync contacts across all channels.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSyncWhatsApp}
+            disabled={isSyncingWA}
+            className="flex items-center gap-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] px-5 py-3 text-sm font-bold text-white transition-all shadow-sm disabled:opacity-50"
+          >
+            {isSyncingWA ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Syncing WhatsApp...
+              </>
+            ) : (
+              <>
+                <FaWhatsapp className="h-4 w-4" />
+                Sync WhatsApp Contacts
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={() => refetch()}
+            className="flex items-center gap-2 rounded-xl bg-gray-100 hover:bg-gray-200 px-4 py-3 text-sm font-bold text-gray-700 transition-all"
+            title="Refresh Directory"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       {/* Flywheel Webhook Card */}

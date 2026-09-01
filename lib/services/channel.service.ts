@@ -130,6 +130,17 @@ class ChannelService {
 		}>(ENDPOINTS.WHATSAPP.DISCONNECT);
 		return response.data.data;
 	}
+
+	async syncWhatsAppContacts(): Promise<{
+		synced_count: number;
+		message: string;
+	}> {
+		const response = await apiClient.post<{
+			success: boolean;
+			data: { synced_count: number; message: string };
+		}>(ENDPOINTS.WHATSAPP.SYNC_CONTACTS);
+		return response.data.data;
+	}
 }
 
 export const channelService = new ChannelService();
