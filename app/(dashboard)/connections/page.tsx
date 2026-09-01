@@ -23,6 +23,7 @@ import { useTelegramDestinations } from "@/lib/api/hooks/useTelegramDestinations
 import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
 import { useWhatsAppOAuth } from "@/lib/api/hooks/useWhatsAppOAuth";
 import { TelegramConnectionForm } from "@/components/features/onboarding/TelegramConnectionForm";
+import { WhatsAppQRModal } from "@/components/channels/WhatsAppQRModal";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -155,6 +156,7 @@ export default function ConnectionsCatalogPage() {
 		string | null
 	>(null);
 	const [isDisconnectDialogOpen, setIsDisconnectDialogOpen] = useState(false);
+	const [isWhatsAppQRModalOpen, setIsWhatsAppQRModalOpen] = useState(false);
 
 	const telegramChannel = channels.find(
 		(c) => c.platform_name === "telegram" && c.status === "active",
@@ -265,7 +267,13 @@ export default function ConnectionsCatalogPage() {
 
 								{platform.available ? (
 									<button
-										onClick={() => setActiveManagePlatform(platform.id)}
+										onClick={() => {
+											if (platform.id === "whatsapp" && !connected) {
+												setIsWhatsAppQRModalOpen(true);
+											} else {
+												setActiveManagePlatform(platform.id);
+											}
+										}}
 										className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-bold text-white hover:bg-gray-800 transition-all shadow-sm group-hover:bg-indigo-600"
 									>
 										<span>
@@ -525,12 +533,10 @@ export default function ConnectionsCatalogPage() {
 												</div>
 												<div>
 													<h4 className="text-base font-bold text-emerald-900">
-														Connect with Meta
+														Connect via WhatsApp QR Code
 													</h4>
 													<p className="text-sm text-emerald-700/80 font-medium leading-relaxed mt-1">
-														One-click OAuth setup. No developer console, no
-														copy-pasting tokens. Just sign in with your Facebook
-														account and select your WhatsApp Business profile.
+														Instant device linking. No Facebook login, no Meta approval, no developer configuration. Just scan with your phone like WhatsApp Web.
 													</p>
 												</div>
 											</div>
@@ -545,7 +551,7 @@ export default function ConnectionsCatalogPage() {
 															1.
 														</span>
 														<span>
-															Click &apos;Connect with Meta&apos; below
+															Click &apos;Scan WhatsApp QR Code&apos; below
 														</span>
 													</li>
 													<li className="flex items-start gap-2">
@@ -553,7 +559,7 @@ export default function ConnectionsCatalogPage() {
 															2.
 														</span>
 														<span>
-															Sign in with your Facebook account (Meta OAuth)
+															Open WhatsApp on your phone &rarr; Settings &rarr; Linked Devices
 														</span>
 													</li>
 													<li className="flex items-start gap-2">
@@ -561,8 +567,7 @@ export default function ConnectionsCatalogPage() {
 															3.
 														</span>
 														<span>
-															Select your WhatsApp Business profile & phone
-															number
+															Scan the QR code displayed on your screen
 														</span>
 													</li>
 													<li className="flex items-start gap-2">
@@ -570,39 +575,21 @@ export default function ConnectionsCatalogPage() {
 															4.
 														</span>
 														<span>
-															We handle the rest - webhook registration, token
-															exchange, and channel activation
+															Connected! Send broadcasts directly from your number
 														</span>
 													</li>
 												</ol>
 											</div>
 
-
-
 											<button
-												onClick={connectWithMeta}
-												disabled={isMetaConnecting}
-												className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#1877F2] px-6 py-4 text-sm font-bold text-white hover:bg-[#166FE5] transition-all shadow-md disabled:opacity-50"
+												onClick={() => {
+													setActiveManagePlatform(null);
+													setIsWhatsAppQRModalOpen(true);
+												}}
+												className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-4 text-sm font-bold text-white hover:bg-[#20bd5a] transition-all shadow-md"
 											>
-												{isMetaConnecting ? (
-													<>
-														<Loader2 className="h-5 w-5 animate-spin" />{" "}
-														Connecting...
-													</>
-												) : (
-													<>
-														<ExternalLink className="h-5 w-5" /> Connect with
-														Meta
-													</>
-												)}
+												<MessageCircle className="h-5 w-5" /> Scan WhatsApp QR Code
 											</button>
-
-											{metaError && (
-												<div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-medium text-red-700">
-													<AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
-													{metaError}
-												</div>
-											)}
 										</div>
 									)}
 								</div>
@@ -611,6 +598,19 @@ export default function ConnectionsCatalogPage() {
 					</div>
 				)}
 			</AnimatePresence>
+
+			{/* WhatsApp QR Modal */}
+			<WhatsAppQRModal
+				isOpen={isWhatsAppQRModalOpen}
+				onClose={() => setIsWhatsAppQRModalOpen(false)}
+				onConnected={(phone, name) => {
+					toast.success("WhatsApp connected!", {
+						description: `${name || phone} is now linked and active.`,
+					});
+					refetchChannels();
+					setIsWhatsAppQRModalOpen(false);
+				}}
+			/>
 		</motion.div>
 	);
 }

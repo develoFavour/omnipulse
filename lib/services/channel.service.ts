@@ -95,6 +95,41 @@ class ChannelService {
 		});
 		return response.data.data;
 	}
+
+	// ── WhatsApp Multi-Device QR Connection ──────────────────────────────
+
+	async getWhatsAppQR(): Promise<{
+		qr_code: string;
+		status?: string;
+		phone?: string;
+		name?: string;
+	}> {
+		const response = await apiClient.get<{
+			success: boolean;
+			data: { qr_code: string; status?: string; phone?: string; name?: string };
+		}>(ENDPOINTS.WHATSAPP.QR);
+		return response.data.data;
+	}
+
+	async getWhatsAppQRStatus(): Promise<{
+		status: string;
+		phone?: string;
+		name?: string;
+	}> {
+		const response = await apiClient.get<{
+			success: boolean;
+			data: { status: string; phone?: string; name?: string };
+		}>(ENDPOINTS.WHATSAPP.STATUS);
+		return response.data.data;
+	}
+
+	async disconnectWhatsAppQR(): Promise<{ message: string }> {
+		const response = await apiClient.post<{
+			success: boolean;
+			data: { message: string };
+		}>(ENDPOINTS.WHATSAPP.DISCONNECT);
+		return response.data.data;
+	}
 }
 
 export const channelService = new ChannelService();

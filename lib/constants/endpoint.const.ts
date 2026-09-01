@@ -45,10 +45,13 @@ export const ENDPOINTS = {
 		DESTINATIONS: `${API_VERSION}/telegram/destinations`,
 	},
 
-	// WhatsApp Embedded Signup (1-Click OAuth)
+	// WhatsApp Multi-Device QR Connection
 	WHATSAPP: {
 		OAUTH_CONFIG: `${API_VERSION}/channels/whatsapp/oauth/config`,
 		OAUTH_CALLBACK: `${API_VERSION}/channels/whatsapp/oauth/callback`,
+		QR: `${API_VERSION}/channels/whatsapp/qr`,
+		STATUS: `${API_VERSION}/channels/whatsapp/status`,
+		DISCONNECT: `${API_VERSION}/channels/whatsapp/disconnect`,
 	},
 
 	// Webhooks (Inbound Event Flywheel)
