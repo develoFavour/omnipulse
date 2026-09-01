@@ -7,14 +7,14 @@ import {
 
 declare global {
 	interface Window {
-		FB: {
+		FB?: {
 			init: (params: Record<string, unknown>) => void;
 			login: (
 				callback: (response: Record<string, unknown>) => void,
 				options: Record<string, unknown>,
 			) => void;
 		};
-		fbAsyncInit: () => void;
+		fbAsyncInit?: () => void;
 	}
 }
 
@@ -43,19 +43,52 @@ interface UseWhatsAppOAuthReturn {
 	resetConnection: () => void;
 }
 
+function ensureFacebookSDK(appId: string): Promise<void> {
+	return new Promise((resolve) => {
+		if (typeof window === "undefined") {
+			resolve();
+			return;
+		}
+		if (window.FB) {
+			resolve();
+			return;
+		}
+
+		window.fbAsyncInit = () => {
+			window.FB?.init({
+				appId,
+				autoLogAppEvents: true,
+				xfbml: false,
+				version: "v21.0",
+			});
+			resolve();
+		};
+
+		if (!document.getElementById("facebook-jssdk")) {
+			const script = document.createElement("script");
+			script.id = "facebook-jssdk";
+			script.src = "https://connect.facebook.net/en_US/sdk.js";
+			script.async = true;
+			script.defer = true;
+			script.crossOrigin = "anonymous";
+			document.body.appendChild(script);
+		}
+	});
+}
+
 /**
- * useWhatsAppOAuth — Bridges Meta's Embedded Signup (Facebook SDK) flow with OmniPulse.
+ * useWhatsAppOAuth — Bridges Meta's Embedded Signup flow with OmniPulse.
  *
  * 1. Fetches OAuth config (app_id, config_id) from the backend
  * 2. Loads the Facebook SDK dynamically
- * 3. Provides `connectWithMeta()` which opens the Embedded Signup dialog
- * 4. On success, sends the auth code to the backend which exchanges it for a
- *    permanent token and saves the WhatsApp channel
+ * 3. Provides `connectWithMeta()` which opens the Embedded Signup onboarding dialog
+ * 4. Listens for `sessionInfoListener` postMessage events for WABA ID & Phone Number ID
+ * 5. On success, exchanges the auth code with the backend
  */
 export function useWhatsAppOAuth(
 	options?: UseWhatsAppOAuthOptions,
 ): UseWhatsAppOAuthReturn {
-	const { getToken, isLoaded, isSignedIn } = useAuth();
+	const { isLoaded, isSignedIn } = useAuth();
 	const [isLoading, setIsLoading] = useState(false);
 	const [isDisconnecting, setIsDisconnecting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -67,13 +100,11 @@ export function useWhatsAppOAuth(
 		phone_number_id: string;
 	} | null>(null);
 	const configRef = useRef<WhatsAppOAuthConfig | null>(null);
-	const fbLoadedRef = useRef(false)
-	const callbackHandledRef = useRef(false);
 	const pendingCodeRef = useRef<string | null>(null);
 	const signupAssetsRef = useRef<{ waba_id: string; phone_number_id: string } | null>(null);
 	const exchangeInFlightRef = useRef(false);
 
-	// Fetch the OAuth config on mount
+	// Fetch the OAuth config on mount and pre-initialize Facebook SDK
 	useEffect(() => {
 		let cancelled = false;
 
@@ -81,15 +112,13 @@ export function useWhatsAppOAuth(
 			if (!isLoaded || !isSignedIn) return;
 
 			try {
-				console.info("[Meta OAuth] stage=config_request");
 				const oauthConfig = await channelService.getWhatsAppOAuthConfig();
-				console.info("[Meta OAuth] stage=config_received", {
-					config_id: oauthConfig.config_id,
-					redirect_uri: oauthConfig.redirect_uri,
-				});
 				if (!cancelled) {
 					setConfig(oauthConfig);
 					configRef.current = oauthConfig;
+					if (oauthConfig.app_id) {
+						void ensureFacebookSDK(oauthConfig.app_id);
+					}
 				}
 			} catch (err: unknown) {
 				if (!cancelled) {
@@ -113,37 +142,6 @@ export function useWhatsAppOAuth(
 		};
 	}, [isLoaded, isSignedIn]);
 
-	// Load Facebook SDK dynamically when config is available.
-	// This runs exactly once when config becomes available.
-	// We avoid calling setState in the effect body by using a ref.
-	useEffect(() => {
-		if (!config || fbLoadedRef.current) return;
-
-		const existingScript = document.getElementById("facebook-jssdk");
-		if (existingScript) {
-			fbLoadedRef.current = true;
-			return;
-		}
-
-		const script = document.createElement("script");
-		script.id = "facebook-jssdk";
-		script.src = "https://connect.facebook.net/en_US/sdk.js";
-		script.async = true;
-		script.defer = true;
-		script.crossOrigin = "anonymous";
-
-		window.fbAsyncInit = () => {
-			window.FB.init({
-				appId: config.app_id,
-				version: "v21.0",
-				xfbml: false,
-			});
-			fbLoadedRef.current = true;
-		};
-
-		document.body.appendChild(script);
-	}, [config]);
-
 	const completeEmbeddedSignup = useCallback(
 		async (forcedCode?: string) => {
 			const code = forcedCode || pendingCodeRef.current;
@@ -151,7 +149,6 @@ export function useWhatsAppOAuth(
 			if (!code || exchangeInFlightRef.current) return;
 
 			exchangeInFlightRef.current = true;
-			callbackHandledRef.current = true;
 			setIsLoading(true);
 			console.info("[Meta OAuth] stage=exchanging_code", {
 				code_length: code.length,
@@ -161,12 +158,11 @@ export function useWhatsAppOAuth(
 			});
 
 			try {
-				const redirectURI = `${window.location.origin}/connections`;
 				const result = await channelService.exchangeWhatsAppOAuthCode(
 					code,
 					assets?.waba_id,
 					assets?.phone_number_id,
-					redirectURI,
+					"",
 					"embedded_signup",
 				);
 				const connRes = {
@@ -178,7 +174,6 @@ export function useWhatsAppOAuth(
 				setConnectionResult(connRes);
 				setIsConnected(true);
 				setError(null);
-				window.history.replaceState({}, document.title, window.location.pathname);
 				options?.onSuccess?.(connRes);
 			} catch (err: unknown) {
 				const apiErr = err as {
@@ -226,8 +221,8 @@ export function useWhatsAppOAuth(
 			const phoneNumberID = String(data.phone_number_id || "");
 			console.info("[Meta OAuth] Embedded Signup message", {
 				event: data.event,
-				waba_id_present: Boolean(wabaID),
-				phone_number_id_present: Boolean(phoneNumberID),
+				waba_id: wabaID,
+				phone_number_id: phoneNumberID,
 			});
 
 			if (wabaID || phoneNumberID) {
@@ -282,10 +277,14 @@ export function useWhatsAppOAuth(
 			return;
 		}
 
-		// Primary: FB.login with Embedded Signup onboarding wizard
-		// This opens a popup where users create a WhatsApp Business profile,
-		// add their phone number, and verify it via SMS — all in-app.
-		if (fbLoadedRef.current && window.FB) {
+		// Ensure Facebook SDK is initialized
+		try {
+			await ensureFacebookSDK(oauthConfig.app_id);
+		} catch (sdkErr) {
+			console.error("[Meta OAuth] Error loading Facebook SDK", sdkErr);
+		}
+
+		if (window.FB) {
 			console.info("[Meta OAuth] Launching Embedded Signup Onboarding Wizard via FB.login", {
 				config_id: oauthConfig.config_id,
 			});
@@ -304,21 +303,18 @@ export function useWhatsAppOAuth(
 						return;
 					}
 					pendingCodeRef.current = code;
-					// Give the sessionInfoListener 2s to deliver waba_id/phone_number_id
 					setTimeout(() => {
 						if (!exchangeInFlightRef.current) {
 							void completeEmbeddedSignup(code);
 						}
-					}, 2000);
+					}, 1500);
 				},
 				{
 					config_id: oauthConfig.config_id,
 					response_type: "code",
 					override_default_response_type: true,
-					redirect_uri: `${window.location.origin}/connections`,
 					extras: {
 						setup: {},
-						featureType: "whatsapp_business_app_onboarding",
 						sessionInfoVersion: "3",
 					},
 				},
@@ -326,85 +322,13 @@ export function useWhatsAppOAuth(
 			return;
 		}
 
-		// Fallback: Direct OAuth Dialog (no onboarding wizard, but code exchange works)
-		const redirectURI = `${window.location.origin}/connections`;
-		const oauthURL = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${oauthConfig.app_id}&config_id=${oauthConfig.config_id}&redirect_uri=${encodeURIComponent(redirectURI)}&response_type=code`;
-
-		console.info("[Meta OAuth] Falling back to Direct OAuth Dialog", {
-			app_id: oauthConfig.app_id,
-			config_id: oauthConfig.config_id,
-			redirect_uri: redirectURI,
-		});
-
-		window.location.href = oauthURL;
+		const msg = "Unable to initialize Meta signup window. Please disable any content blockers and try again.";
+		setError(msg);
+		setIsLoading(false);
+		options?.onError?.(msg);
 	}, [completeEmbeddedSignup, options]);
 
-	// Handle the authorization code returned to /connections by the direct OAuth dialog.
-	useEffect(() => {
-		if (!isLoaded || !isSignedIn || typeof window === "undefined") return;
-		const params = new URLSearchParams(window.location.search);
-		const code = params.get("code");
-		if (!code || callbackHandledRef.current) return;
-		callbackHandledRef.current = true;
-
-		const exchangeCode = async () => {
-			const redirectURI = `${window.location.origin}${window.location.pathname}`;
-			console.info("[Meta OAuth] stage=received_code", {
-				code_length: code.length,
-				redirect_uri: redirectURI,
-			});
-			setIsLoading(true);
-			try {
-				const token = await getToken();
-				if (!token) {
-					throw new Error(
-						"Authentication token is not ready. Please try again.",
-					);
-				}
-
-				const result = await channelService.exchangeWhatsAppOAuthCode(
-					code,
-					undefined,
-					undefined,
-					redirectURI,
-				);
-				console.info("[Meta OAuth] stage=token_received", result);
-				const connRes = {
-					sender_identity: result.sender_identity,
-					waba_id: result.waba_id,
-					phone_number_id: result.phone_number_id,
-				};
-				setConnectionResult(connRes);
-				setIsConnected(true);
-				setError(null);
-				window.history.replaceState(
-					{},
-					document.title,
-					window.location.pathname,
-				);
-				options?.onSuccess?.(connRes);
-			} catch (err: unknown) {
-				const apiErr = err as {
-					response?: { status?: number; data?: { error?: string } };
-					message?: string;
-				};
-				const msg =
-					apiErr.response?.data?.error ||
-					apiErr.message ||
-					"Failed to complete WhatsApp connection via Meta";
-				console.error("[Meta OAuth] stage=exchange_failed", { message: msg });
-				if (apiErr.response?.status === 401)
-					callbackHandledRef.current = false;
-				setError(msg);
-				options?.onError?.(msg);
-			} finally {
-				setIsLoading(false);
-			}
-		};
-
-		exchangeCode();
-	}, [getToken, isLoaded, isSignedIn, options]);
-const disconnect = useCallback(async () => {
+	const disconnect = useCallback(async () => {
 		setIsDisconnecting(true);
 		setError(null);
 		try {
