@@ -19,6 +19,14 @@ export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
 
 // Add a request interceptor to lazily inject the freshest token before every request
 apiClient.interceptors.request.use(async (config) => {
+  // If tokenGetter has not yet mounted (during early page hydration), wait up to 1.5s
+  if (!tokenGetter) {
+    for (let i = 0; i < 15; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      if (tokenGetter) break;
+    }
+  }
+
   if (tokenGetter) {
     const token = await tokenGetter();
     if (token) {
