@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, Webhook, CheckCircle2, Copy, RefreshCw, Loader2 } from "lucide-react";
+import { Users, Webhook, CheckCircle2, Copy, RefreshCw, Loader2, ExternalLink, Bot } from "lucide-react";
 import { FaWhatsapp, FaTelegram } from "react-icons/fa";
 import { useContacts } from "@/lib/api/hooks/useContacts";
+import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
 import { useAppStore } from "@/lib/store";
 import { useState } from "react";
 import { webhookService } from "@/lib/services/webhook.service";
@@ -13,10 +14,22 @@ import { toast } from "sonner";
 
 export default function AudiencePage() {
   const { contacts, isLoading, refetch } = useContacts();
+  const { channels } = useTenantChannels();
   const tenant = useAppStore((state) => state.tenant);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isSyncingWA, setIsSyncingWA] = useState(false);
   const [isSyncingTG, setIsSyncingTG] = useState(false);
+  const [showWebhookDetails, setShowWebhookDetails] = useState(false);
+
+  const activeTelegramChannel = channels.find(
+    (c) => c.platform_name === "telegram" && c.status === "active"
+  );
+  const botUsername = activeTelegramChannel?.sender_identity;
+  const botLink = botUsername
+    ? botUsername.startsWith("@")
+      ? `https://t.me/${botUsername.slice(1)}`
+      : `https://t.me/${botUsername}`
+    : null;
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" ? window.location.origin : "");
   const webhookUrl = tenant 
@@ -45,10 +58,20 @@ export default function AudiencePage() {
     setIsSyncingTG(true);
     try {
       const res = await channelService.syncTelegramContacts();
-      toast.success(res.message || "Telegram contacts synced!", {
-        description: `Imported ${res.synced_count} contacts to your Audience directory.`,
-      });
-      refetch();
+      if (res.synced_count > 0) {
+        toast.success(res.message || "Telegram contacts synced!", {
+          description: `Imported ${res.synced_count} contacts to your Audience directory.`,
+        });
+        refetch();
+      } else {
+        toast.info("Telegram Bot Sync Complete", {
+          description: res.message || "Users must open your bot and tap Start to be automatically registered.",
+          action: (res.bot_link || botLink) ? {
+            label: "Open Bot",
+            onClick: () => window.open(res.bot_link || botLink!, "_blank"),
+          } : undefined,
+        });
+      }
     } catch (error: any) {
       const msg = error.response?.data?.error || error.message || "Failed to sync Telegram contacts";
       toast.error(msg, {
@@ -154,46 +177,107 @@ export default function AudiencePage() {
         </div>
       </div>
 
-      {/* Flywheel Webhook Card */}
-      <div className="mb-10 rounded-3xl border border-indigo-100 bg-indigo-50 p-8 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-5">
-          <Webhook className="w-32 h-32 text-indigo-900" />
+      {/* Inbound Auto-Sync Flywheel Card */}
+      <div className="mb-10 rounded-3xl border border-indigo-100 bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/50 p-7 sm:p-8 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+          <Webhook className="w-36 h-36 text-indigo-900" />
         </div>
         <div className="relative">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm border border-indigo-100">
-              <Webhook className="h-5 w-5" />
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-200">
+                <Bot className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-gray-900 tracking-tight">
+                  Zero-Data-Entry Contact Capture
+                </h2>
+                <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider">
+                  Automated Inbound Webhook Flywheel
+                </p>
+              </div>
             </div>
-            <h2 className="text-xl font-bold text-indigo-900">The Zero-Data-Entry Flywheel</h2>
+
+            {activeTelegramChannel && (
+              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3.5 py-1 text-xs font-bold text-emerald-700">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                Active Bot: {botUsername}
+              </span>
+            )}
           </div>
-          <p className="text-sm font-medium text-indigo-700/80 mb-6 max-w-2xl">
-            When users interact with your connected Telegram bots or WhatsApp numbers, their profiles are automatically synced here in real-time. Connect this webhook URL to your Telegram Bot.
+
+          <p className="text-sm font-medium text-gray-600 mb-6 max-w-3xl leading-relaxed">
+            Your connected Telegram bot automatically synchronizes contacts the instant a user taps <strong className="text-gray-900">Start</strong> or sends a message. No manual data entry or technical webhook configuration required.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <div className="flex-1 flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-inner w-full">
-              <code className="text-sm text-indigo-600 font-mono font-bold select-all truncate mr-4">
-                {webhookUrl}
-              </code>
-              <button 
-                onClick={() => {
-                  navigator.clipboard.writeText(webhookUrl);
-                  toast.success("Webhook URL copied to clipboard");
-                }}
-                className="text-gray-400 hover:text-indigo-600 transition-colors shrink-0"
-              >
-                <Copy className="h-5 w-5" />
-              </button>
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {botLink && (
+              <>
+                <a
+                  href={botLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] px-5 py-3 text-sm font-bold text-white transition-all shadow-sm shadow-sky-200"
+                >
+                  <FaTelegram className="h-4 w-4" />
+                  Test Bot ({botUsername})
+                  <ExternalLink className="h-3.5 w-3.5 opacity-80" />
+                </a>
+
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(botLink);
+                    toast.success("Bot link copied to clipboard!", {
+                      description: "Share this link with your audience to automatically grow your contacts.",
+                    });
+                  }}
+                  className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 px-4 py-3 text-sm font-bold text-gray-700 transition-all shadow-xs"
+                >
+                  <Copy className="h-4 w-4 text-gray-500" />
+                  Share Bot Link
+                </button>
+              </>
+            )}
+
             <button
               onClick={handleSimulateWebhook}
               disabled={isSimulating || !tenant}
-              className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white hover:bg-indigo-700 transition-all shadow-md disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-5 py-3 text-sm font-bold text-white transition-all shadow-sm shadow-indigo-200 disabled:opacity-50"
             >
               <Webhook className="h-4 w-4" />
-              {isSimulating ? "Simulating..." : "Simulate Inbound Message"}
+              {isSimulating ? "Simulating..." : "Simulate Inbound Contact"}
+            </button>
+
+            <button
+              onClick={() => setShowWebhookDetails(!showWebhookDetails)}
+              className="text-xs font-semibold text-gray-500 hover:text-indigo-600 transition-colors ml-auto py-2"
+            >
+              {showWebhookDetails ? "Hide Webhook Details" : "Show Advanced Webhook URL"}
             </button>
           </div>
+
+          {showWebhookDetails && (
+            <div className="mt-4 pt-4 border-t border-indigo-100 flex flex-col sm:flex-row items-center gap-3">
+              <div className="flex-1 flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2.5 shadow-inner w-full">
+                <code className="text-xs text-indigo-600 font-mono font-bold select-all truncate mr-3">
+                  {webhookUrl}
+                </code>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(webhookUrl);
+                    toast.success("Webhook URL copied to clipboard");
+                  }}
+                  className="text-gray-400 hover:text-indigo-600 transition-colors shrink-0"
+                  title="Copy URL"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+              </div>
+              <span className="text-xs text-gray-400 font-medium">
+                (Registered automatically with Telegram)
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
