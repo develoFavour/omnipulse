@@ -141,6 +141,17 @@ class ChannelService {
 		}>(ENDPOINTS.WHATSAPP.SYNC_CONTACTS);
 		return response.data.data;
 	}
+
+	async syncTelegramContacts(): Promise<{
+		synced_count: number;
+		message: string;
+	}> {
+		const response = await apiClient.post<{
+			success: boolean;
+			data: { synced_count: number; message: string };
+		}>(ENDPOINTS.TELEGRAM.SYNC_CONTACTS);
+		return response.data.data;
+	}
 }
 
 export const channelService = new ChannelService();

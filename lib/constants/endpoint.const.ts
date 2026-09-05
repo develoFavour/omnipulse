@@ -43,6 +43,7 @@ export const ENDPOINTS = {
 	// Telegram destinations
 	TELEGRAM: {
 		DESTINATIONS: `${API_VERSION}/telegram/destinations`,
+		SYNC_CONTACTS: `${API_VERSION}/channels/telegram/sync-contacts`,
 	},
 
 	// WhatsApp Multi-Device QR Connection

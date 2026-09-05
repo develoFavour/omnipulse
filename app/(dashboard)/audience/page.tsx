@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Users, Webhook, CheckCircle2, Copy, RefreshCw, Loader2 } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp, FaTelegram } from "react-icons/fa";
 import { useContacts } from "@/lib/api/hooks/useContacts";
 import { useAppStore } from "@/lib/store";
 import { useState } from "react";
@@ -16,6 +16,7 @@ export default function AudiencePage() {
   const tenant = useAppStore((state) => state.tenant);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isSyncingWA, setIsSyncingWA] = useState(false);
+  const [isSyncingTG, setIsSyncingTG] = useState(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" ? window.location.origin : "");
   const webhookUrl = tenant 
@@ -37,6 +38,24 @@ export default function AudiencePage() {
       });
     } finally {
       setIsSyncingWA(false);
+    }
+  };
+
+  const handleSyncTelegram = async () => {
+    setIsSyncingTG(true);
+    try {
+      const res = await channelService.syncTelegramContacts();
+      toast.success(res.message || "Telegram contacts synced!", {
+        description: `Imported ${res.synced_count} contacts to your Audience directory.`,
+      });
+      refetch();
+    } catch (error: any) {
+      const msg = error.response?.data?.error || error.message || "Failed to sync Telegram contacts";
+      toast.error(msg, {
+        description: "Ensure your Telegram bot is connected under Channels & Connections.",
+      });
+    } finally {
+      setIsSyncingTG(false);
     }
   };
 
@@ -103,6 +122,24 @@ export default function AudiencePage() {
               <>
                 <FaWhatsapp className="h-4 w-4" />
                 Sync WhatsApp Contacts
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleSyncTelegram}
+            disabled={isSyncingTG}
+            className="flex items-center gap-2 rounded-xl bg-[#0088cc] hover:bg-[#006da3] px-5 py-3 text-sm font-bold text-white transition-all shadow-sm disabled:opacity-50"
+          >
+            {isSyncingTG ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Syncing Telegram...
+              </>
+            ) : (
+              <>
+                <FaTelegram className="h-4 w-4" />
+                Sync Telegram Contacts
               </>
             )}
           </button>
