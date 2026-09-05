@@ -144,13 +144,20 @@ class ChannelService {
 
 	async syncTelegramContacts(): Promise<{
 		synced_count: number;
+		total_count: number;
 		message: string;
 		bot_username?: string;
 		bot_link?: string;
 	}> {
 		const response = await apiClient.post<{
 			success: boolean;
-			data: { synced_count: number; message: string; bot_username?: string; bot_link?: string };
+			data: {
+				synced_count: number;
+				total_count: number;
+				message: string;
+				bot_username?: string;
+				bot_link?: string;
+			};
 		}>(ENDPOINTS.TELEGRAM.SYNC_CONTACTS);
 		return response.data.data;
 	}

@@ -40,10 +40,10 @@ export default function AudiencePage() {
     setIsSyncingWA(true);
     try {
       const res = await channelService.syncWhatsAppContacts();
+      await refetch();
       toast.success(res.message || "WhatsApp contacts synced!", {
         description: `Imported ${res.synced_count} contacts to your Audience directory.`,
       });
-      refetch();
     } catch (error: any) {
       const msg = error.response?.data?.error || error.message || "Failed to sync WhatsApp contacts";
       toast.error(msg, {
@@ -58,13 +58,18 @@ export default function AudiencePage() {
     setIsSyncingTG(true);
     try {
       const res = await channelService.syncTelegramContacts();
+      await refetch();
+
       if (res.synced_count > 0) {
-        toast.success(res.message || "Telegram contacts synced!", {
-          description: `Imported ${res.synced_count} contacts to your Audience directory.`,
+        toast.success("Telegram Contacts Synced!", {
+          description: res.message || `Imported ${res.synced_count} new contact(s). Total: ${res.total_count}.`,
         });
-        refetch();
+      } else if ((res.total_count ?? 0) > 0) {
+        toast.success("Telegram Directory Up to Date", {
+          description: res.message || `All ${res.total_count} Telegram contact(s) are already synced in your directory.`,
+        });
       } else {
-        toast.info("Telegram Bot Sync Complete", {
+        toast.info("No Telegram Contacts Yet", {
           description: res.message || "Users must open your bot and tap Start to be automatically registered.",
           action: (res.bot_link || botLink) ? {
             label: "Open Bot",
