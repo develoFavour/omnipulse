@@ -138,28 +138,24 @@ export function BroadcastStudio() {
       return;
     }
 
-    // Determine targeted platforms for backend gateway
+    // Determine targeted platforms for private contacts
     const channelsToSend: string[] = [];
-    if (isTelegramDM || isTelegramChannel) channelsToSend.push("telegram");
+    if (isTelegramDM) channelsToSend.push("telegram");
     if (isWhatsAppDM) channelsToSend.push("whatsapp");
 
-    if (channelsToSend.length === 0 && !isWhatsAppStory) {
-      toast.error("No active channels selected", {
-        description: "Select at least one placement to broadcast.",
+    const hasDestinationTargets = isTelegramChannel && selectedDestinationIds.length > 0;
+    const hasContactTargets = channelsToSend.length > 0 && targetContacts.length > 0;
+
+    if (!hasContactTargets && !hasDestinationTargets && !isWhatsAppStory) {
+      toast.error("No audience targets selected", {
+        description: "Select private contacts, community groups, or WhatsApp Story to broadcast.",
       });
       return;
     }
 
     // If only WhatsApp Story is selected, guide to the story bridge
-    if (channelsToSend.length === 0 && isWhatsAppStory) {
+    if (!hasContactTargets && !hasDestinationTargets && isWhatsAppStory) {
       setIsStoryModalOpen(true);
-      return;
-    }
-
-    if (targetCount === 0 && !isWhatsAppStory) {
-      toast.error("No audience targets selected", {
-        description: "Your selected placements currently have 0 active recipients.",
-      });
       return;
     }
 
