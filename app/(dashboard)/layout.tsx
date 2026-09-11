@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopNav } from "@/components/layout/TopNav";
+import { useAppStore } from "@/lib/store";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -10,7 +12,16 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isLoaded } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
+  const fetchChannels = useAppStore((state) => state.fetchChannels);
+
+  // Eagerly pre-warm channel connections at the dashboard root
+  // so any page (Broadcast, Audience, etc.) has active channel state immediately on mount
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      fetchChannels().catch(() => {});
+    }
+  }, [isLoaded, isSignedIn, fetchChannels]);
 
   if (!isLoaded) {
     return (

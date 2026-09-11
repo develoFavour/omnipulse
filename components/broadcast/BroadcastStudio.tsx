@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Rocket, 
@@ -15,7 +15,10 @@ import {
   Clock, 
   ArrowRight,
   RefreshCw,
-  Copy
+  Copy,
+  PlusCircle,
+  ShieldCheck,
+  Smartphone
 } from "lucide-react";
 import { FaWhatsapp, FaTelegram } from "react-icons/fa";
 import { toast } from "sonner";
@@ -23,7 +26,11 @@ import { cn } from "@/lib/utils";
 import { useContacts } from "@/lib/api/hooks/useContacts";
 import { useTelegramDestinations } from "@/lib/api/hooks/useTelegramDestinations";
 import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
+import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
 import { useCampaigns } from "@/lib/api/hooks/useCampaigns";
+import { channelService } from "@/lib/services/channel.service";
+import { WhatsAppQRModal } from "@/components/channels/WhatsAppQRModal";
+import { TelegramConnectionForm } from "@/components/features/onboarding/TelegramConnectionForm";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { ChannelPlacement, ChannelPlacementSelector } from "./ChannelPlacementSelector";
 import { MediaAssetDropzone } from "./MediaAssetDropzone";
@@ -32,9 +39,10 @@ import { DevicePreviewSimulator } from "./DevicePreviewSimulator";
 import { WhatsAppStoryModal } from "./WhatsAppStoryModal";
 
 export function BroadcastStudio() {
-  const { contacts, isLoading: isLoadingContacts } = useContacts();
-  const { destinations, isLoading: isLoadingDestinations } = useTelegramDestinations();
-  const { channels } = useTenantChannels();
+  const { contacts, isLoading: isLoadingContacts, refetch: refetchContacts } = useContacts();
+  const { destinations, isLoading: isLoadingDestinations, refetch: refetchDestinations } = useTelegramDestinations();
+  const { channels, loading: loadingChannels, refetch: refetchChannels } = useTenantChannels();
+  const { connectTelegram, loading: isConnectingTelegram } = useChannelConnection();
   const { createCampaign, dispatchCampaign, isCreating, isDispatching } = useCampaigns();
 
   // Campaign State
@@ -50,14 +58,26 @@ export function BroadcastStudio() {
   const [dispatched, setDispatched] = useState(false);
   const [dispatchedCampaignId, setDispatchedCampaignId] = useState<string>("");
 
+  // In-Studio Connection & Sync Modals
+  const [isWhatsAppQRModalOpen, setIsWhatsAppQRModalOpen] = useState(false);
+  const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
+  const [isSyncingWhatsApp, setIsSyncingWhatsApp] = useState(false);
+  const [isSyncingTelegram, setIsSyncingTelegram] = useState(false);
+
   // Channel & Audience Context
   const activeContacts = contacts.filter((c) => c.status === "active");
   const telegramContacts = activeContacts.filter((c) => c.channel === "telegram");
   const whatsappContacts = activeContacts.filter((c) => c.channel === "whatsapp");
   const activeDestinations = destinations.filter((d) => d.status === "active");
 
+  const isTelegramConnected = !!channels.find(
+    (c) => c.platform_name === "telegram" && c.status === "active"
+  );
   const activeTelegramChannel = channels.find(
     (c) => c.platform_name === "telegram" && c.status === "active"
+  );
+  const isWhatsAppConnected = !!channels.find(
+    (c) => c.platform_name === "whatsapp" && c.status === "active"
   );
   const activeWhatsAppChannel = channels.find(
     (c) => c.platform_name === "whatsapp" && c.status === "active"
@@ -65,6 +85,56 @@ export function BroadcastStudio() {
 
   const botUsername = activeTelegramChannel?.sender_identity || "@OmnipulsengBot";
   const verifiedWhatsAppName = activeWhatsAppChannel?.sender_identity || "Omnipulse Business";
+
+  // Automatically enable WhatsApp DM if WhatsApp channel is connected
+  useEffect(() => {
+    if (isWhatsAppConnected && !selectedPlacements.includes("whatsapp_dm")) {
+      setSelectedPlacements((prev) => [...prev, "whatsapp_dm"]);
+    }
+  }, [isWhatsAppConnected]);
+
+  // Contact Sync Handlers
+  const handleSyncWhatsApp = async () => {
+    setIsSyncingWhatsApp(true);
+    try {
+      const res = await channelService.syncWhatsAppContacts();
+      await refetchContacts();
+      toast.success(res.message || "WhatsApp contacts synced!", {
+        description: `Imported ${res.synced_count} contacts to your Audience directory.`,
+      });
+    } catch (error: any) {
+      const msg = error.response?.data?.error || error.message || "Failed to sync WhatsApp contacts";
+      toast.error(msg, {
+        description: "Ensure your WhatsApp is linked and active.",
+      });
+    } finally {
+      setIsSyncingWhatsApp(false);
+    }
+  };
+
+  const handleSyncTelegram = async () => {
+    setIsSyncingTelegram(true);
+    try {
+      const res = await channelService.syncTelegramContacts();
+      await refetchContacts();
+      toast.success(res.message || "Telegram contacts synced!", {
+        description: `Imported ${res.synced_count} contacts to your Audience directory.`,
+      });
+    } catch (error: any) {
+      const msg = error.response?.data?.error || error.message || "Failed to sync Telegram contacts";
+      toast.error(msg);
+    } finally {
+      setIsSyncingTelegram(false);
+    }
+  };
+
+  const handleTelegramSubmit = async (token: string) => {
+    await connectTelegram(token);
+    toast.success("Telegram Bot linked successfully!");
+    setIsTelegramModalOpen(false);
+    await refetchChannels();
+    await refetchDestinations();
+  };
 
   // Target Calculations
   const isTelegramDM = selectedPlacements.includes("telegram_dm");
@@ -330,6 +400,80 @@ export function BroadcastStudio() {
         </div>
       </div>
 
+      {/* Live Channel Pipeline Status Ribbon */}
+      <div className="mb-6 rounded-2xl border border-gray-200/90 bg-white p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
+            <Radio className="h-3.5 w-3.5 text-indigo-600" />
+            Active Channels:
+          </span>
+
+          {/* Telegram Status Badge */}
+          {isTelegramConnected ? (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-200 text-xs font-bold text-sky-800">
+              <span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
+              <FaTelegram className="h-3.5 w-3.5 text-[#0088cc]" />
+              <span>Telegram Bot:</span>
+              <span className="font-mono text-sky-900">{botUsername}</span>
+              <span className="text-sky-600 text-[11px] font-normal">({activeDestinations.length} groups)</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
+              <span className="h-2 w-2 rounded-full bg-gray-400" />
+              <FaTelegram className="h-3.5 w-3.5 text-gray-400" />
+              <span>Telegram: Not Linked</span>
+              <button
+                type="button"
+                onClick={() => setIsTelegramModalOpen(true)}
+                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 underline ml-1 cursor-pointer"
+              >
+                + Connect Bot
+              </button>
+            </div>
+          )}
+
+          {/* WhatsApp Status Badge */}
+          {isWhatsAppConnected ? (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <FaWhatsapp className="h-3.5 w-3.5 text-[#25D366]" />
+              <span>WhatsApp:</span>
+              <span className="font-mono text-emerald-900">{verifiedWhatsAppName}</span>
+              <span className="text-emerald-600 text-[11px] font-normal">({whatsappContacts.length} contacts)</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
+              <span className="h-2 w-2 rounded-full bg-gray-400" />
+              <FaWhatsapp className="h-3.5 w-3.5 text-gray-400" />
+              <span>WhatsApp: Not Linked</span>
+              <button
+                type="button"
+                onClick={() => setIsWhatsAppQRModalOpen(true)}
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-800 underline ml-1 cursor-pointer"
+              >
+                + Link WhatsApp
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Sync Shortcut */}
+        <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+          <button
+            type="button"
+            disabled={isSyncingWhatsApp || isSyncingTelegram}
+            onClick={async () => {
+              if (isWhatsAppConnected) await handleSyncWhatsApp();
+              if (isTelegramConnected) await handleSyncTelegram();
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <RefreshCw className={cn("h-3 w-3", (isSyncingWhatsApp || isSyncingTelegram) && "animate-spin")} />
+            Sync Audience
+          </button>
+        </div>
+      </div>
+
       {/* 2-Column Split Studio Layout (60% / 40%) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Composer & Targeting Controls (7 of 12 columns = ~58%) */}
@@ -356,6 +500,16 @@ export function BroadcastStudio() {
               telegramContactCount={telegramContacts.length}
               whatsappContactCount={whatsappContacts.length}
               telegramDestinationCount={activeDestinations.length}
+              isTelegramConnected={isTelegramConnected}
+              isWhatsAppConnected={isWhatsAppConnected}
+              telegramSender={botUsername}
+              whatsappSender={verifiedWhatsAppName}
+              onConnectTelegram={() => setIsTelegramModalOpen(true)}
+              onConnectWhatsApp={() => setIsWhatsAppQRModalOpen(true)}
+              onSyncWhatsApp={handleSyncWhatsApp}
+              onSyncTelegram={handleSyncTelegram}
+              isSyncingWhatsApp={isSyncingWhatsApp}
+              isSyncingTelegram={isSyncingTelegram}
             />
           </div>
 
@@ -451,6 +605,62 @@ export function BroadcastStudio() {
         mediaUrl={mediaUrl}
         brandName={verifiedWhatsAppName}
       />
+
+      {/* In-Studio WhatsApp QR Modal */}
+      <WhatsAppQRModal
+        isOpen={isWhatsAppQRModalOpen}
+        onClose={() => setIsWhatsAppQRModalOpen(false)}
+        onConnected={async (phone, name) => {
+          toast.success("WhatsApp connected!", {
+            description: `${name || phone} is now linked and active for broadcasts.`,
+          });
+          setIsWhatsAppQRModalOpen(false);
+          await refetchChannels();
+        }}
+      />
+
+      {/* In-Studio Telegram Bot Modal */}
+      <AnimatePresence>
+        {isTelegramModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg rounded-3xl border border-gray-200 bg-white p-8 shadow-2xl space-y-6"
+            >
+              <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-[#229ED9]/10 text-[#229ED9] flex items-center justify-center">
+                    <FaTelegram className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Connect Telegram Bot
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      Enter your bot token from @BotFather
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsTelegramModalOpen(false)}
+                  className="rounded-lg p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <TelegramConnectionForm
+                onSubmit={handleTelegramSubmit}
+                isLoading={isConnectingTelegram}
+                onClose={() => setIsTelegramModalOpen(false)}
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
