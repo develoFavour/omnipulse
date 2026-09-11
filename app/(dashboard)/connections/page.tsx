@@ -119,7 +119,11 @@ const PLATFORMS: PlatformCatalogItem[] = [
 ];
 
 export default function ConnectionsCatalogPage() {
-	const { channels, refetch: refetchChannels } = useTenantChannels();
+	const {
+		channels,
+		loading: loadingChannels,
+		refetch: refetchChannels,
+	} = useTenantChannels();
 	const {
 		destinations,
 		isLoading: loadingDestinations,
@@ -202,11 +206,18 @@ export default function ConnectionsCatalogPage() {
 				</div>
 
 				<div className="flex items-center gap-3">
-					<span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-xs font-bold text-gray-700 border border-gray-200">
-						<span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-						{channels.filter((c) => c.status === "active").length} Active
-						Channels
-					</span>
+					{loadingChannels && channels.length === 0 ? (
+						<span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-500 border border-gray-200">
+							<Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600" />
+							Syncing channels...
+						</span>
+					) : (
+						<span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-xs font-bold text-gray-700 border border-gray-200">
+							<span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+							{channels.filter((c) => c.status === "active").length} Active
+							Channels
+						</span>
+					)}
 				</div>
 			</div>
 
@@ -228,7 +239,12 @@ export default function ConnectionsCatalogPage() {
 									>
 										<platform.icon className="h-7 w-7" />
 									</div>
-									{connected ? (
+									{loadingChannels && channels.length === 0 ? (
+										<span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500 border border-gray-200 animate-pulse">
+											<Loader2 className="h-3 w-3 animate-spin text-gray-400" />
+											Checking...
+										</span>
+									) : connected ? (
 										<span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200 shadow-sm">
 											<CheckCircle2 className="h-3.5 w-3.5" />
 											Active
@@ -265,7 +281,12 @@ export default function ConnectionsCatalogPage() {
 									</div>
 								)}
 
-								{platform.available ? (
+								{loadingChannels && channels.length === 0 ? (
+									<div className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-5 py-3 text-sm font-semibold text-gray-400">
+										<Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+										Checking status...
+									</div>
+								) : platform.available ? (
 									<button
 										onClick={() => {
 											if (platform.id === "whatsapp" && !connected) {

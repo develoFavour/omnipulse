@@ -17,8 +17,23 @@ export function ClerkAuthProvider({ children }: ClerkAuthProviderProps) {
   useEffect(() => {
     // 1. Inject the dynamic token getter so Axios can fetch fresh tokens on-demand
     setAuthTokenGetter(async () => {
-      if (!isLoaded || !isSignedIn) return null;
-      return await getToken();
+      // Direct session lookup if available on window
+      if (typeof window !== "undefined" && (window as any).Clerk) {
+        const clerk = (window as any).Clerk;
+        if (clerk.session) {
+          try {
+            const tok = await clerk.session.getToken();
+            if (tok) return tok;
+          } catch {
+            // fallback
+          }
+        }
+      }
+
+      if (isSignedIn) {
+        return await getToken();
+      }
+      return null;
     });
 
     // 2. Perform the initial JIT Sync if signed in

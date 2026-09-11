@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { channelService, ChannelResponse } from "@/lib/services/channel.service";
+import { channelService } from "@/lib/services/channel.service";
+import { useAppStore } from "@/lib/store";
 
 export interface TenantChannel {
 	id: string;
@@ -16,19 +17,31 @@ interface UseTenantChannelsOptions {
 	pollInterval?: number; // milliseconds
 }
 
+// Module-level flag so subsequent page navigations in the same session know channels were already fetched
+let globalHasFetchedChannels = false;
+
 export function useTenantChannels(options?: UseTenantChannelsOptions) {
 	const { isLoaded, isSignedIn } = useAuth();
-	const [channels, setChannels] = useState<TenantChannel[]>([]);
-	const [loading, setLoading] = useState(true);
+	const storeChannels = useAppStore((s) => s.channels as unknown as TenantChannel[]);
+	const setStoreChannels = useAppStore((s) => s.setChannels);
+
+	// If the store already holds channels, do not flash a loading skeleton or Not Configured state
+	const [loading, setLoading] = useState<boolean>(
+		!globalHasFetchedChannels && (!storeChannels || storeChannels.length === 0)
+	);
 	const [error, setError] = useState<string | null>(null);
 
 	const fetchChannels = useCallback(async () => {
 		if (!isLoaded || !isSignedIn) return;
 
 		try {
-			setLoading(true);
+			if (!storeChannels || storeChannels.length === 0) {
+				setLoading(true);
+			}
 			const data = await channelService.getChannels();
-			setChannels(Array.isArray(data) ? (data as unknown as TenantChannel[]) : []);
+			const safeData = Array.isArray(data) ? (data as unknown as TenantChannel[]) : [];
+			setStoreChannels(safeData as any);
+			globalHasFetchedChannels = true;
 			setError(null);
 		} catch (err: any) {
 			const errorMessage =
@@ -37,36 +50,37 @@ export function useTenantChannels(options?: UseTenantChannelsOptions) {
 		} finally {
 			setLoading(false);
 		}
-	}, [isLoaded, isSignedIn]);
+	}, [isLoaded, isSignedIn, storeChannels, setStoreChannels]);
 
-	// Initial fetch
+	// Fetch on mount or when auth becomes ready
 	useEffect(() => {
+		if (!isLoaded || !isSignedIn) return;
 		fetchChannels();
-	}, [fetchChannels]);
+	}, [isLoaded, isSignedIn, fetchChannels]);
 
 	// Optional polling
 	useEffect(() => {
-		if (!options?.pollInterval) return;
+		if (!options?.pollInterval || !isLoaded || !isSignedIn) return;
 
 		const interval = setInterval(() => {
 			fetchChannels();
 		}, options.pollInterval);
 
 		return () => clearInterval(interval);
-	}, [fetchChannels, options?.pollInterval]);
+	}, [fetchChannels, options?.pollInterval, isLoaded, isSignedIn]);
 
 	const isChannelConnected = (platform: string): boolean => {
-		return channels.some(
+		return (storeChannels || []).some(
 			(ch) => ch.platform_name === platform && ch.status === "active",
 		);
 	};
 
 	const getChannel = (platform: string): TenantChannel | undefined => {
-		return channels.find((ch) => ch.platform_name === platform);
+		return (storeChannels || []).find((ch) => ch.platform_name === platform);
 	};
 
 	return {
-		channels,
+		channels: storeChannels || [],
 		loading,
 		error,
 		refetch: fetchChannels,

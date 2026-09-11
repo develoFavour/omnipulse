@@ -8,6 +8,7 @@ export interface ChannelState {
   channelError: string | null;
   fetchChannels: () => Promise<ChannelResponse[]>;
   connectChannel: (payload: ChannelPayload) => Promise<ChannelResponse>;
+  setChannels: (channels: ChannelResponse[]) => void;
 }
 
 export const createChannelSlice: StateCreator<ChannelState> = (set) => ({
@@ -16,12 +17,15 @@ export const createChannelSlice: StateCreator<ChannelState> = (set) => ({
   isConnectingChannel: false,
   channelError: null,
 
+  setChannels: (channels: ChannelResponse[]) => set({ channels: Array.isArray(channels) ? channels : [] }),
+
   fetchChannels: async () => {
     set({ isLoadingChannels: true, channelError: null });
     try {
       const data = await channelService.getChannels();
-      set({ channels: data, isLoadingChannels: false });
-      return data;
+      const safeData = Array.isArray(data) ? data : [];
+      set({ channels: safeData, isLoadingChannels: false });
+      return safeData;
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || "Failed to fetch channels";
       set({ channelError: msg, isLoadingChannels: false });
@@ -34,7 +38,7 @@ export const createChannelSlice: StateCreator<ChannelState> = (set) => ({
     try {
       const data = await channelService.createChannel(payload);
       set((state) => ({ 
-        channels: [...state.channels, data], 
+        channels: [...state.channels.filter((c) => c.platform_name !== data.platform_name), data], 
         isConnectingChannel: false 
       }));
       return data;

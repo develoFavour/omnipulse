@@ -18,31 +18,63 @@ export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
 };
 
 // Add a request interceptor to lazily inject the freshest token before every request
-apiClient.interceptors.request.use(async (config) => {
-  // If tokenGetter has not yet mounted (during early page hydration), wait up to 1.5s
-  if (!tokenGetter) {
-    for (let i = 0; i < 15; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      if (tokenGetter) break;
+apiClient.interceptors.request.use(
+  async (config) => {
+    // If tokenGetter has not yet mounted (during early page hydration), wait up to 2s
+    if (!tokenGetter) {
+      for (let i = 0; i < 20; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        if (tokenGetter) break;
+      }
     }
-  }
 
-  if (tokenGetter) {
-    const token = await tokenGetter();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (tokenGetter) {
+      let token = await tokenGetter();
+      // If token is null, Clerk might still be initializing session. Retry briefly.
+      if (!token) {
+        for (let i = 0; i < 10; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          token = await tokenGetter();
+          if (token) break;
+        }
+      }
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
+);
 
-// Do not navigate from an API interceptor. Route authentication belongs in
-// proxy.ts, where redirects happen before protected pages render. Navigating
-// here can discard one-time OAuth query parameters and creates sign-in flashes
-// when the Clerk token is still being initialized.
+// If a request encounters a 401 (e.g. token expired or momentary auth desync),
+// attempt a one-time retry with a freshly obtained token before failing.
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error)
+  async (error) => {
+    const originalRequest = error.config;
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      tokenGetter
+    ) {
+      originalRequest._retry = true;
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        const freshToken = await tokenGetter();
+        if (freshToken) {
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers.Authorization = `Bearer ${freshToken}`;
+          return apiClient(originalRequest);
+        }
+      } catch (retryErr) {
+        return Promise.reject(retryErr);
+      }
+    }
+    return Promise.reject(error);
+  }
 );
