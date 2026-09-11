@@ -61,4 +61,9 @@ export const ENDPOINTS = {
 		TELEGRAM: (tenantId: string) =>
 			`${API_VERSION}/webhooks/telegram/${tenantId}`,
 	},
+
+	// Media Storage (Cloudinary Upload Pipeline)
+	MEDIA: {
+		UPLOAD: `${API_VERSION}/media/upload`,
+	},
 } as const;

@@ -14,6 +14,8 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+import { mediaService } from "@/lib/services/media.service";
+
 interface MediaAssetDropzoneProps {
   mediaUrl: string;
   onMediaChange: (url: string) => void;
@@ -68,44 +70,15 @@ export function MediaAssetDropzone({ mediaUrl, onMediaChange }: MediaAssetDropzo
     setIsUploading(true);
 
     try {
-      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-
-      if (cloudName && uploadPreset) {
-        // Direct Cloudinary unsigned upload
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", uploadPreset);
-
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Cloudinary upload failed");
-        }
-
-        const data = await response.json();
-        onMediaChange(data.secure_url);
-        toast.success("Image uploaded to Cloudinary CDN!");
-      } else {
-        // High-performance client object URL with notification for deployment
-        const localUrl = URL.createObjectURL(file);
-        onMediaChange(localUrl);
-        toast.success("Image attached to broadcast!", {
-          description: "For public production delivery, configure NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME.",
-        });
-      }
+      const res = await mediaService.uploadImage(file);
+      onMediaChange(res.url);
+      toast.success("Image uploaded to CDN!", {
+        description: "Cloudinary media asset attached to broadcast.",
+      });
     } catch (err: any) {
-      // Fallback to local object URL
-      const localUrl = URL.createObjectURL(file);
-      onMediaChange(localUrl);
-      toast.info("Image attached locally", {
-        description: "Cloudinary upload service returned an error. Using local media asset preview.",
+      const msg = err.response?.data?.message || err.message || "Failed to upload image";
+      toast.error("Upload failed", {
+        description: msg,
       });
     } finally {
       setIsUploading(false);
