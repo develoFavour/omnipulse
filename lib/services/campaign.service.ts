@@ -26,9 +26,26 @@ export interface CampaignResponse {
 }
 
 export interface CampaignStats {
+  campaign_id?: string;
+  status?: string;
+  total_targets?: number;
+  processed_targets?: number;
   sent: number;
   delivered: number;
   failed: number;
+  progress_percent?: number;
+}
+
+export interface CampaignDeliveryItem {
+  id: string;
+  campaign_id: string;
+  contact_id?: string;
+  target_type: "contact" | "telegram_destination";
+  platform: string;
+  routing_value: string;
+  status: "delivered" | "failed" | "sent";
+  error_message?: string;
+  created_at: string;
 }
 
 class CampaignService {
@@ -47,6 +64,13 @@ class CampaignService {
     return response.data.data;
   }
 
+  async getCampaignById(campaignId: string): Promise<CampaignResponse> {
+    const response = await apiClient.get<{ success: boolean; data: CampaignResponse }>(
+      ENDPOINTS.CAMPAIGNS.BY_ID(campaignId),
+    );
+    return response.data.data;
+  }
+
   async dispatchCampaign(campaignId: string): Promise<{ message: string; campaign_id: string }> {
     const response = await apiClient.post<{ success: boolean; data: { message: string; campaign_id: string } }>(
       ENDPOINTS.CAMPAIGNS.DISPATCH(campaignId),
@@ -57,6 +81,13 @@ class CampaignService {
   async getCampaignStats(campaignId: string): Promise<CampaignStats> {
     const response = await apiClient.get<{ success: boolean; data: CampaignStats }>(
       ENDPOINTS.CAMPAIGNS.STATS(campaignId),
+    );
+    return response.data.data;
+  }
+
+  async getCampaignDeliveries(campaignId: string, page = 1, pageSize = 50): Promise<CampaignDeliveryItem[]> {
+    const response = await apiClient.get<{ success: boolean; data: CampaignDeliveryItem[] }>(
+      `${ENDPOINTS.CAMPAIGNS.DELIVERIES(campaignId)}?page=${page}&pageSize=${pageSize}`,
     );
     return response.data.data;
   }

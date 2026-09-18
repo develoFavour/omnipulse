@@ -37,6 +37,7 @@ import { MediaAssetDropzone } from "./MediaAssetDropzone";
 import { AudienceIntelligence } from "./AudienceIntelligence";
 import { DevicePreviewSimulator } from "./DevicePreviewSimulator";
 import { WhatsAppStoryModal } from "./WhatsAppStoryModal";
+import { LiveMissionTracker } from "./LiveMissionTracker";
 
 export function BroadcastStudio() {
   const { contacts, isLoading: isLoadingContacts, refetch: refetchContacts } = useContacts();
@@ -263,72 +264,20 @@ export function BroadcastStudio() {
     setDispatched(false);
   };
 
-  // If successfully dispatched, show the mission report view
-  if (dispatched) {
+  // If successfully dispatched, show the live mission control tracker
+  if (dispatched && dispatchedCampaignId) {
     return (
-      <div className="max-w-3xl mx-auto py-12 animate-in fade-in zoom-in-95 duration-400">
-        <div className="rounded-3xl border border-gray-200/90 bg-white p-10 shadow-xl text-center space-y-8">
-          <div className="relative inline-block">
-            <div className="h-20 w-20 mx-auto rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-xl shadow-emerald-500/25">
-              <CheckCircle2 className="h-10 w-10" />
-            </div>
-          </div>
-
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700 mb-3">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-              Transmitted to Compliance & Broadcast Queue
-            </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-              Broadcast Transmitted
-            </h2>
-            <p className="text-gray-500 text-base max-w-lg mx-auto mt-2 leading-relaxed">
-              Campaign <strong className="text-gray-900">&quot;{title}&quot;</strong> has been handed to the compliance pipeline and workers for immediate delivery across {targetCount} touchpoints.
-            </p>
-          </div>
-
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto p-4 bg-gray-50 rounded-2xl border border-gray-200/70 font-mono text-center">
-            <div>
-              <span className="text-xs font-semibold text-gray-400 block uppercase">Targets</span>
-              <span className="text-xl font-bold text-gray-900">{targetCount}</span>
-            </div>
-            <div>
-              <span className="text-xs font-semibold text-gray-400 block uppercase">Channels</span>
-              <span className="text-xl font-bold text-gray-900">{selectedPlacements.length}</span>
-            </div>
-            <div>
-              <span className="text-xs font-semibold text-gray-400 block uppercase">Media</span>
-              <span className="text-xl font-bold text-emerald-600">{mediaUrl ? "Attached" : "Text"}</span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <a
-              href={APP_ROUTES.DASHBOARD.ACTIVITY}
-              className="px-6 py-3.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 font-bold text-sm transition-all shadow-xs"
-            >
-              Track in Live Activity Monitor
-            </a>
-
-            {isWhatsAppStory && (
-              <button
-                onClick={() => setIsStoryModalOpen(true)}
-                className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-sm transition-all shadow-md shadow-emerald-500/20"
-              >
-                <FaWhatsapp className="h-4 w-4" />
-                Post to WhatsApp Story
-              </button>
-            )}
-
-            <button
-              onClick={handleResetStudio}
-              className="px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all shadow-md shadow-indigo-600/20"
-            >
-              Compose Another Broadcast
-            </button>
-          </div>
-        </div>
+      <>
+        <LiveMissionTracker
+          campaignId={dispatchedCampaignId}
+          campaignTitle={title}
+          initialTargetCount={targetCount}
+          selectedPlacements={selectedPlacements}
+          mediaUrl={mediaUrl}
+          isWhatsAppStory={isWhatsAppStory}
+          onReset={handleResetStudio}
+          onOpenStoryModal={() => setIsStoryModalOpen(true)}
+        />
 
         {/* WhatsApp Story Bridge Modal */}
         <WhatsAppStoryModal
@@ -338,7 +287,7 @@ export function BroadcastStudio() {
           mediaUrl={mediaUrl}
           brandName={verifiedWhatsAppName}
         />
-      </div>
+      </>
     );
   }
 

@@ -32,6 +32,7 @@ export const ENDPOINTS = {
 		BY_ID: (id: string) => `${API_VERSION}/campaigns/${id}`,
 		DISPATCH: (id: string) => `${API_VERSION}/campaigns/${id}/dispatch`,
 		STATS: (id: string) => `${API_VERSION}/campaigns/${id}/stats`,
+		DELIVERIES: (id: string) => `${API_VERSION}/campaigns/${id}/deliveries`,
 	},
 
 	// Dashboard
