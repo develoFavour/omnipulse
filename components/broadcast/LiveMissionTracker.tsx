@@ -314,14 +314,47 @@ export function LiveMissionTracker({
           </div>
         </div>
 
+        {/* Informative Diagnostic Banner if Worker Pickup is Slow */}
+        {elapsedSeconds >= 35 && processedTargets === 0 && (
+          <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-3 animate-in fade-in duration-300">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" />
+            <div className="space-y-1">
+              <p className="font-semibold">Worker Node Dispatch In Progress</p>
+              <p className="text-[11px] opacity-90">
+                Tasks are safely buffered in the NATS message stream. If the outbound delivery worker is initializing or reconnecting to channel gateways, confirmed return receipts will stream in automatically.
+              </p>
+              <div className="pt-1 flex items-center gap-3">
+                <button
+                  onClick={fetchTelemetry}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-[11px] font-bold text-amber-700 dark:text-amber-300 transition-colors"
+                >
+                  <RefreshCw className="h-3 w-3" /> Force Poll Telemetry
+                </button>
+                <span className="text-[11px] opacity-70">
+                  Elapsed: {formatTimer(elapsedSeconds)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Deliveries List */}
         <div className="max-h-72 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
           {filteredDeliveries.length === 0 ? (
             <div className="py-12 text-center text-gray-400 dark:text-zinc-500 text-sm">
               {deliveries.length === 0 ? (
-                <div className="flex flex-col items-center gap-2">
-                  <RefreshCw className="h-6 w-6 animate-spin text-indigo-400" />
-                  <span>Awaiting initial delivery acknowledgments from worker pool...</span>
+                <div className="flex flex-col items-center gap-2.5">
+                  <RefreshCw className="h-6 w-6 animate-spin text-indigo-500" />
+                  <span className="font-medium text-gray-700 dark:text-zinc-300">
+                    {elapsedSeconds < 15
+                      ? "Dispatched tasks to NATS JetStream fabric..."
+                      : elapsedSeconds < 45
+                      ? "Workers negotiating delivery handshakes with platform gateways..."
+                      : "Awaiting delivery confirmation receipts from worker nodes..."}
+                  </span>
+                  <span className="text-xs text-gray-400 dark:text-zinc-500 font-mono">
+                    Live stream polling active (every 1.5s) &bull; {formatTimer(elapsedSeconds)}
+                  </span>
                 </div>
               ) : (
                 <span>No delivery events matching the &quot;{filter}&quot; filter.</span>
