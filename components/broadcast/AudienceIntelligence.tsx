@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   Users, 
   Search, 
-  CheckSquare, 
-  Square, 
   Megaphone, 
   UserCheck, 
-  ShieldCheck, 
   ChevronDown, 
   ChevronUp,
   Radio,
-  CheckCircle2
+  CheckCircle2,
+  UserX,
+  Filter,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Contact } from "@/lib/api/hooks/useContacts";
@@ -27,6 +27,11 @@ interface AudienceIntelligenceProps {
   onToggleDestination: (id: string) => void;
   onSelectAllDestinations: () => void;
   onDeselectAllDestinations: () => void;
+  // Contact-specific selection
+  selectedContactIds: string[];
+  onToggleContact: (id: string) => void;
+  onSelectAllContacts: () => void;
+  onDeselectAllContacts: () => void;
 }
 
 export function AudienceIntelligence({
@@ -37,9 +42,15 @@ export function AudienceIntelligence({
   onToggleDestination,
   onSelectAllDestinations,
   onDeselectAllDestinations,
+  selectedContactIds,
+  onToggleContact,
+  onSelectAllContacts,
+  onDeselectAllContacts,
 }: AudienceIntelligenceProps) {
   const [destinationSearch, setDestinationSearch] = useState("");
-  const [showRecipientList, setShowRecipientList] = useState(false);
+  const [contactSearch, setContactSearch] = useState("");
+  const [showContactPicker, setShowContactPicker] = useState(false);
+  const [showDestinationPicker, setShowDestinationPicker] = useState(false);
 
   const isTelegramDM = selectedPlacements.includes("telegram_dm");
   const isTelegramChannel = selectedPlacements.includes("telegram_channel");
@@ -47,23 +58,69 @@ export function AudienceIntelligence({
   const isWhatsAppStory = selectedPlacements.includes("whatsapp_story");
 
   const activeContacts = contacts.filter((c) => c.status === "active");
-  const targetContacts = activeContacts.filter((c) => {
-    if (isTelegramDM && c.channel === "telegram") return true;
-    if (isWhatsAppDM && c.channel === "whatsapp") return true;
-    return false;
-  });
 
-  const filteredDestinations = destinations.filter((d) =>
-    d.title.toLowerCase().includes(destinationSearch.toLowerCase()) ||
-    d.type.toLowerCase().includes(destinationSearch.toLowerCase())
-  );
+  // Contacts eligible for the current placements
+  const eligibleContacts = useMemo(() => {
+    return activeContacts.filter((c) => {
+      if (isTelegramDM && c.channel === "telegram") return true;
+      if (isWhatsAppDM && c.channel === "whatsapp") return true;
+      return false;
+    });
+  }, [activeContacts, isTelegramDM, isWhatsAppDM]);
+
+  // When contacts are hand-picked, only the selected ones are targets
+  const isFilteringContacts = selectedContactIds.length > 0;
+  const targetContacts = isFilteringContacts
+    ? eligibleContacts.filter((c) => selectedContactIds.includes(c.id))
+    : eligibleContacts;
+
+  const filteredEligibleContacts = useMemo(() => {
+    const q = contactSearch.toLowerCase();
+    if (!q) return eligibleContacts;
+    return eligibleContacts.filter(
+      (c) =>
+        c.first_name.toLowerCase().includes(q) ||
+        c.last_name.toLowerCase().includes(q) ||
+        c.routing_value.toLowerCase().includes(q)
+    );
+  }, [eligibleContacts, contactSearch]);
+
+  const filteredDestinations = useMemo(() => {
+    const q = destinationSearch.toLowerCase();
+    if (!q) return destinations;
+    return destinations.filter(
+      (d) =>
+        d.title.toLowerCase().includes(q) ||
+        d.type.toLowerCase().includes(q)
+    );
+  }, [destinations, destinationSearch]);
 
   const totalPrivateReach = targetContacts.length;
   const totalGroupReach = isTelegramChannel ? selectedDestinationIds.length : 0;
   const totalCombinedReach = totalPrivateReach + totalGroupReach;
 
+  const hasPrivatePlacements = isTelegramDM || isWhatsAppDM;
+
   return (
     <div className="space-y-4">
+      {/* Section header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+            <Users className="h-3.5 w-3.5 text-indigo-600" />
+          </div>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">
+            Audience Intelligence
+          </h3>
+        </div>
+        {isFilteringContacts && (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-[10px] font-bold text-amber-800">
+            <Filter className="h-3 w-3" />
+            {selectedContactIds.length} hand-picked
+          </span>
+        )}
+      </div>
+
       {/* Metrics Banner */}
       <div className="rounded-2xl border border-gray-200/90 bg-gray-50/70 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -83,19 +140,22 @@ export function AudienceIntelligence({
               <p className="text-xs text-gray-500 font-medium">
                 {totalCombinedReach} destination{totalCombinedReach === 1 ? "" : "s"} will receive this transmission
                 {isWhatsAppStory ? " (+ WhatsApp Story Viewers)" : ""}.
+                {isFilteringContacts && (
+                  <span className="text-amber-600 font-semibold ml-1">
+                    ({eligibleContacts.length - selectedContactIds.length} contacts excluded by filter)
+                  </span>
+                )}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <span className="text-xl font-extrabold text-gray-900 font-mono">
-                {totalCombinedReach}
-              </span>
-              <span className="text-[10px] block font-semibold text-gray-400 uppercase">
-                Direct Targets
-              </span>
-            </div>
+          <div className="text-right">
+            <span className="text-xl font-extrabold text-gray-900 font-mono">
+              {totalCombinedReach}
+            </span>
+            <span className="text-[10px] block font-semibold text-gray-400 uppercase">
+              Direct Targets
+            </span>
           </div>
         </div>
 
@@ -104,19 +164,36 @@ export function AudienceIntelligence({
           {isTelegramDM && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-gray-200 text-xs font-medium text-gray-700 shadow-2xs">
               <span className="h-2 w-2 rounded-full bg-[#0088cc]" />
-              Telegram DMs: <strong className="font-mono">{targetContacts.filter(c => c.channel === "telegram").length}</strong>
+              Telegram DMs:{" "}
+              <strong className="font-mono">
+                {targetContacts.filter((c) => c.channel === "telegram").length}
+              </strong>
+              {isFilteringContacts && (
+                <span className="text-[10px] text-amber-600">
+                  /{eligibleContacts.filter((c) => c.channel === "telegram").length}
+                </span>
+              )}
             </span>
           )}
           {isTelegramChannel && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-gray-200 text-xs font-medium text-gray-700 shadow-2xs">
               <span className="h-2 w-2 rounded-full bg-sky-500" />
-              Telegram Groups: <strong className="font-mono">{selectedDestinationIds.length}</strong>
+              Telegram Groups:{" "}
+              <strong className="font-mono">{selectedDestinationIds.length}</strong>
             </span>
           )}
           {isWhatsAppDM && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-gray-200 text-xs font-medium text-gray-700 shadow-2xs">
               <span className="h-2 w-2 rounded-full bg-[#25D366]" />
-              WhatsApp DMs: <strong className="font-mono">{targetContacts.filter(c => c.channel === "whatsapp").length}</strong>
+              WhatsApp DMs:{" "}
+              <strong className="font-mono">
+                {targetContacts.filter((c) => c.channel === "whatsapp").length}
+              </strong>
+              {isFilteringContacts && (
+                <span className="text-[10px] text-amber-600">
+                  /{eligibleContacts.filter((c) => c.channel === "whatsapp").length}
+                </span>
+              )}
             </span>
           )}
           {isWhatsAppStory && (
@@ -128,7 +205,184 @@ export function AudienceIntelligence({
         </div>
       </div>
 
-      {/* Telegram Group Destination Picker (shown when Telegram Community placement is active) */}
+      {/* ── Contact Targeting (Private DM Placements) ─────────────────── */}
+      {hasPrivatePlacements && eligibleContacts.length > 0 && (
+        <div className="rounded-2xl border border-indigo-200/80 bg-indigo-50/20 p-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4 text-indigo-600" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-950">
+                Contact Targeting
+              </h4>
+              {isFilteringContacts ? (
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full">
+                  Filtered — {selectedContactIds.length}/{eligibleContacts.length} selected
+                </span>
+              ) : (
+                <span className="text-[10px] font-medium bg-green-100 text-green-800 border border-green-200 px-2 py-0.5 rounded-full">
+                  All {eligibleContacts.length} contacts
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {isFilteringContacts ? (
+                <button
+                  type="button"
+                  onClick={onDeselectAllContacts}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-500 hover:text-red-600 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                  Reset to All
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => setShowContactPicker((v) => !v)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-[11px] font-bold hover:bg-indigo-700 transition-colors"
+              >
+                <Filter className="h-3 w-3" />
+                {showContactPicker ? "Close Picker" : "Pick Specific Contacts"}
+                {showContactPicker ? (
+                  <ChevronUp className="h-3 w-3" />
+                ) : (
+                  <ChevronDown className="h-3 w-3" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Contact picker panel */}
+          {showContactPicker && (
+            <div className="space-y-2.5">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                <input
+                  type="text"
+                  value={contactSearch}
+                  onChange={(e) => setContactSearch(e.target.value)}
+                  placeholder="Search by name or number..."
+                  className="w-full bg-white border border-indigo-200 rounded-xl pl-9 pr-4 py-2 text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-2xs"
+                />
+              </div>
+
+              {/* Bulk actions */}
+              <div className="flex items-center gap-3 px-1">
+                <button
+                  type="button"
+                  onClick={onSelectAllContacts}
+                  className="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 transition-colors"
+                >
+                  Select All ({eligibleContacts.length})
+                </button>
+                <span className="text-gray-300">•</span>
+                <button
+                  type="button"
+                  onClick={onDeselectAllContacts}
+                  className="text-[11px] font-semibold text-gray-500 hover:text-gray-800 transition-colors"
+                >
+                  Clear
+                </button>
+                {isFilteringContacts && (
+                  <>
+                    <span className="text-gray-300">•</span>
+                    <span className="text-[11px] font-medium text-amber-700">
+                      {selectedContactIds.length} selected
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Contact list */}
+              <div className="max-h-52 overflow-y-auto space-y-1 pr-1">
+                {filteredEligibleContacts.length === 0 ? (
+                  <div className="text-center py-6 bg-white rounded-xl border border-dashed border-gray-200">
+                    <UserX className="h-5 w-5 text-gray-300 mx-auto mb-2" />
+                    <p className="text-xs text-gray-500 font-medium">
+                      No contacts match your search.
+                    </p>
+                  </div>
+                ) : (
+                  filteredEligibleContacts.map((contact) => {
+                    const isChecked = selectedContactIds.includes(contact.id);
+                    const isAll = selectedContactIds.length === 0; // empty = all
+                    const effectivelySelected = isAll || isChecked;
+                    return (
+                      <div
+                        key={contact.id}
+                        onClick={() => onToggleContact(contact.id)}
+                        className={cn(
+                          "flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all duration-150 select-none",
+                          isChecked
+                            ? "bg-white border-indigo-400 shadow-xs"
+                            : !isFilteringContacts
+                            ? "bg-white/80 border-gray-200 hover:bg-white hover:border-gray-300 opacity-70"
+                            : "bg-white/50 border-gray-200 hover:bg-white hover:border-gray-300"
+                        )}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                          {/* Checkbox */}
+                          <div
+                            className={cn(
+                              "h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                              isChecked
+                                ? "border-indigo-600 bg-indigo-600 text-white"
+                                : !isFilteringContacts
+                                ? "border-gray-300 bg-gray-50"
+                                : "border-gray-300"
+                            )}
+                          >
+                            {isChecked && <CheckCircle2 className="h-3 w-3" />}
+                          </div>
+                          {/* Avatar */}
+                          <div className="h-6 w-6 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center shrink-0">
+                            {contact.first_name[0]?.toUpperCase() || "U"}
+                          </div>
+                          <div className="truncate">
+                            <p className="text-xs font-bold text-gray-900 truncate">
+                              {contact.first_name} {contact.last_name}
+                            </p>
+                            <p className="text-[10px] font-mono text-gray-400 truncate">
+                              {contact.routing_value}
+                            </p>
+                          </div>
+                        </div>
+                        {/* Channel badge */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {!isFilteringContacts && (
+                            <span className="text-[9px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded">
+                              INCLUDED
+                            </span>
+                          )}
+                          <span
+                            className={cn(
+                              "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shrink-0",
+                              contact.channel === "telegram"
+                                ? "bg-sky-100 text-sky-800"
+                                : "bg-emerald-100 text-emerald-800"
+                            )}
+                          >
+                            {contact.channel}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <p className="text-[10px] text-gray-400 px-1">
+                {isFilteringContacts
+                  ? `✦ Only ${selectedContactIds.length} selected contact${selectedContactIds.length !== 1 ? "s" : ""} will receive this broadcast.`
+                  : "✦ Tip: Leave all unchecked to send to every eligible contact, or pick specific recipients above."}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Telegram Group Destination Picker ──────────────────────────── */}
       {isTelegramChannel && (
         <div className="rounded-2xl border border-sky-200/80 bg-sky-50/30 p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -195,10 +449,12 @@ export function AudienceIntelligence({
                     )}
                   >
                     <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                      <div className={cn(
-                        "h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-colors",
-                        isChecked ? "border-sky-600 bg-sky-600 text-white" : "border-gray-300"
-                      )}>
+                      <div
+                        className={cn(
+                          "h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-colors",
+                          isChecked ? "border-sky-600 bg-sky-600 text-white" : "border-gray-300"
+                        )}
+                      >
                         {isChecked && <CheckCircle2 className="h-3 w-3" />}
                       </div>
                       <div className="truncate">
@@ -210,7 +466,6 @@ export function AudienceIntelligence({
                         </p>
                       </div>
                     </div>
-
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-sky-100 text-sky-800 shrink-0">
                       {dest.type}
                     </span>
@@ -219,56 +474,6 @@ export function AudienceIntelligence({
               })
             )}
           </div>
-        </div>
-      )}
-
-      {/* Recipient Roster Drawer Toggle */}
-      {targetContacts.length > 0 && (
-        <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
-          <button
-            type="button"
-            onClick={() => setShowRecipientList(!showRecipientList)}
-            className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50/50 hover:bg-gray-100/80 transition-colors text-left"
-          >
-            <div className="flex items-center gap-2">
-              <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
-              <span className="text-xs font-bold text-gray-700">
-                View Target Recipients Roster ({targetContacts.length})
-              </span>
-            </div>
-            {showRecipientList ? (
-              <ChevronUp className="h-4 w-4 text-gray-400" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-gray-400" />
-            )}
-          </button>
-
-          {showRecipientList && (
-            <div className="max-h-44 overflow-y-auto divide-y divide-gray-100 p-2">
-              {targetContacts.map((contact) => (
-                <div
-                  key={contact.id}
-                  className="flex items-center justify-between py-1.5 px-2 hover:bg-gray-50 rounded-lg text-xs"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="h-6 w-6 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center shrink-0">
-                      {contact.first_name[0]?.toUpperCase() || "U"}
-                    </div>
-                    <span className="font-semibold text-gray-900 truncate">
-                      {contact.first_name} {contact.last_name}
-                    </span>
-                    <span className="text-[10px] font-mono text-gray-400">
-                      {contact.routing_value}
-                    </span>
-                  </div>
-
-                  <span className="text-[10px] font-bold capitalize px-2 py-0.5 rounded bg-gray-100 text-gray-600 shrink-0">
-                    {contact.channel}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
     </div>

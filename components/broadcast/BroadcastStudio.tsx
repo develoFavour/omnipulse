@@ -55,6 +55,8 @@ export function BroadcastStudio() {
     "telegram_channel",
   ]);
   const [selectedDestinationIds, setSelectedDestinationIds] = useState<string[]>([]);
+  // Contact-specific targeting: empty array = send to all eligible contacts
+  const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
   const [dispatched, setDispatched] = useState(false);
   const [dispatchedCampaignId, setDispatchedCampaignId] = useState<string>("");
@@ -193,6 +195,28 @@ export function BroadcastStudio() {
     setMessageBody((prev) => `${prev}${token} `);
   };
 
+  // Contact targeting handlers
+  // eligibleContacts: contacts valid for currently selected private-DM placements
+  const eligibleContacts = activeContacts.filter((c) => {
+    if (isTelegramDM && c.channel === "telegram") return true;
+    if (isWhatsAppDM && c.channel === "whatsapp") return true;
+    return false;
+  });
+
+  const handleToggleContact = (id: string) => {
+    setSelectedContactIds((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    );
+  };
+
+  const handleSelectAllContacts = () => {
+    setSelectedContactIds(eligibleContacts.map((c) => c.id));
+  };
+
+  const handleDeselectAllContacts = () => {
+    setSelectedContactIds([]);
+  };
+
   // Dispatch Handler
   const handleDispatch = async () => {
     if (!title.trim()) {
@@ -237,6 +261,8 @@ export function BroadcastStudio() {
         delivery_type: "direct_message",
         selected_channels: JSON.stringify(channelsToSend),
         selected_telegram_destination_ids: JSON.stringify(selectedDestinationIds),
+        // Pass hand-picked contact IDs (empty array means "all eligible contacts")
+        selected_contact_ids: JSON.stringify(selectedContactIds),
         media_url: mediaUrl || undefined,
       });
 
@@ -261,6 +287,7 @@ export function BroadcastStudio() {
     setMediaUrl("");
     setSelectedPlacements(["telegram_dm", "telegram_channel"]);
     setSelectedDestinationIds([]);
+    setSelectedContactIds([]);
     setDispatched(false);
   };
 
@@ -528,6 +555,10 @@ export function BroadcastStudio() {
               onToggleDestination={handleToggleDestination}
               onSelectAllDestinations={handleSelectAllDestinations}
               onDeselectAllDestinations={handleDeselectAllDestinations}
+              selectedContactIds={selectedContactIds}
+              onToggleContact={handleToggleContact}
+              onSelectAllContacts={handleSelectAllContacts}
+              onDeselectAllContacts={handleDeselectAllContacts}
             />
           </div>
         </div>

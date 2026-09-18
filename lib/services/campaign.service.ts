@@ -7,6 +7,7 @@ export interface CampaignPayload {
   delivery_type: "direct_message" | "public_post";
   selected_channels: string;
   selected_telegram_destination_ids?: string;
+  selected_contact_ids?: string; // JSON array of contact IDs — empty means "all eligible"
   media_url?: string;
 }
 
