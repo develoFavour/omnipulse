@@ -21,7 +21,9 @@ import {
   campaignService,
   CampaignStats,
   CampaignDeliveryItem,
+  getCampaignWebSocketURL,
 } from "@/lib/services/campaign.service";
+import { getAuthToken } from "@/lib/api/axios-instance";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 
 interface LiveMissionTrackerProps {
@@ -50,6 +52,7 @@ export function LiveMissionTracker({
   const [filter, setFilter] = useState<"all" | "delivered" | "failed">("all");
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [isPolling, setIsPolling] = useState<boolean>(true);
+  const [isWsConnected, setIsWsConnected] = useState<boolean>(false);
   const [pollError, setPollError] = useState<string | null>(null);
 
   const startTimeRef = useRef<number>(Date.now());
@@ -67,7 +70,7 @@ export function LiveMissionTracker({
     };
   }, []);
 
-  // Real-time polling function
+  // Telemetry fetch fallback
   const fetchTelemetry = async () => {
     try {
       const [fetchedStats, fetchedDeliveries] = await Promise.all([
@@ -77,10 +80,17 @@ export function LiveMissionTracker({
 
       setStats(fetchedStats);
       if (Array.isArray(fetchedDeliveries)) {
-        setDeliveries(fetchedDeliveries);
+        setDeliveries((prev) => {
+          // Merge and deduplicate
+          const map = new Map<string, CampaignDeliveryItem>();
+          fetchedDeliveries.forEach((d) => map.set(d.id || `${d.routing_value}-${d.created_at}`, d));
+          prev.forEach((d) => map.set(d.id || `${d.routing_value}-${d.created_at}`, d));
+          return Array.from(map.values()).sort(
+            (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+        });
       }
 
-      // Check if finished
       const status = fetchedStats.status?.toLowerCase();
       if (status === "completed" || status === "failed") {
         setIsPolling(false);
@@ -93,11 +103,78 @@ export function LiveMissionTracker({
     }
   };
 
+  // Primary: Real-time WebSocket connection. Secondary: Polling fallback
   useEffect(() => {
+    let ws: WebSocket | null = null;
+    let isCleanedUp = false;
+
+    const initWebSocket = async () => {
+      try {
+        const token = await getAuthToken();
+        if (isCleanedUp) return;
+        const wsUrl = getCampaignWebSocketURL(campaignId, token);
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          if (isCleanedUp) return;
+          setIsWsConnected(true);
+          setPollError(null);
+        };
+
+        ws.onmessage = (event) => {
+          if (isCleanedUp) return;
+          try {
+            const data = JSON.parse(event.data);
+            if (data.stats) {
+              setStats(data.stats);
+              const status = data.stats.status?.toLowerCase();
+              if (status === "completed" || status === "failed") {
+                setIsPolling(false);
+                if (timerRef.current) clearInterval(timerRef.current);
+              }
+            }
+            if (data.delivery) {
+              setDeliveries((prev) => {
+                const exists = prev.some(
+                  (d) =>
+                    d.id === data.delivery.id ||
+                    (d.routing_value === data.delivery.routing_value &&
+                      d.created_at === data.delivery.created_at)
+                );
+                if (exists) return prev;
+                return [data.delivery, ...prev];
+              });
+            }
+          } catch (e) {
+            console.error("[WS] Failed to parse telemetry packet:", e);
+          }
+        };
+
+        ws.onclose = () => {
+          if (isCleanedUp) return;
+          setIsWsConnected(false);
+        };
+
+        ws.onerror = () => {
+          if (isCleanedUp) return;
+          setIsWsConnected(false);
+        };
+      } catch (err) {
+        console.warn("[WS] Socket init deferred:", err);
+      }
+    };
+
+    initWebSocket();
     fetchTelemetry();
-    pollIntervalRef.current = setInterval(fetchTelemetry, 1500);
+
+    // Polling backoff: if WS is connected, poll every 5s; otherwise 2s
+    pollIntervalRef.current = setInterval(fetchTelemetry, 2500);
 
     return () => {
+      isCleanedUp = true;
+      if (ws) {
+        ws.close();
+      }
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
     };
   }, [campaignId]);
@@ -147,6 +224,21 @@ export function LiveMissionTracker({
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600" />
                   </span>
                   Live Dispatch in Flight
+                </span>
+              )}
+
+              {isWsConnected ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-[11px] font-mono font-semibold text-emerald-700 dark:text-emerald-400">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                  </span>
+                  WebSocket Stream
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-zinc-800 text-[11px] font-mono text-gray-500 dark:text-zinc-400">
+                  <Radio className="h-3 w-3 text-amber-500" />
+                  Live Sync
                 </span>
               )}
 

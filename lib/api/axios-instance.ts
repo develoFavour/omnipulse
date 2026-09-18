@@ -17,6 +17,13 @@ export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
   tokenGetter = getter;
 };
 
+export const getAuthToken = async (): Promise<string | null> => {
+  if (tokenGetter) {
+    return tokenGetter();
+  }
+  return null;
+};
+
 // Add a request interceptor to lazily inject the freshest token before every request
 apiClient.interceptors.request.use(
   async (config) => {

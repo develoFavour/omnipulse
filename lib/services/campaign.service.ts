@@ -96,3 +96,14 @@ class CampaignService {
 
 export const campaignService = new CampaignService();
 export type { CampaignService };
+
+export function getCampaignWebSocketURL(campaignId: string, token?: string | null): string {
+  const httpUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const wsProto = httpUrl.startsWith("https") ? "wss" : "ws";
+  const cleanHost = httpUrl.replace(/^https?:\/\//, "");
+  let url = `${wsProto}://${cleanHost}/api/v1/ws/campaigns/${campaignId}`;
+  if (token) {
+    url += `?token=${encodeURIComponent(token)}`;
+  }
+  return url;
+}
