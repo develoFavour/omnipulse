@@ -18,6 +18,49 @@ export interface DashboardDeliveryActivity {
   created_at: string;
 }
 
+export interface LatestCampaignInfo {
+  id: string;
+  title: string;
+  status: string;
+  total_targets: number;
+  processed_targets: number;
+  delivered_count: number;
+  failed_count: number;
+  delivery_rate: number;
+  created_at: string;
+}
+
+export interface AudienceHealthInfo {
+  total_contacts: number;
+  active_contacts: number;
+  opt_out_count: number;
+  opt_out_rate: number;
+  new_contacts_this_week: number;
+  status: "Optimal" | "Healthy" | "Attention" | string;
+}
+
+export interface OnboardingProgressInfo {
+  workspace_created: boolean;
+  channels_connected: boolean;
+  contacts_imported: boolean;
+  first_broadcast_sent: boolean;
+  completion_percentage: number;
+  completed_steps: number;
+  total_steps: number;
+}
+
+export interface PlanUsageInfo {
+  plan_tier: string;
+  plan_badge: string;
+  monthly_message_limit: number;
+  messages_sent_this_month: number;
+  contacts_stored: number;
+  contacts_limit: number;
+  channels_connected: number;
+  channels_limit: number;
+  is_unlimited: boolean;
+}
+
 export interface DashboardStats {
   total_audience: number;
   broadcasts_sent: number;
@@ -27,6 +70,10 @@ export interface DashboardStats {
   failed_deliveries: number;
   channel_data: ChannelStat[];
   recent_activities: DashboardDeliveryActivity[];
+  latest_campaign?: LatestCampaignInfo;
+  audience_health: AudienceHealthInfo;
+  onboarding_progress: OnboardingProgressInfo;
+  plan_usage: PlanUsageInfo;
 }
 
 class DashboardService {

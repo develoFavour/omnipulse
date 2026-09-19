@@ -1,5 +1,6 @@
 import { apiClient } from "@/lib/api/axios-instance";
 import { ENDPOINTS } from "@/lib/constants/endpoint.const";
+import { Tag } from "./tag.service";
 
 export interface ContactResponse {
   id: string;
@@ -10,6 +11,7 @@ export interface ContactResponse {
   routing_value: string;
   source: string;
   status: string;
+  tags?: Tag[];
   created_at: string;
 }
 
@@ -18,7 +20,10 @@ class ContactService {
     const url = channelFilter
       ? `${ENDPOINTS.CONTACTS.BASE}?channel=${channelFilter}`
       : ENDPOINTS.CONTACTS.BASE;
-    const response = await apiClient.get<{ success: boolean; data: ContactResponse[] }>(url);
+    const response = await apiClient.get<any>(url);
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
     return response.data?.data || [];
   }
 }

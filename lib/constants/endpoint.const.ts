@@ -67,4 +67,12 @@ export const ENDPOINTS = {
 	MEDIA: {
 		UPLOAD: `${API_VERSION}/media/upload`,
 	},
+
+	// Audience Tags & Segmentation
+	TAGS: {
+		BASE: `${API_VERSION}/tags`,
+		BY_ID: (id: string) => `${API_VERSION}/tags/${id}`,
+		ASSIGN_CONTACT: (contactId: string) => `${API_VERSION}/contacts/${contactId}/tags`,
+		REMOVE_CONTACT: (contactId: string, tagId: string) => `${API_VERSION}/contacts/${contactId}/tags/${tagId}`,
+	},
 } as const;

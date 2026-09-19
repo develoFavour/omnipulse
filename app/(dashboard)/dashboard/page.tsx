@@ -124,22 +124,52 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* Welcome Banner */}
+      {/* Dynamic Action / Onboarding Banner */}
       <motion.div 
         variants={fadeUp}
-        className="mb-8 flex items-center justify-between rounded-xl bg-indigo-50 px-6 py-4 border border-indigo-100"
+        className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-indigo-50 via-white to-indigo-50/50 px-6 py-4 border border-indigo-100/80 shadow-sm"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100">
-            <CheckCircle2 className="h-5 w-5 text-indigo-600" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white font-bold shadow-sm">
+            {stats?.onboarding_progress?.completion_percentage === 100 ? (
+              <CheckCircle2 className="h-5 w-5" />
+            ) : (
+              <Zap className="h-5 w-5" />
+            )}
           </div>
-          <span className="text-sm font-semibold text-indigo-900">
-            Welcome to the newly designed OmniPulse Dashboard
-          </span>
+          <div>
+            <div className="text-sm font-bold text-gray-900">
+              {stats?.onboarding_progress?.completion_percentage === 100
+                ? "Workspace ready for high-throughput broadcast missions"
+                : !stats?.onboarding_progress?.channels_connected
+                ? "Step 1: Connect your messaging channels"
+                : !stats?.onboarding_progress?.contacts_imported
+                ? "Step 2: Add or import audience contacts"
+                : "Step 3: Dispatch your first omnichannel broadcast"}
+            </div>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {stats?.onboarding_progress?.completion_percentage === 100
+                ? "Omnichannel delivery pipeline active across WhatsApp and Telegram"
+                : `${stats?.onboarding_progress?.completion_percentage || 25}% of setup completed • Next action recommended`}
+            </p>
+          </div>
         </div>
-        <button className="rounded-lg bg-indigo-200/50 px-4 py-2 text-xs font-bold text-indigo-800 hover:bg-indigo-200 transition-colors">
-          Check it out
-        </button>
+        <a
+          href={
+            !stats?.onboarding_progress?.channels_connected
+              ? APP_ROUTES.DASHBOARD.CONNECTIONS
+              : !stats?.onboarding_progress?.contacts_imported
+              ? APP_ROUTES.DASHBOARD.AUDIENCE
+              : APP_ROUTES.DASHBOARD.BROADCAST
+          }
+          className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition-colors shadow-sm shrink-0"
+        >
+          {!stats?.onboarding_progress?.channels_connected
+            ? "Connect Channel →"
+            : !stats?.onboarding_progress?.contacts_imported
+            ? "Add Contacts →"
+            : "Launch Broadcast →"}
+        </a>
       </motion.div>
 
       {/* Main 3-Column Layout */}
@@ -192,73 +222,168 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Bottom Wide Panels (Funding rounds / Total options equivalent) */}
+      {/* Bottom Wide Panels */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Campaign Progress Panel (2 cols) */}
         <motion.div
           variants={fadeUp}
-          className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+          className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col justify-between"
         >
-          <div className="flex justify-between items-start mb-12">
-            <h3 className="text-sm font-bold text-gray-900">Campaign progress</h3>
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-gray-900">Campaign progress</h3>
+                {stats?.latest_campaign && (
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                      stats.latest_campaign.status === "completed"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : stats.latest_campaign.status === "processing"
+                        ? "bg-amber-50 text-amber-700 border border-amber-200 animate-pulse"
+                        : "bg-gray-100 text-gray-700 border border-gray-200"
+                    }`}
+                  >
+                    {stats.latest_campaign.status}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {stats?.latest_campaign
+                  ? `Telemetry for "${stats.latest_campaign.title}"`
+                  : "Live dispatch progress for your most recent campaign"}
+              </p>
+            </div>
             <a
               href={APP_ROUTES.DASHBOARD.BROADCAST}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition-colors shadow-sm"
+              className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-indigo-500 transition-colors shadow-sm"
             >
-              Update
+              New Broadcast
             </a>
           </div>
 
-          <div className="relative pt-6">
-            <div className="absolute top-0 left-0 text-xs font-bold text-gray-900">
-              Q3 Marketing Push
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="relative mt-8">
-              <div className="h-2 w-full rounded-full bg-gray-100">
-                <div className="h-full w-[45%] rounded-full bg-indigo-600 relative">
-                  <div className="absolute -top-6 right-0 text-xs font-bold text-indigo-900">
-                    ▼ 45% delivered
-                  </div>
+          {stats?.latest_campaign ? (
+            <div className="pt-2">
+              <div className="flex items-center justify-between text-xs font-bold text-gray-900 mb-3">
+                <span className="truncate max-w-[280px] font-semibold text-gray-800">
+                  {stats.latest_campaign.title}
+                </span>
+                <span className="text-indigo-600 font-mono">
+                  {stats.latest_campaign.delivered_count} / {stats.latest_campaign.total_targets} dispatched
+                </span>
+              </div>
+              
+              {/* Real Progress Bar */}
+              <div className="relative">
+                <div className="h-2.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-indigo-600 transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, Math.max(5, stats.latest_campaign.delivery_rate || 0))}%`,
+                    }}
+                  />
+                </div>
+                <div className="mt-3 flex items-center justify-between text-[11px] font-medium text-gray-500">
+                  <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                    ✓ {(stats.latest_campaign.delivery_rate || 0).toFixed(1)}% delivered
+                  </span>
+                  {stats.latest_campaign.failed_count > 0 ? (
+                    <span className="text-red-500 font-semibold">
+                      ✕ {stats.latest_campaign.failed_count} failed
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">
+                      0 errors
+                    </span>
+                  )}
+                  <span className="text-gray-400 font-mono text-[10px]">
+                    {new Date(stats.latest_campaign.created_at).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
                 </div>
               </div>
-              <div className="absolute top-4 left-0 flex items-center gap-1 text-[10px] font-bold text-indigo-600">
-                ▲ 0% bounced
-              </div>
-              <div className="absolute top-4 right-0 text-xs font-bold text-indigo-600">
-                12 days left
-              </div>
             </div>
-          </div>
+          ) : (
+            <div className="py-6 flex flex-col items-center justify-center text-center">
+              <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-2">
+                <Megaphone className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-semibold text-gray-800">No campaigns dispatched yet</p>
+              <p className="text-xs text-gray-500 max-w-sm mt-0.5 mb-3">
+                Send your first message across WhatsApp and Telegram to track real-time delivery telemetry here.
+              </p>
+              <a
+                href={APP_ROUTES.DASHBOARD.BROADCAST}
+                className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
+              >
+                Launch your first broadcast →
+              </a>
+            </div>
+          )}
         </motion.div>
 
-        {/* Audience Growth Panel (1 col) */}
+        {/* Audience Growth & Health Panel (1 col) */}
         <motion.div
           variants={fadeUp}
-          className="lg:col-span-1 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+          className="lg:col-span-1 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col justify-between"
         >
-          <div className="flex items-center gap-2 mb-8">
-            <h3 className="text-sm font-bold text-gray-900">Audience health</h3>
-            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-600">
-              Optimal
-            </span>
-          </div>
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-gray-900">Audience health</h3>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  (stats?.audience_health?.status || "Optimal") === "Optimal"
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : (stats?.audience_health?.status || "Optimal") === "Healthy"
+                    ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                    : "bg-amber-50 text-amber-700 border border-amber-200"
+                }`}
+              >
+                {stats?.audience_health?.status || "Optimal"}
+              </span>
+            </div>
 
-          <div className="space-y-6">
-            <div>
-              <div className="flex justify-between text-xs font-bold mb-2">
-                <span className="text-indigo-900">▼ 8%</span>
-                <span className="text-gray-500">Opt-outs</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-gray-100">
-                <div className="h-full w-[8%] rounded-full bg-indigo-200" />
+            <div className="space-y-4 pt-1">
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-1.5">
+                  <span className="text-indigo-900 font-mono">
+                    {(stats?.audience_health?.opt_out_rate || 0).toFixed(1)}%
+                  </span>
+                  <span className="text-gray-500 font-medium">
+                    {stats?.audience_health?.opt_out_count || 0} Opt-outs
+                  </span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, Math.max(2, stats?.audience_health?.opt_out_rate || 0))}%`,
+                    }}
+                  />
+                </div>
               </div>
             </div>
-            
-            <div className="flex justify-between items-baseline pt-4 border-t border-gray-100">
-              <span className="text-3xl font-extrabold text-gray-900">24</span>
-              <span className="text-xs font-medium text-gray-500">New contacts this week</span>
+          </div>
+          
+          <div className="flex justify-between items-baseline pt-4 border-t border-gray-100 mt-4">
+            <div>
+              <span className="text-3xl font-extrabold text-gray-900 font-mono">
+                {stats?.audience_health?.new_contacts_this_week ?? 0}
+              </span>
+              <span className="block text-xs font-medium text-gray-500 mt-0.5">
+                New contacts (7d)
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="text-xs font-bold text-emerald-600">
+                {stats?.audience_health?.active_contacts ?? stats?.total_audience ?? 0} active
+              </span>
+              <span className="block text-[10px] text-gray-400">
+                of {stats?.audience_health?.total_contacts ?? stats?.total_audience ?? 0} total
+              </span>
             </div>
           </div>
         </motion.div>

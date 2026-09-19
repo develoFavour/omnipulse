@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { contactService } from "@/lib/services/contact.service";
+import { Tag } from "@/lib/services/tag.service";
 
 export interface Contact {
   id: string;
@@ -10,6 +11,7 @@ export interface Contact {
   routing_value: string;
   source: string;
   status: string;
+  tags?: Tag[];
   created_at: string;
 }
 

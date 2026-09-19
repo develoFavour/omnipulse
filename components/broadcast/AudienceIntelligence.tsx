@@ -12,10 +12,12 @@ import {
   CheckCircle2,
   UserX,
   Filter,
+  Tag as TagIcon,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Contact } from "@/lib/api/hooks/useContacts";
+import { useTags } from "@/lib/api/hooks/useTags";
 import { TelegramDestination } from "@/lib/services/telegram-destination.service";
 import { ChannelPlacement } from "./ChannelPlacementSelector";
 
@@ -51,6 +53,9 @@ export function AudienceIntelligence({
   const [contactSearch, setContactSearch] = useState("");
   const [showContactPicker, setShowContactPicker] = useState(false);
   const [showDestinationPicker, setShowDestinationPicker] = useState(false);
+  const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
+
+  const { tags } = useTags();
 
   const isTelegramDM = selectedPlacements.includes("telegram_dm");
   const isTelegramChannel = selectedPlacements.includes("telegram_channel");
@@ -75,15 +80,19 @@ export function AudienceIntelligence({
     : eligibleContacts;
 
   const filteredEligibleContacts = useMemo(() => {
+    let list = eligibleContacts;
+    if (selectedTagFilter) {
+      list = list.filter((c) => c.tags?.some((t) => t.id === selectedTagFilter));
+    }
     const q = contactSearch.toLowerCase();
-    if (!q) return eligibleContacts;
-    return eligibleContacts.filter(
+    if (!q) return list;
+    return list.filter(
       (c) =>
         c.first_name.toLowerCase().includes(q) ||
         c.last_name.toLowerCase().includes(q) ||
         c.routing_value.toLowerCase().includes(q)
     );
-  }, [eligibleContacts, contactSearch]);
+  }, [eligibleContacts, contactSearch, selectedTagFilter]);
 
   const filteredDestinations = useMemo(() => {
     const q = destinationSearch.toLowerCase();
@@ -267,6 +276,49 @@ export function AudienceIntelligence({
                 />
               </div>
 
+              {/* Tag Segmentation Filter Chips */}
+              {tags.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 px-1 py-0.5">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mr-1">
+                    Tags:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTagFilter(null)}
+                    className={cn(
+                      "px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors",
+                      selectedTagFilter === null
+                        ? "bg-indigo-600 text-white shadow-2xs"
+                        : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                    )}
+                  >
+                    All
+                  </button>
+                  {tags.map((t) => {
+                    const isSelected = selectedTagFilter === t.id;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setSelectedTagFilter(isSelected ? null : t.id)}
+                        className={cn(
+                          "px-2 py-0.5 rounded-md text-[10px] font-bold transition-all border",
+                          isSelected
+                            ? "text-white border-transparent shadow-2xs"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                        )}
+                        style={{
+                          backgroundColor: isSelected ? t.color : undefined,
+                          borderColor: isSelected ? t.color : undefined,
+                        }}
+                      >
+                        {t.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* Bulk actions */}
               <div className="flex items-center gap-3 px-1">
                 <button
@@ -346,6 +398,19 @@ export function AudienceIntelligence({
                             <p className="text-[10px] font-mono text-gray-400 truncate">
                               {contact.routing_value}
                             </p>
+                            {contact.tags && contact.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-0.5">
+                                {contact.tags.map((t) => (
+                                  <span
+                                    key={t.id}
+                                    className="px-1.5 py-0.2 rounded text-[9px] font-bold text-white shadow-2xs"
+                                    style={{ backgroundColor: t.color }}
+                                  >
+                                    {t.name}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                         {/* Channel badge */}
