@@ -7,6 +7,7 @@ export type { CampaignResponse as Campaign, CampaignPayload as CreateCampaignPay
 export function useCampaigns() {
   const [isCreating, setIsCreating] = useState(false);
   const [isDispatching, setIsDispatching] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const createCampaign = useCallback(async (payload: CampaignPayload): Promise<CampaignResponse> => {
@@ -37,5 +38,19 @@ export function useCampaigns() {
     }
   }, []);
 
-  return { createCampaign, dispatchCampaign, isCreating, isDispatching, error };
+  const scheduleCampaign = useCallback(async (campaignId: string, scheduledAt: Date): Promise<void> => {
+    setIsScheduling(true);
+    setError(null);
+    try {
+      await campaignService.scheduleCampaign(campaignId, scheduledAt);
+    } catch (err: any) {
+      const msg = err.response?.data?.error || "Failed to schedule campaign";
+      setError(msg);
+      throw err;
+    } finally {
+      setIsScheduling(false);
+    }
+  }, []);
+
+  return { createCampaign, dispatchCampaign, scheduleCampaign, isCreating, isDispatching, isScheduling, error };
 }

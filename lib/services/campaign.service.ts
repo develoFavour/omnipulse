@@ -92,6 +92,21 @@ class CampaignService {
     );
     return response.data.data;
   }
+
+  async scheduleCampaign(campaignId: string, scheduledAt: Date): Promise<{ message: string; campaign_id: string; scheduled_at: string }> {
+    const response = await apiClient.post<{ success: boolean; data: { message: string; campaign_id: string; scheduled_at: string } }>(
+      ENDPOINTS.CAMPAIGNS.SCHEDULE(campaignId),
+      { scheduled_at: scheduledAt.toISOString() },
+    );
+    return response.data.data;
+  }
+
+  async cancelScheduledCampaign(campaignId: string): Promise<{ message: string; campaign_id: string }> {
+    const response = await apiClient.delete<{ success: boolean; data: { message: string; campaign_id: string } }>(
+      ENDPOINTS.CAMPAIGNS.SCHEDULE(campaignId),
+    );
+    return response.data.data;
+  }
 }
 
 export const campaignService = new CampaignService();

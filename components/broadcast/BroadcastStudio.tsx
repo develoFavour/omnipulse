@@ -13,12 +13,14 @@ import {
   AlertCircle, 
   Eye, 
   Clock, 
+  CalendarClock,
   ArrowRight,
   RefreshCw,
   Copy,
   PlusCircle,
   ShieldCheck,
-  Smartphone
+  Smartphone,
+  X
 } from "lucide-react";
 import { FaWhatsapp, FaTelegram } from "react-icons/fa";
 import { toast } from "sonner";
@@ -44,7 +46,7 @@ export function BroadcastStudio() {
   const { destinations, isLoading: isLoadingDestinations, refetch: refetchDestinations } = useTelegramDestinations();
   const { channels, loading: loadingChannels, refetch: refetchChannels } = useTenantChannels();
   const { connectTelegram, loading: isConnectingTelegram } = useChannelConnection();
-  const { createCampaign, dispatchCampaign, isCreating, isDispatching } = useCampaigns();
+  const { createCampaign, dispatchCampaign, scheduleCampaign, isCreating, isDispatching, isScheduling } = useCampaigns();
 
   // Campaign State
   const [title, setTitle] = useState("");
@@ -60,6 +62,12 @@ export function BroadcastStudio() {
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
   const [dispatched, setDispatched] = useState(false);
   const [dispatchedCampaignId, setDispatchedCampaignId] = useState<string>("");
+
+  // Scheduling state
+  const [scheduleMode, setScheduleMode] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState<string>(""); // datetime-local value
+  const [scheduledConfirmed, setScheduledConfirmed] = useState(false);
+  const [scheduledCampaignTitle, setScheduledCampaignTitle] = useState("");
 
   // In-Studio Connection & Sync Modals
   const [isWhatsAppQRModalOpen, setIsWhatsAppQRModalOpen] = useState(false);
@@ -161,7 +169,7 @@ export function BroadcastStudio() {
     return count;
   }, [targetContacts.length, isTelegramChannel, selectedDestinationIds.length]);
 
-  const isProcessing = isCreating || isDispatching;
+  const isProcessing = isCreating || isDispatching || isScheduling;
 
   // Placement Handlers
   const handleTogglePlacement = (placement: ChannelPlacement) => {
@@ -281,6 +289,74 @@ export function BroadcastStudio() {
     }
   };
 
+  const handleSchedule = async () => {
+    if (!title.trim()) {
+      toast.error("Campaign Title is required", {
+        description: "Please provide a name for this broadcast campaign.",
+      });
+      return;
+    }
+
+    if (!messageBody.trim()) {
+      toast.error("Message content is empty", {
+        description: "Please compose your message before scheduling.",
+      });
+      return;
+    }
+
+    if (!scheduledAt) {
+      toast.error("Schedule time required", {
+        description: "Please select a date and time to schedule this campaign.",
+      });
+      return;
+    }
+
+    const scheduledDate = new Date(scheduledAt);
+    if (scheduledDate <= new Date()) {
+      toast.error("Invalid schedule time", {
+        description: "The scheduled time must be at least 2 minutes in the future.",
+      });
+      return;
+    }
+
+    const channelsToSend: string[] = [];
+    if (isTelegramDM) channelsToSend.push("telegram");
+    if (isWhatsAppDM) channelsToSend.push("whatsapp");
+
+    const hasDestinationTargets = isTelegramChannel && selectedDestinationIds.length > 0;
+    const hasContactTargets = channelsToSend.length > 0 && targetContacts.length > 0;
+
+    if (!hasContactTargets && !hasDestinationTargets && !isWhatsAppStory) {
+      toast.error("No audience targets selected", {
+        description: "Select private contacts, community groups, or WhatsApp Story to schedule.",
+      });
+      return;
+    }
+
+    try {
+      const campaign = await createCampaign({
+        title: title.trim(),
+        message_body: messageBody.trim(),
+        delivery_type: "direct_message",
+        selected_channels: JSON.stringify(channelsToSend),
+        selected_telegram_destination_ids: JSON.stringify(selectedDestinationIds),
+        selected_contact_ids: JSON.stringify(selectedContactIds),
+        media_url: mediaUrl || undefined,
+      });
+
+      await scheduleCampaign(campaign.id, scheduledDate);
+      setScheduledCampaignTitle(title.trim());
+      setScheduledConfirmed(true);
+      setScheduleMode(false);
+      toast.success("Campaign scheduled!", {
+        description: `Will dispatch at ${scheduledDate.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`,
+      });
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || "Failed to schedule campaign";
+      toast.error(msg);
+    }
+  };
+
   const handleResetStudio = () => {
     setTitle("");
     setMessageBody("");
@@ -289,6 +365,10 @@ export function BroadcastStudio() {
     setSelectedDestinationIds([]);
     setSelectedContactIds([]);
     setDispatched(false);
+    setScheduleMode(false);
+    setScheduledAt("");
+    setScheduledConfirmed(false);
+    setScheduledCampaignTitle("");
   };
 
   // If successfully dispatched, show the live mission control tracker
@@ -348,14 +428,35 @@ export function BroadcastStudio() {
             </button>
           )}
 
+          {/* Schedule Toggle Trigger */}
           <button
             type="button"
-            onClick={handleDispatch}
-            disabled={isProcessing || targetCount === 0 && !isWhatsAppStory}
+            onClick={() => setScheduleMode((v) => !v)}
+            title="Schedule for later"
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-2.5 rounded-xl border font-bold text-xs transition-all",
+              scheduleMode
+                ? "bg-amber-50 border-amber-300 text-amber-700 shadow-sm"
+                : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
+            )}
+          >
+            <CalendarClock className="h-4 w-4" />
+            {scheduleMode ? "Cancel Schedule" : "Schedule"}
+          </button>
+
+          {/* Primary Launch Button */}
+          <button
+            type="button"
+            onClick={scheduleMode ? handleSchedule : handleDispatch}
+            disabled={isProcessing || (targetCount === 0 && !isWhatsAppStory)}
             className={cn(
               "flex items-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md",
               isProcessing
                 ? "bg-indigo-400 text-white cursor-wait"
+                : scheduleMode
+                ? targetCount > 0 || isWhatsAppStory
+                  ? "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-400/25"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
                 : targetCount > 0 || isWhatsAppStory
                 ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
@@ -364,7 +465,12 @@ export function BroadcastStudio() {
             {isProcessing ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Transmitting...
+                {isScheduling ? "Scheduling..." : "Transmitting..."}
+              </>
+            ) : scheduleMode ? (
+              <>
+                <CalendarClock className="h-4 w-4" />
+                Schedule ({targetCount})
               </>
             ) : (
               <>
@@ -375,6 +481,74 @@ export function BroadcastStudio() {
           </button>
         </div>
       </div>
+
+      {/* Schedule Picker Panel — slides in when scheduleMode is active */}
+      <AnimatePresence>
+        {scheduleMode && (
+          <motion.div
+            key="schedule-panel"
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="mb-6 overflow-hidden"
+          >
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 flex flex-wrap items-center gap-4">
+              <CalendarClock className="h-5 w-5 text-amber-600 shrink-0" />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Schedule Dispatch Time</span>
+                <span className="text-[11px] text-amber-600 font-medium">
+                  Timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                </span>
+              </div>
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                min={new Date(Date.now() + 2 * 60_000).toISOString().slice(0, 16)}
+                className="flex-1 min-w-[200px] rounded-xl border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-400 outline-none transition-all cursor-pointer"
+              />
+              {scheduledAt && (
+                <span className="text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded-lg px-3 py-1.5">
+                  {new Date(scheduledAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                </span>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Scheduled Confirmation Banner */}
+      <AnimatePresence>
+        {scheduledConfirmed && (
+          <motion.div
+            key="schedule-confirmed"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 flex items-center gap-4"
+          >
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-emerald-800">
+                "{scheduledCampaignTitle}" is scheduled!
+              </p>
+              <p className="text-xs text-emerald-600 mt-0.5">
+                Will dispatch at{" "}
+                {scheduledAt && new Date(scheduledAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}{" "}
+                ({Intl.DateTimeFormat().resolvedOptions().timeZone})
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleResetStudio}
+              className="text-emerald-700 hover:text-emerald-900 font-bold text-xs border border-emerald-300 rounded-lg px-3 py-1.5 hover:bg-emerald-100 transition-all"
+            >
+              New Campaign
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Live Channel Pipeline Status Ribbon */}
       <div className="mb-6 rounded-2xl border border-gray-200/90 bg-white p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
