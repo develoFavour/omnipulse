@@ -15,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
@@ -192,13 +191,13 @@ export function ScheduleCampaignModal({
           </p>
         </div>
 
-        {/* Footer */}
-        <DialogFooter className="px-6 py-4 border-t border-gray-100 bg-gray-50/40 flex flex-row items-center justify-end gap-2 !rounded-b-2xl">
+        {/* Footer Actions */}
+        <div className="px-6 py-5 border-t border-gray-100 bg-gray-50/70 flex items-center justify-end gap-3 rounded-b-2xl">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
             disabled={isScheduling}
-            className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50"
+            className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
           >
             Cancel
           </button>
@@ -207,10 +206,10 @@ export function ScheduleCampaignModal({
             onClick={handleConfirm}
             disabled={isScheduling || !scheduledAt}
             className={cn(
-              "flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold text-white transition-all shadow-md",
+              "flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-md cursor-pointer",
               isScheduling || !scheduledAt
                 ? "bg-amber-300 cursor-not-allowed shadow-none"
-                : "bg-amber-500 hover:bg-amber-600 shadow-amber-400/25"
+                : "bg-amber-500 hover:bg-amber-600 shadow-amber-500/25 active:scale-[0.99]"
             )}
           >
             {isScheduling ? (
@@ -225,7 +224,7 @@ export function ScheduleCampaignModal({
               </>
             )}
           </button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
