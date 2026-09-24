@@ -52,5 +52,16 @@ export function useCampaigns() {
     }
   }, []);
 
-  return { createCampaign, dispatchCampaign, scheduleCampaign, isCreating, isDispatching, isScheduling, error };
+  const cancelScheduledCampaign = useCallback(async (campaignId: string): Promise<void> => {
+    setError(null);
+    try {
+      await campaignService.cancelScheduledCampaign(campaignId);
+    } catch (err: any) {
+      const msg = err.response?.data?.error || "Failed to cancel scheduled campaign";
+      setError(msg);
+      throw err;
+    }
+  }, []);
+
+  return { createCampaign, dispatchCampaign, scheduleCampaign, cancelScheduledCampaign, isCreating, isDispatching, isScheduling, error };
 }

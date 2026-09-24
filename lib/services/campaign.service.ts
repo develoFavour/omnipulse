@@ -19,7 +19,10 @@ export interface CampaignResponse {
   delivery_type: string;
   selected_channels: string;
   selected_telegram_destination_ids: string;
+  selected_contact_ids?: string;
+  media_url?: string;
   status: string;
+  scheduled_at?: string;
   total_targets: number;
   processed_targets: number;
   created_at: string;
@@ -58,10 +61,14 @@ class CampaignService {
     return response.data.data;
   }
 
-  async getCampaigns(): Promise<CampaignResponse[]> {
-    const response = await apiClient.get<{ success: boolean; data: CampaignResponse[] }>(
-      ENDPOINTS.CAMPAIGNS.BASE,
-    );
+  async getCampaigns(status?: string, page = 1, pageSize = 50): Promise<CampaignResponse[]> {
+    const params = new URLSearchParams();
+    if (status) params.append("status", status);
+    if (page) params.append("page", String(page));
+    if (pageSize) params.append("pageSize", String(pageSize));
+    const qs = params.toString();
+    const url = qs ? `${ENDPOINTS.CAMPAIGNS.BASE}?${qs}` : ENDPOINTS.CAMPAIGNS.BASE;
+    const response = await apiClient.get<{ success: boolean; data: CampaignResponse[] }>(url);
     return response.data.data;
   }
 

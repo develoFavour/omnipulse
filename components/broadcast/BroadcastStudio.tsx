@@ -34,6 +34,8 @@ import { channelService } from "@/lib/services/channel.service";
 import { WhatsAppQRModal } from "@/components/channels/WhatsAppQRModal";
 import { TelegramConnectionForm } from "@/components/features/onboarding/TelegramConnectionForm";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
+import Link from "next/link";
+import { BroadcastSubNav } from "./BroadcastSubNav";
 import { ChannelPlacement, ChannelPlacementSelector } from "./ChannelPlacementSelector";
 import { MediaAssetDropzone } from "./MediaAssetDropzone";
 import { AudienceIntelligence } from "./AudienceIntelligence";
@@ -411,6 +413,9 @@ export function BroadcastStudio() {
 
   return (
     <div className="max-w-[1440px] mx-auto pb-16">
+      {/* Sub-Navigation Switcher */}
+      <BroadcastSubNav />
+
       {/* Studio Command Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-gray-200/80">
         <div>
@@ -487,26 +492,37 @@ export function BroadcastStudio() {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 flex items-center gap-4"
+            className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
           >
-            <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-bold text-emerald-800">
-                &ldquo;{scheduledCampaignTitle}&rdquo; is scheduled!
-              </p>
-              <p className="text-xs text-emerald-600 mt-0.5">
-                Will dispatch at{" "}
-                {scheduledAt && new Date(scheduledAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}{" "}
-                ({Intl.DateTimeFormat().resolvedOptions().timeZone})
-              </p>
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-emerald-800">
+                  &ldquo;{scheduledCampaignTitle}&rdquo; is scheduled!
+                </p>
+                <p className="text-xs text-emerald-600 mt-0.5">
+                  Will dispatch at{" "}
+                  {scheduledAt && new Date(scheduledAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}{" "}
+                  ({Intl.DateTimeFormat().resolvedOptions().timeZone})
+                </p>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={handleResetStudio}
-              className="text-emerald-700 hover:text-emerald-900 font-bold text-xs border border-emerald-300 rounded-lg px-3 py-1.5 hover:bg-emerald-100 transition-all"
-            >
-              New Campaign
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                href={APP_ROUTES.DASHBOARD.SCHEDULED}
+                className="text-emerald-800 hover:text-emerald-950 font-bold text-xs bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-lg px-3 py-1.5 transition-all inline-flex items-center gap-1.5"
+              >
+                <CalendarClock className="h-3.5 w-3.5" />
+                View in Scheduled Queue →
+              </Link>
+              <button
+                type="button"
+                onClick={handleResetStudio}
+                className="text-emerald-700 hover:text-emerald-900 font-bold text-xs border border-emerald-300 rounded-lg px-3 py-1.5 hover:bg-emerald-100 transition-all"
+              >
+                New Campaign
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

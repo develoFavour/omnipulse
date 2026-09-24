@@ -19,6 +19,7 @@ export const APP_ROUTES = {
   DASHBOARD: {
     BASE: '/dashboard',
     BROADCAST: '/broadcast',
+    SCHEDULED: '/broadcast/scheduled',
     AUDIENCE: '/audience',
     CONNECTIONS: '/connections',
     ACTIVITY: '/activity',

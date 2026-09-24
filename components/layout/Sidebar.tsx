@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   Megaphone,
+  CalendarClock,
   Users,
   Plug,
   Settings,
@@ -20,6 +21,7 @@ import { APP_ROUTES } from "@/lib/constants/routes.const";
 const navigation = [
   { name: "Dashboard", href: APP_ROUTES.DASHBOARD.BASE, icon: LayoutDashboard },
   { name: "Broadcast Studio", href: APP_ROUTES.DASHBOARD.BROADCAST, icon: Megaphone },
+  { name: "Scheduled Queue", href: APP_ROUTES.DASHBOARD.SCHEDULED, icon: CalendarClock },
   { name: "Audience Directory", href: APP_ROUTES.DASHBOARD.AUDIENCE, icon: Users },
   { name: "Connect Profiles", href: APP_ROUTES.DASHBOARD.CONNECTIONS, icon: Plug },
   { name: "Recent Activities", href: APP_ROUTES.DASHBOARD.ACTIVITY, icon: Activity },
@@ -39,7 +41,13 @@ export function Sidebar() {
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
         <nav className="flex-1 space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || (item.href !== APP_ROUTES.DASHBOARD.BASE && pathname.startsWith(item.href));
+            const isActive =
+              item.href === APP_ROUTES.DASHBOARD.SCHEDULED
+                ? pathname.startsWith(APP_ROUTES.DASHBOARD.SCHEDULED)
+                : item.href === APP_ROUTES.DASHBOARD.BROADCAST
+                ? pathname === APP_ROUTES.DASHBOARD.BROADCAST
+                : pathname === item.href ||
+                  (item.href !== APP_ROUTES.DASHBOARD.BASE && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.name}
