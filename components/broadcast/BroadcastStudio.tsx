@@ -40,6 +40,7 @@ import { AudienceIntelligence } from "./AudienceIntelligence";
 import { DevicePreviewSimulator } from "./DevicePreviewSimulator";
 import { WhatsAppStoryModal } from "./WhatsAppStoryModal";
 import { LiveMissionTracker } from "./LiveMissionTracker";
+import { ScheduleCampaignModal } from "./ScheduleCampaignModal";
 
 export function BroadcastStudio() {
   const { contacts, isLoading: isLoadingContacts, refetch: refetchContacts } = useContacts();
@@ -64,7 +65,7 @@ export function BroadcastStudio() {
   const [dispatchedCampaignId, setDispatchedCampaignId] = useState<string>("");
 
   // Scheduling state
-  const [scheduleMode, setScheduleMode] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [scheduledAt, setScheduledAt] = useState<string>(""); // datetime-local value
   const [scheduledConfirmed, setScheduledConfirmed] = useState(false);
   const [scheduledCampaignTitle, setScheduledCampaignTitle] = useState("");
@@ -170,6 +171,16 @@ export function BroadcastStudio() {
   }, [targetContacts.length, isTelegramChannel, selectedDestinationIds.length]);
 
   const isProcessing = isCreating || isDispatching || isScheduling;
+
+  // Human-readable summary of active placements for the schedule modal
+  const channelsSummary = useMemo(() => {
+    const parts: string[] = [];
+    if (isTelegramDM) parts.push("Telegram DM");
+    if (isTelegramChannel) parts.push(`Telegram Channels (${selectedDestinationIds.length})`);
+    if (isWhatsAppDM) parts.push("WhatsApp DM");
+    if (isWhatsAppStory) parts.push("WhatsApp Story");
+    return parts.length > 0 ? parts.join(" · ") : "No channels selected";
+  }, [isTelegramDM, isTelegramChannel, isWhatsAppDM, isWhatsAppStory, selectedDestinationIds.length]);
 
   // Placement Handlers
   const handleTogglePlacement = (placement: ChannelPlacement) => {
@@ -347,7 +358,7 @@ export function BroadcastStudio() {
       await scheduleCampaign(campaign.id, scheduledDate);
       setScheduledCampaignTitle(title.trim());
       setScheduledConfirmed(true);
-      setScheduleMode(false);
+      setIsScheduleModalOpen(false);
       toast.success("Campaign scheduled!", {
         description: `Will dispatch at ${scheduledDate.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`,
       });
@@ -365,7 +376,7 @@ export function BroadcastStudio() {
     setSelectedDestinationIds([]);
     setSelectedContactIds([]);
     setDispatched(false);
-    setScheduleMode(false);
+    setIsScheduleModalOpen(false);
     setScheduledAt("");
     setScheduledConfirmed(false);
     setScheduledCampaignTitle("");
@@ -428,49 +439,35 @@ export function BroadcastStudio() {
             </button>
           )}
 
-          {/* Schedule Toggle Trigger */}
+          {/* Schedule for Later — opens modal */}
           <button
             type="button"
-            onClick={() => setScheduleMode((v) => !v)}
+            onClick={() => setIsScheduleModalOpen(true)}
             title="Schedule for later"
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-2.5 rounded-xl border font-bold text-xs transition-all",
-              scheduleMode
-                ? "bg-amber-50 border-amber-300 text-amber-700 shadow-sm"
-                : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
-            )}
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white font-bold text-xs text-gray-500 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 transition-all"
           >
             <CalendarClock className="h-4 w-4" />
-            {scheduleMode ? "Cancel Schedule" : "Schedule"}
+            Schedule
           </button>
 
           {/* Primary Launch Button */}
           <button
             type="button"
-            onClick={scheduleMode ? handleSchedule : handleDispatch}
-            disabled={isProcessing || (targetCount === 0 && !isWhatsAppStory)}
+            onClick={handleDispatch}
+            disabled={isDispatching || isCreating || (targetCount === 0 && !isWhatsAppStory)}
             className={cn(
               "flex items-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md",
-              isProcessing
+              isDispatching || isCreating
                 ? "bg-indigo-400 text-white cursor-wait"
-                : scheduleMode
-                ? targetCount > 0 || isWhatsAppStory
-                  ? "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-400/25"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
                 : targetCount > 0 || isWhatsAppStory
                 ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
             )}
           >
-            {isProcessing ? (
+            {isDispatching || isCreating ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                {isScheduling ? "Scheduling..." : "Transmitting..."}
-              </>
-            ) : scheduleMode ? (
-              <>
-                <CalendarClock className="h-4 w-4" />
-                Schedule ({targetCount})
+                Transmitting...
               </>
             ) : (
               <>
@@ -481,42 +478,6 @@ export function BroadcastStudio() {
           </button>
         </div>
       </div>
-
-      {/* Schedule Picker Panel — slides in when scheduleMode is active */}
-      <AnimatePresence>
-        {scheduleMode && (
-          <motion.div
-            key="schedule-panel"
-            initial={{ opacity: 0, y: -8, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: -8, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="mb-6 overflow-hidden"
-          >
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 flex flex-wrap items-center gap-4">
-              <CalendarClock className="h-5 w-5 text-amber-600 shrink-0" />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">Schedule Dispatch Time</span>
-                <span className="text-[11px] text-amber-600 font-medium">
-                  Timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
-                </span>
-              </div>
-              <input
-                type="datetime-local"
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-                min={new Date(Date.now() + 2 * 60_000).toISOString().slice(0, 16)}
-                className="flex-1 min-w-[200px] rounded-xl border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-400 outline-none transition-all cursor-pointer"
-              />
-              {scheduledAt && (
-                <span className="text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded-lg px-3 py-1.5">
-                  {new Date(scheduledAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
-                </span>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Scheduled Confirmation Banner */}
       <AnimatePresence>
@@ -531,7 +492,7 @@ export function BroadcastStudio() {
             <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-bold text-emerald-800">
-                "{scheduledCampaignTitle}" is scheduled!
+                &ldquo;{scheduledCampaignTitle}&rdquo; is scheduled!
               </p>
               <p className="text-xs text-emerald-600 mt-0.5">
                 Will dispatch at{" "}
@@ -758,6 +719,19 @@ export function BroadcastStudio() {
         messageBody={messageBody}
         mediaUrl={mediaUrl}
         brandName={verifiedWhatsAppName}
+      />
+
+      {/* Campaign Scheduler Modal */}
+      <ScheduleCampaignModal
+        open={isScheduleModalOpen}
+        onOpenChange={setIsScheduleModalOpen}
+        campaignTitle={title}
+        targetCount={targetCount}
+        channelsSummary={channelsSummary}
+        scheduledAt={scheduledAt}
+        onScheduledAtChange={setScheduledAt}
+        isScheduling={isScheduling || isCreating}
+        onConfirm={handleSchedule}
       />
 
       {/* In-Studio WhatsApp QR Modal */}
