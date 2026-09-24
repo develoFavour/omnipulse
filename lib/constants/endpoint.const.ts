@@ -73,6 +73,7 @@ export const ENDPOINTS = {
 	TAGS: {
 		BASE: `${API_VERSION}/tags`,
 		BY_ID: (id: string) => `${API_VERSION}/tags/${id}`,
+		BULK_ASSIGN: (tagId: string) => `${API_VERSION}/tags/${tagId}/bulk-assign`,
 		ASSIGN_CONTACT: (contactId: string) => `${API_VERSION}/contacts/${contactId}/tags`,
 		REMOVE_CONTACT: (contactId: string, tagId: string) => `${API_VERSION}/contacts/${contactId}/tags/${tagId}`,
 	},

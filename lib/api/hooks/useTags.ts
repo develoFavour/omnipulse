@@ -28,6 +28,17 @@ export function useTags() {
     await mutate();
   };
 
+  const bulkTagContacts = async (tagId: string, contactIds: string[], action: "assign" | "remove") => {
+    await tagService.bulkTagContacts(tagId, contactIds, action);
+    await mutate();
+  };
+
+  const updateTag = async (id: string, name: string, color: string) => {
+    const updated = await tagService.updateTag(id, name, color);
+    await mutate();
+    return updated;
+  };
+
   return {
     tags: data || [],
     isLoading,
@@ -37,5 +48,7 @@ export function useTags() {
     deleteTag,
     tagContact,
     untagContact,
+    bulkTagContacts,
+    updateTag,
   };
 }

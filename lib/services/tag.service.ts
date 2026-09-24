@@ -33,6 +33,18 @@ class TagService {
   async untagContact(contactId: string, tagId: string): Promise<void> {
     await apiClient.delete(ENDPOINTS.TAGS.REMOVE_CONTACT(contactId, tagId));
   }
+
+  async bulkTagContacts(tagId: string, contactIds: string[], action: "assign" | "remove"): Promise<void> {
+    await apiClient.post(ENDPOINTS.TAGS.BULK_ASSIGN(tagId), {
+      action,
+      contact_ids: contactIds,
+    });
+  }
+
+  async updateTag(id: string, name: string, color: string): Promise<Tag> {
+    const response = await apiClient.put<Tag>(ENDPOINTS.TAGS.BY_ID(id), { name, color });
+    return response.data;
+  }
 }
 
 export const tagService = new TagService();
