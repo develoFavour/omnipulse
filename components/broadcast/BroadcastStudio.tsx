@@ -43,6 +43,7 @@ import { DevicePreviewSimulator } from "./DevicePreviewSimulator";
 import { WhatsAppStoryModal } from "./WhatsAppStoryModal";
 import { LiveMissionTracker } from "./LiveMissionTracker";
 import { ScheduleCampaignModal } from "./ScheduleCampaignModal";
+import { TemplatePickerModal } from "./TemplatePickerModal";
 
 export function BroadcastStudio() {
   const { contacts, isLoading: isLoadingContacts, refetch: refetchContacts } = useContacts();
@@ -71,6 +72,9 @@ export function BroadcastStudio() {
   const [scheduledAt, setScheduledAt] = useState<string>(""); // datetime-local value
   const [scheduledConfirmed, setScheduledConfirmed] = useState(false);
   const [scheduledCampaignTitle, setScheduledCampaignTitle] = useState("");
+
+  // Template Library state
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
   // In-Studio Connection & Sync Modals
   const [isWhatsAppQRModalOpen, setIsWhatsAppQRModalOpen] = useState(false);
@@ -214,6 +218,19 @@ export function BroadcastStudio() {
 
   const handleInsertToken = (token: string) => {
     setMessageBody((prev) => `${prev}${token} `);
+  };
+
+  const handleSelectTemplate = (template: { title: string; body: string; media_url?: string }) => {
+    if (!title.trim()) {
+      setTitle(template.title);
+    }
+    setMessageBody(template.body);
+    if (template.media_url) {
+      setMediaUrl(template.media_url);
+    }
+    toast.success("Template inserted!", {
+      description: `Loaded "${template.title}" into the message composer.`,
+    });
   };
 
   // Contact targeting handlers
@@ -648,26 +665,39 @@ export function BroadcastStudio() {
                   Message Body
                 </label>
 
-                {/* Variable Token Insertion Chips */}
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] text-gray-400 font-medium">Insert:</span>
+                {/* Variable Token Insertion Chips & Template Picker */}
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => handleInsertToken("{first_name}")}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-mono font-bold transition-colors border border-indigo-100"
-                    title="Insert recipient first name"
+                    onClick={() => setIsTemplateModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all border border-indigo-200/80 shadow-2xs"
+                    title="Open Message Template Library"
                   >
-                    <Sparkles className="h-3 w-3" />
-                    {"{first_name}"}
+                    <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                    Browse Templates
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInsertToken("{username}")}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-mono font-bold transition-colors"
-                    title="Insert recipient username"
-                  >
-                    {"{username}"}
-                  </button>
+
+                  <div className="h-4 w-px bg-gray-200 hidden sm:block" />
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] text-gray-400 font-medium hidden sm:inline">Insert:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleInsertToken("{first_name}")}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-mono font-bold transition-colors border border-gray-200"
+                      title="Insert recipient first name"
+                    >
+                      {"{first_name}"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleInsertToken("{username}")}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-mono font-bold transition-colors border border-gray-200"
+                      title="Insert recipient username"
+                    >
+                      {"{username}"}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -805,6 +835,13 @@ export function BroadcastStudio() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Message Template Library Modal */}
+      <TemplatePickerModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onSelectTemplate={handleSelectTemplate}
+      />
     </div>
   );
 }

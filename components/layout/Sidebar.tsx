@@ -13,7 +13,8 @@ import {
   HelpCircle,
   Activity,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
@@ -22,6 +23,7 @@ const navigation = [
   { name: "Dashboard", href: APP_ROUTES.DASHBOARD.BASE, icon: LayoutDashboard },
   { name: "Broadcast Studio", href: APP_ROUTES.DASHBOARD.BROADCAST, icon: Megaphone },
   { name: "Scheduled Queue", href: APP_ROUTES.DASHBOARD.SCHEDULED, icon: CalendarClock },
+  { name: "Message Templates", href: APP_ROUTES.DASHBOARD.TEMPLATES, icon: FileText },
   { name: "Audience Directory", href: APP_ROUTES.DASHBOARD.AUDIENCE, icon: Users },
   { name: "Connect Profiles", href: APP_ROUTES.DASHBOARD.CONNECTIONS, icon: Plug },
   { name: "Recent Activities", href: APP_ROUTES.DASHBOARD.ACTIVITY, icon: Activity },

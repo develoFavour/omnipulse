@@ -77,4 +77,10 @@ export const ENDPOINTS = {
 		ASSIGN_CONTACT: (contactId: string) => `${API_VERSION}/contacts/${contactId}/tags`,
 		REMOVE_CONTACT: (contactId: string, tagId: string) => `${API_VERSION}/contacts/${contactId}/tags/${tagId}`,
 	},
+
+	// Message Templates Library
+	TEMPLATES: {
+		BASE: `${API_VERSION}/templates`,
+		BY_ID: (id: string) => `${API_VERSION}/templates/${id}`,
+	},
 } as const;
