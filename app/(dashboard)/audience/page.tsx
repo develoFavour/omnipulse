@@ -207,13 +207,16 @@ export default function AudiencePage() {
     });
   };
 
+  const safeContacts = useMemo(() => (Array.isArray(contacts) ? contacts : []), [contacts]);
+  const safeTags = useMemo(() => (Array.isArray(tags) ? tags : []), [tags]);
+
   const toggleSelectAll = () => {
     if (selectedContactIds.size === filteredContacts.length) setSelectedContactIds(new Set());
     else setSelectedContactIds(new Set(filteredContacts.map((c) => c.id)));
   };
 
   const filteredContacts = useMemo(() => {
-    let result = contacts;
+    let result = safeContacts;
     if (selectedTagId) result = result.filter((c) => c.tags?.some((t) => t.id === selectedTagId));
     if (channelFilter !== "all") result = result.filter((c) => c.channel === channelFilter);
     if (searchQuery.trim()) {
@@ -231,9 +234,9 @@ export default function AudiencePage() {
       if (av > bv) return sortDir === "asc" ? 1 : -1;
       return 0;
     });
-  }, [contacts, selectedTagId, channelFilter, searchQuery, sortKey, sortDir]);
+  }, [safeContacts, selectedTagId, channelFilter, searchQuery, sortKey, sortDir]);
 
-  const allChannels = useMemo(() => Array.from(new Set(contacts.map((c) => c.channel))), [contacts]);
+  const allChannels = useMemo(() => Array.from(new Set(safeContacts.map((c) => c.channel))), [safeContacts]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));

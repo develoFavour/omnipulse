@@ -13,13 +13,23 @@ export interface Tag {
 
 class TagService {
   async listTags(): Promise<Tag[]> {
-    const response = await apiClient.get<Tag[]>(ENDPOINTS.TAGS.BASE);
-    return response.data || [];
+    try {
+      const response = await apiClient.get<any>(ENDPOINTS.TAGS.BASE);
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+      if (Array.isArray(response.data?.data)) {
+        return response.data.data;
+      }
+      return [];
+    } catch {
+      return [];
+    }
   }
 
   async createTag(name: string, color: string = "#6366f1"): Promise<Tag> {
-    const response = await apiClient.post<Tag>(ENDPOINTS.TAGS.BASE, { name, color });
-    return response.data;
+    const response = await apiClient.post<any>(ENDPOINTS.TAGS.BASE, { name, color });
+    return response.data?.data || response.data;
   }
 
   async deleteTag(id: string): Promise<void> {
@@ -42,8 +52,8 @@ class TagService {
   }
 
   async updateTag(id: string, name: string, color: string): Promise<Tag> {
-    const response = await apiClient.put<Tag>(ENDPOINTS.TAGS.BY_ID(id), { name, color });
-    return response.data;
+    const response = await apiClient.put<any>(ENDPOINTS.TAGS.BY_ID(id), { name, color });
+    return response.data?.data || response.data;
   }
 }
 

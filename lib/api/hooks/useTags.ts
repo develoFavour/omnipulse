@@ -40,7 +40,7 @@ export function useTags() {
   };
 
   return {
-    tags: data || [],
+    tags: Array.isArray(data) ? data : [],
     isLoading,
     isError: error,
     refetch: mutate,

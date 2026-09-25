@@ -32,7 +32,7 @@ export function useTemplates(category?: string) {
   };
 
   return {
-    templates: data || [],
+    templates: Array.isArray(data) ? data : [],
     isLoading,
     isError: error,
     refetch: mutate,
