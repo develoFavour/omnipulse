@@ -17,9 +17,9 @@ export interface ContactResponse {
 
 class ContactService {
   async getContacts(channelFilter?: string): Promise<ContactResponse[]> {
-    const url = channelFilter
-      ? `${ENDPOINTS.CONTACTS.BASE}?channel=${channelFilter}`
-      : ENDPOINTS.CONTACTS.BASE;
+    const params = new URLSearchParams({ pageSize: "500" });
+    if (channelFilter) params.set("channel", channelFilter);
+    const url = `${ENDPOINTS.CONTACTS.BASE}?${params.toString()}`;
     const response = await apiClient.get<any>(url);
     if (Array.isArray(response.data)) {
       return response.data;
