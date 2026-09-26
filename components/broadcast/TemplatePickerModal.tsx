@@ -81,33 +81,8 @@ export function TemplatePickerModal({
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Merge custom DB templates with starter templates (giving DB templates precedence)
-  const allTemplates = useMemo(() => {
-    const customList = dbTemplates.map((t) => ({
-      id: t.id,
-      title: t.title,
-      category: t.category,
-      body: t.body,
-      media_url: t.media_url,
-      variables: t.variables || [],
-      isCustom: true,
-    }));
-
-    const starterList = STARTER_TEMPLATES.map((t, index) => ({
-      id: `starter_${index}`,
-      title: t.title,
-      category: t.category,
-      body: t.body,
-      media_url: t.media_url,
-      variables: t.variables || [],
-      isCustom: false,
-    }));
-
-    return [...customList, ...starterList];
-  }, [dbTemplates]);
-
   const filteredTemplates = useMemo(() => {
-    return allTemplates.filter((t) => {
+    return dbTemplates.filter((t) => {
       const matchesCategory =
         selectedCategory === "all" ||
         t.category.toLowerCase() === selectedCategory.toLowerCase();
@@ -119,7 +94,7 @@ export function TemplatePickerModal({
         t.category.toLowerCase().includes(q);
       return matchesCategory && matchesQuery;
     });
-  }, [allTemplates, selectedCategory, searchQuery]);
+  }, [dbTemplates, selectedCategory, searchQuery]);
 
   const getCategoryBadge = (category: string) => {
     const found = TEMPLATE_CATEGORIES.find((c) => c.id === category);
@@ -241,11 +216,9 @@ export function TemplatePickerModal({
                           >
                             {template.category}
                           </span>
-                          {template.isCustom && (
-                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-                              Custom
-                            </span>
-                          )}
+                          <span className="text-[10px] font-mono text-gray-400">
+                            {template.variables?.length || 0} vars
+                          </span>
                         </div>
 
                         <h3 className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">

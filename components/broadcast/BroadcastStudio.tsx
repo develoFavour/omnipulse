@@ -35,6 +35,8 @@ import { WhatsAppQRModal } from "@/components/channels/WhatsAppQRModal";
 import { TelegramConnectionForm } from "@/components/features/onboarding/TelegramConnectionForm";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useTemplates } from "@/lib/api/hooks/useTemplates";
 import { BroadcastSubNav } from "./BroadcastSubNav";
 import { ChannelPlacement, ChannelPlacementSelector } from "./ChannelPlacementSelector";
 import { MediaAssetDropzone } from "./MediaAssetDropzone";
@@ -43,9 +45,13 @@ import { DevicePreviewSimulator } from "./DevicePreviewSimulator";
 import { WhatsAppStoryModal } from "./WhatsAppStoryModal";
 import { LiveMissionTracker } from "./LiveMissionTracker";
 import { ScheduleCampaignModal } from "./ScheduleCampaignModal";
-import { TemplatePickerModal } from "./TemplatePickerModal";
+import { TemplatePickerModal, STARTER_TEMPLATES } from "./TemplatePickerModal";
 
 export function BroadcastStudio() {
+  const searchParams = useSearchParams();
+  const templateIdParam = searchParams.get("templateId");
+  const { templates: dbTemplates } = useTemplates();
+
   const { contacts, isLoading: isLoadingContacts, refetch: refetchContacts } = useContacts();
   const { destinations, isLoading: isLoadingDestinations, refetch: refetchDestinations } = useTelegramDestinations();
   const { channels, loading: loadingChannels, refetch: refetchChannels } = useTenantChannels();
@@ -110,6 +116,59 @@ export function BroadcastStudio() {
       setSelectedPlacements((prev) => [...prev, "whatsapp_dm"]);
     }
   }, [isWhatsAppConnected]);
+
+  // Handle template preloading from /templates route or query param
+  useEffect(() => {
+    // 1. Check if cached template is in session storage
+    if (typeof window !== "undefined") {
+      const stored = sessionStorage.getItem("omnipulse_active_template");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (!templateIdParam || parsed.id === templateIdParam) {
+            if (parsed.title) setTitle(parsed.title);
+            if (parsed.body) setMessageBody(parsed.body);
+            if (parsed.media_url) setMediaUrl(parsed.media_url);
+            sessionStorage.removeItem("omnipulse_active_template");
+            toast.success("Template loaded!", {
+              description: `Loaded "${parsed.title}" into the message composer.`,
+            });
+            return;
+          }
+        } catch {
+          // ignore parsing error
+        }
+      }
+    }
+
+    if (!templateIdParam) return;
+
+    // 2. Check starter presets
+    if (templateIdParam.startsWith("preset_")) {
+      const idx = parseInt(templateIdParam.replace("preset_", ""), 10);
+      if (!isNaN(idx) && STARTER_TEMPLATES[idx]) {
+        const preset = STARTER_TEMPLATES[idx];
+        setTitle(preset.title);
+        setMessageBody(preset.body);
+        if (preset.media_url) setMediaUrl(preset.media_url);
+        toast.success("Template loaded!", {
+          description: `Loaded "${preset.title}" into the message composer.`,
+        });
+        return;
+      }
+    }
+
+    // 3. Check custom DB templates
+    const found = dbTemplates.find((t) => t.id === templateIdParam);
+    if (found) {
+      setTitle(found.title);
+      setMessageBody(found.body);
+      if (found.media_url) setMediaUrl(found.media_url);
+      toast.success("Template loaded!", {
+        description: `Loaded "${found.title}" into the message composer.`,
+      });
+    }
+  }, [templateIdParam, dbTemplates]);
 
   // Contact Sync Handlers
   const handleSyncWhatsApp = async () => {

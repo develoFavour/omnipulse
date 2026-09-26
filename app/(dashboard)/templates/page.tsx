@@ -26,10 +26,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useTemplates } from "@/lib/api/hooks/useTemplates";
-import {
-  STARTER_TEMPLATES,
-  TEMPLATE_CATEGORIES,
-} from "@/components/broadcast/TemplatePickerModal";
+import { TEMPLATE_CATEGORIES } from "@/components/broadcast/TemplatePickerModal";
 import { MessageTemplate } from "@/lib/services/template.service";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 
@@ -57,6 +54,7 @@ export default function TemplatesPage() {
 
   // Preview Simulator Modal State
   const [previewTemplate, setPreviewTemplate] = useState<{
+    id?: string;
     title: string;
     body: string;
     category: string;
@@ -66,31 +64,8 @@ export default function TemplatesPage() {
   // Textarea ref for inserting tokens at cursor
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Merge DB templates with starter templates
-  const allTemplates = useMemo(() => {
-    const customList = dbTemplates.map((t) => ({
-      ...t,
-      isCustom: true,
-    }));
-
-    const starterList = STARTER_TEMPLATES.map((t, index) => ({
-      id: `preset_${index}`,
-      tenant_id: "preset",
-      title: t.title,
-      category: t.category,
-      body: t.body,
-      media_url: t.media_url,
-      variables: t.variables || [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      isCustom: false,
-    }));
-
-    return [...customList, ...starterList];
-  }, [dbTemplates]);
-
   const filteredTemplates = useMemo(() => {
-    return allTemplates.filter((t) => {
+    return dbTemplates.filter((t) => {
       const matchesCategory =
         selectedCategory === "all" ||
         t.category.toLowerCase() === selectedCategory.toLowerCase();
@@ -102,7 +77,7 @@ export default function TemplatesPage() {
         t.category.toLowerCase().includes(q);
       return matchesCategory && matchesQuery;
     });
-  }, [allTemplates, selectedCategory, searchQuery]);
+  }, [dbTemplates, selectedCategory, searchQuery]);
 
   const getCategoryBadge = (category: string) => {
     const found = TEMPLATE_CATEGORIES.find((c) => c.id === category);
@@ -149,6 +124,22 @@ export default function TemplatesPage() {
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to delete template");
     }
+  };
+
+  const handleUseTemplate = (template: { id?: string; title: string; body: string; media_url?: string }) => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(
+        "omnipulse_active_template",
+        JSON.stringify({
+          id: template.id,
+          title: template.title,
+          body: template.body,
+          media_url: template.media_url,
+        })
+      );
+    }
+    const query = template.id ? `?templateId=${encodeURIComponent(template.id)}` : "";
+    router.push(`${APP_ROUTES.DASHBOARD.BROADCAST}${query}`);
   };
 
   const handleInsertVariable = (variableToken: string) => {
@@ -264,17 +255,19 @@ export default function TemplatesPage() {
             <span className="text-xs font-bold uppercase tracking-wider">Total Templates</span>
             <FileText className="h-4 w-4 text-indigo-500" />
           </div>
-          <div className="text-2xl font-black text-gray-900">{allTemplates.length}</div>
+          <div className="text-2xl font-black text-gray-900">{dbTemplates.length}</div>
           <p className="text-xs text-gray-500 mt-1">Ready for 1-click broadcast insertion</p>
         </div>
 
         <div className="p-5 rounded-2xl border border-gray-200 bg-white shadow-xs">
           <div className="flex items-center justify-between text-gray-400 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Custom Agency Templates</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Active Variables</span>
             <Sparkles className="h-4 w-4 text-emerald-500" />
           </div>
-          <div className="text-2xl font-black text-emerald-600">{dbTemplates.length}</div>
-          <p className="text-xs text-gray-500 mt-1">Custom crafted by your team</p>
+          <div className="text-2xl font-black text-emerald-600">
+            {new Set(dbTemplates.flatMap((t) => t.variables || [])).size}
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Dynamic placeholders in use</p>
         </div>
 
         <div className="p-5 rounded-2xl border border-gray-200 bg-white shadow-xs">
@@ -368,17 +361,9 @@ export default function TemplatesPage() {
                     {template.category}
                   </span>
 
-                  <div className="flex items-center gap-1.5">
-                    {template.isCustom ? (
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                        Custom
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
-                        Preset
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-[10px] font-mono text-gray-400">
+                    {template.variables?.length || 0} vars
+                  </span>
                 </div>
 
                 {/* Title */}
@@ -417,6 +402,7 @@ export default function TemplatesPage() {
                     type="button"
                     onClick={() =>
                       setPreviewTemplate({
+                        id: template.id,
                         title: template.title,
                         body: template.body,
                         category: template.category,
@@ -438,36 +424,33 @@ export default function TemplatesPage() {
                     <Copy className="h-4 w-4" />
                   </button>
 
-                  {template.isCustom && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEdit(template as MessageTemplate)}
-                        title="Edit template"
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                      >
-                        <Edit3 className="h-4 w-4" />
-                      </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(template)}
+                    title="Edit template"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                  </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(template.id, template.title)}
-                        title="Delete template"
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(template.id, template.title)}
+                    title="Delete template"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
 
-                <Link
-                  href={APP_ROUTES.DASHBOARD.BROADCAST}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white font-semibold text-xs transition-all shadow-2xs"
+                <button
+                  type="button"
+                  onClick={() => handleUseTemplate(template)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white font-semibold text-xs transition-all shadow-2xs cursor-pointer"
                 >
                   Use Template
                   <ArrowRight className="h-3 w-3" />
-                </Link>
+                </button>
               </div>
             </motion.div>
           ))}
@@ -703,13 +686,25 @@ export default function TemplatesPage() {
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end">
+              <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setPreviewTemplate(null)}
-                  className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-semibold hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-semibold hover:bg-gray-200 transition-colors cursor-pointer"
                 >
                   Done
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (previewTemplate) {
+                      handleUseTemplate(previewTemplate);
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  Use This Template
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </div>
             </motion.div>
