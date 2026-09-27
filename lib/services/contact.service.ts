@@ -66,30 +66,48 @@ class ContactService {
       if (paramsOrChannel.pageSize) {
         searchParams.set("pageSize", String(paramsOrChannel.pageSize));
       }
+    } else {
+      // Default: fetch up to 500 when no params provided (e.g. BroadcastStudio)
+      searchParams.set("pageSize", "500");
     }
 
     const qs = searchParams.toString();
     const url = qs ? `${ENDPOINTS.CONTACTS.BASE}?${qs}` : ENDPOINTS.CONTACTS.BASE;
     const response = await apiClient.get<any>(url);
 
-    // If backend returns the paginated envelope { data, total, page, pageSize, totalPages }
-    if (response.data && Array.isArray(response.data.data)) {
+    const body = response.data;
+    // Unwrap JSONEnvelope { success: true, data: ... }
+    const envelope = (body && typeof body === "object" && "data" in body) ? body.data : body;
+
+    // Case 1: Backend returned paginated object { data: [...], total: N, page: N, ... }
+    if (envelope && typeof envelope === "object" && Array.isArray(envelope.data)) {
       return {
-        data: response.data.data,
-        total: response.data.total ?? response.data.data.length,
-        page: response.data.page ?? 1,
-        pageSize: response.data.pageSize ?? response.data.data.length,
-        totalPages: response.data.totalPages ?? 1,
+        data: envelope.data,
+        total: envelope.total ?? envelope.data.length,
+        page: envelope.page ?? 1,
+        pageSize: envelope.pageSize ?? envelope.data.length,
+        totalPages: envelope.totalPages ?? 1,
       };
     }
 
-    // Direct array fallback
-    if (Array.isArray(response.data)) {
+    // Case 2: Backend returned array directly inside envelope { success: true, data: [ ... ] }
+    if (Array.isArray(envelope)) {
       return {
-        data: response.data,
-        total: response.data.length,
+        data: envelope,
+        total: envelope.length,
         page: 1,
-        pageSize: response.data.length,
+        pageSize: envelope.length,
+        totalPages: 1,
+      };
+    }
+
+    // Case 3: Raw array response
+    if (Array.isArray(body)) {
+      return {
+        data: body,
+        total: body.length,
+        page: 1,
+        pageSize: body.length,
         totalPages: 1,
       };
     }

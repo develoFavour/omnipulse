@@ -372,7 +372,7 @@ export default function AudiencePage() {
         </div>
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <button onClick={() => setSelectedTagId(null)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${selectedTagId === null ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
-            <Filter className="h-3 w-3" />All
+            <Filter className="h-3 w-3" />All {total > 0 ? `(${total})` : ""}
           </button>
           {safeTags.map((tag) => {
             const isSelected = selectedTagId === tag.id;
