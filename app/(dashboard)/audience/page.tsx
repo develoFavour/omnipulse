@@ -8,7 +8,7 @@ import {
   ChevronsLeft, ChevronsRight, Check,
 } from "lucide-react";
 import { FaWhatsapp, FaTelegram } from "react-icons/fa";
-import { useContacts, Contact } from "@/lib/api/hooks/useContacts";
+import { useContacts } from "@/lib/api/hooks/useContacts";
 import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
 import { useTags } from "@/lib/api/hooks/useTags";
 import { useAppStore } from "@/lib/store";
@@ -27,7 +27,6 @@ type SortKey = "name" | "channel" | "source" | "created_at";
 type SortDir = "asc" | "desc";
 
 export default function AudiencePage() {
-  const { contacts, isLoading, refetch } = useContacts();
   const { channels } = useTenantChannels();
   const { tags, createTag, deleteTag, tagContact, untagContact, bulkTagContacts, updateTag } = useTags();
   const tenant = useAppStore((state) => state.tenant);
@@ -37,7 +36,47 @@ export default function AudiencePage() {
   const [isSyncingTG, setIsSyncingTG] = useState(false);
   const [showWebhookDetails, setShowWebhookDetails] = useState(false);
 
+  // Filters & Pagination State (Server-Side)
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+  const [channelFilter, setChannelFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+
+  // 300ms Debounce for Search input to avoid query spamming
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedTagId, channelFilter, debouncedSearchQuery, sortKey, sortDir, pageSize]);
+
+  // Server-driven contacts hook
+  const {
+    contacts,
+    total,
+    totalPages,
+    isLoading,
+    refetch,
+  } = useContacts({
+    channel: channelFilter === "all" ? undefined : channelFilter,
+    tagId: selectedTagId || undefined,
+    search: debouncedSearchQuery || undefined,
+    sort: sortKey,
+    sortDir: sortDir,
+    page: currentPage,
+    pageSize: pageSize,
+  });
+
+  // Tag creation & editing modals
   const [showCreateTagModal, setShowCreateTagModal] = useState(false);
   const [editingTag, setEditingTag] = useState<{ id: string; name: string; color: string } | null>(null);
   const [newTagName, setNewTagName] = useState("");
@@ -45,21 +84,15 @@ export default function AudiencePage() {
   const [isCreatingTag, setIsCreatingTag] = useState(false);
   const [isSavingTag, setIsSavingTag] = useState(false);
 
-  // Manage tags modal for a specific contact
+  // Contact Tag Manager Modal
   const [managingContactId, setManagingContactId] = useState<string | null>(null);
   const [tagActionLoading, setTagActionLoading] = useState<string | null>(null);
 
+  // Bulk selection
   const [selectedContactIds, setSelectedContactIds] = useState<Set<string>>(new Set());
   const [isBulkTagging, setIsBulkTagging] = useState(false);
   const [showBulkTagDropdown, setShowBulkTagDropdown] = useState(false);
   const bulkDropdownRef = useRef<HTMLDivElement>(null);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [channelFilter, setChannelFilter] = useState<string>("all");
-  const [sortKey, setSortKey] = useState<SortKey>("name");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -226,51 +259,26 @@ export default function AudiencePage() {
   );
 
   const toggleSelectAll = () => {
-    if (selectedContactIds.size === filteredContacts.length) setSelectedContactIds(new Set());
-    else setSelectedContactIds(new Set(filteredContacts.map((c) => c.id)));
+    if (safeContacts.length > 0 && selectedContactIds.size === safeContacts.length) {
+      setSelectedContactIds(new Set());
+    } else {
+      setSelectedContactIds(new Set(safeContacts.map((c) => c.id)));
+    }
   };
 
-  const filteredContacts = useMemo(() => {
-    let result = safeContacts;
-    if (selectedTagId) result = result.filter((c) => c.tags?.some((t) => t.id === selectedTagId));
-    if (channelFilter !== "all") result = result.filter((c) => c.channel === channelFilter);
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (c) =>
-          `${c.first_name} ${c.last_name}`.toLowerCase().includes(q) ||
-          c.routing_value.toLowerCase().includes(q) ||
-          c.tags?.some((t) => t.name.toLowerCase().includes(q))
-      );
-    }
-    return [...result].sort((a, b) => {
-      const av = sortKey === "name" ? `${a.first_name} ${a.last_name}`.toLowerCase() : ((a as any)[sortKey] ?? "").toLowerCase?.() ?? (a as any)[sortKey] ?? "";
-      const bv = sortKey === "name" ? `${b.first_name} ${b.last_name}`.toLowerCase() : ((b as any)[sortKey] ?? "").toLowerCase?.() ?? (b as any)[sortKey] ?? "";
-      if (av < bv) return sortDir === "asc" ? -1 : 1;
-      if (av > bv) return sortDir === "asc" ? 1 : -1;
-      return 0;
-    });
-  }, [safeContacts, selectedTagId, channelFilter, searchQuery, sortKey, sortDir]);
-
-  // Reset to page 1 whenever filters or search change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedTagId, channelFilter, searchQuery, sortKey, sortDir, pageSize]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredContacts.length / pageSize));
-  const paginatedContacts = useMemo(
-    () => filteredContacts.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    [filteredContacts, currentPage, pageSize]
-  );
-
-  const allChannels = useMemo(() => Array.from(new Set(safeContacts.map((c) => c.channel))), [safeContacts]);
+  const allChannels = useMemo(() => ["whatsapp", "telegram"], []);
 
   const handleSort = (key: SortKey) => {
-    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else { setSortKey(key); setSortDir("asc"); }
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "created_at" ? "desc" : "asc");
+    }
+    setCurrentPage(1);
   };
 
-  const allSelected = filteredContacts.length > 0 && selectedContactIds.size === filteredContacts.length;
+  const allSelected = safeContacts.length > 0 && selectedContactIds.size === safeContacts.length;
   const partiallySelected = selectedContactIds.size > 0 && !allSelected;
 
   return (
@@ -280,7 +288,7 @@ export default function AudiencePage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 font-heading">Audience Directory</h1>
-          <p className="text-sm font-medium text-gray-500 mt-1">Manage your synchronized audience across WhatsApp, Telegram, and segmented tags.</p>
+          <p className="text-sm font-medium text-gray-500 mt-1">Manage your synchronized audience across WhatsApp, Telegram, and segmented tags with optimized backend search.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <button onClick={handleSyncWhatsApp} disabled={isSyncingWA} className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm shadow-emerald-200 disabled:opacity-50">
@@ -364,7 +372,7 @@ export default function AudiencePage() {
         </div>
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <button onClick={() => setSelectedTagId(null)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${selectedTagId === null ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
-            <Filter className="h-3 w-3" />All ({safeContacts.length})
+            <Filter className="h-3 w-3" />All
           </button>
           {safeTags.map((tag) => {
             const isSelected = selectedTagId === tag.id;
@@ -438,7 +446,7 @@ export default function AudiencePage() {
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-600">
               <Users className="h-3.5 w-3.5 text-gray-500" />
-              {filteredContacts.length} contacts
+              {total} contacts
             </span>
             {totalPages > 1 && (
               <span className="text-xs font-medium text-gray-400">
@@ -456,12 +464,20 @@ export default function AudiencePage() {
                     {allSelected ? <CheckSquare className="h-4 w-4 text-indigo-600" /> : partiallySelected ? <CheckSquare className="h-4 w-4 text-indigo-400 opacity-60" /> : <Square className="h-4 w-4" />}
                   </button>
                 </th>
-                <th className="px-4 py-4">Channel</th>
-                <th className="px-4 py-4 cursor-pointer hover:text-gray-700" onClick={() => handleSort("name")}><div className="flex items-center gap-1">Name<ArrowUpDown className="h-3 w-3 opacity-60" /></div></th>
+                <th className="px-4 py-4 cursor-pointer hover:text-gray-700" onClick={() => handleSort("channel")}>
+                  <div className="flex items-center gap-1">Channel<ArrowUpDown className="h-3 w-3 opacity-60" /></div>
+                </th>
+                <th className="px-4 py-4 cursor-pointer hover:text-gray-700" onClick={() => handleSort("name")}>
+                  <div className="flex items-center gap-1">Name<ArrowUpDown className="h-3 w-3 opacity-60" /></div>
+                </th>
                 <th className="px-4 py-4">Routing ID</th>
                 <th className="px-4 py-4">Tags</th>
-                <th className="px-4 py-4 cursor-pointer hover:text-gray-700" onClick={() => handleSort("source")}><div className="flex items-center gap-1">Source<ArrowUpDown className="h-3 w-3 opacity-60" /></div></th>
-                <th className="px-4 py-4">Status</th>
+                <th className="px-4 py-4 cursor-pointer hover:text-gray-700" onClick={() => handleSort("source")}>
+                  <div className="flex items-center gap-1">Source<ArrowUpDown className="h-3 w-3 opacity-60" /></div>
+                </th>
+                <th className="px-4 py-4 cursor-pointer hover:text-gray-700" onClick={() => handleSort("created_at")}>
+                  <div className="flex items-center gap-1">Status<ArrowUpDown className="h-3 w-3 opacity-60" /></div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
@@ -470,7 +486,7 @@ export default function AudiencePage() {
                   <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2 text-indigo-500" />
                   Loading contacts...
                 </td></tr>
-              ) : filteredContacts.length === 0 ? (
+              ) : safeContacts.length === 0 ? (
                 <tr><td colSpan={7} className="px-6 py-12 text-center">
                   <Users className="h-8 w-8 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-900 font-bold mb-1">
@@ -481,7 +497,7 @@ export default function AudiencePage() {
                   </p>
                 </td></tr>
               ) : (
-                paginatedContacts.map((contact) => {
+                safeContacts.map((contact) => {
                   const isRowSelected = selectedContactIds.has(contact.id);
                   const contactTags = contact.tags || [];
                   const visibleTags = contactTags.slice(0, 2);
@@ -556,16 +572,16 @@ export default function AudiencePage() {
           </table>
         </div>
 
-        {/* Pagination Controls */}
+        {/* Server-Driven Pagination Controls */}
         {totalPages > 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
             <p className="text-xs font-medium text-gray-500">
-              Showing <span className="font-bold text-gray-700">{(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredContacts.length)}</span> of <span className="font-bold text-gray-700">{filteredContacts.length}</span> contacts
+              Showing <span className="font-bold text-gray-700">{(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, total)}</span> of <span className="font-bold text-gray-700">{total}</span> contacts
             </p>
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
+                disabled={currentPage === 1 || isLoading}
                 className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 title="First Page"
               >
@@ -573,7 +589,7 @@ export default function AudiencePage() {
               </button>
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                disabled={currentPage === 1 || isLoading}
                 className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="h-3.5 w-3.5" /> Prev
@@ -595,6 +611,7 @@ export default function AudiencePage() {
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
+                      disabled={isLoading}
                       className={`min-w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
                         currentPage === page
                           ? "bg-indigo-600 text-white shadow-xs"
@@ -609,14 +626,14 @@ export default function AudiencePage() {
 
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages || isLoading}
                 className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Next <ChevronRight className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages || isLoading}
                 className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 title="Last Page"
               >
