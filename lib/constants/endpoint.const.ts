@@ -83,4 +83,11 @@ export const ENDPOINTS = {
 		BASE: `${API_VERSION}/templates`,
 		BY_ID: (id: string) => `${API_VERSION}/templates/${id}`,
 	},
+
+	// Notification Center
+	NOTIFICATIONS: {
+		BASE: `${API_VERSION}/notifications`,
+		MARK_READ: (id: string) => `${API_VERSION}/notifications/${id}/read`,
+		MARK_ALL_READ: `${API_VERSION}/notifications/read-all`,
+	},
 } as const;

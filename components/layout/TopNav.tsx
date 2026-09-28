@@ -2,18 +2,25 @@
 
 import { useState, useRef, useEffect } from "react";
 import { UserButton } from "@clerk/nextjs";
-import { Bell, HelpCircle, Share2, Check, ExternalLink, ChevronDown, CheckCircle2, Circle, Sparkles, MessageSquare, Send } from "lucide-react";
+import { 
+  Bell, HelpCircle, Share2, Check, ExternalLink, ChevronDown, 
+  CheckCircle2, Circle, Sparkles, MessageSquare, Send,
+  CheckCheck, AlertTriangle, Radio, UserMinus, Users 
+} from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useDashboard } from "@/lib/api/hooks/useDashboard";
+import { useNotifications } from "@/lib/api/hooks/useNotifications";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import Link from "next/link";
 
 export function TopNav() {
   const tenant = useAppStore((state) => state.tenant);
   const { stats } = useDashboard();
+  const { notifications, unreadCount, markRead, markAllRead, isMarkingRead } = useNotifications();
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifTab, setNotifTab] = useState<"alerts" | "deliveries">("alerts");
   const [showUsage, setShowUsage] = useState(false);
 
   const onboardingRef = useRef<HTMLDivElement>(null);
@@ -280,78 +287,212 @@ export function TopNav() {
             <button
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors"
+              title="Notifications"
             >
               <Bell className="h-5 w-5" />
-              {recentDeliveries.length > 0 && (
-                <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 rounded-full bg-indigo-600 ring-2 ring-white animate-pulse" />
-              )}
+              {unreadCount > 0 ? (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white shadow-sm ring-2 ring-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              ) : recentDeliveries.length > 0 ? (
+                <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-indigo-600 ring-2 ring-white" />
+              ) : null}
             </button>
 
             {/* Notification Drawer */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white p-4 shadow-xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              <div className="absolute right-0 mt-2 w-84 sm:w-96 rounded-2xl bg-white p-4 shadow-xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                {/* Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-gray-100">
                   <div className="flex items-center gap-2">
                     <Bell className="h-4 w-4 text-indigo-600" />
-                    <h4 className="text-xs font-bold text-gray-900">Recent Dispatch Events</h4>
+                    <h4 className="text-xs font-bold text-gray-900">Notifications</h4>
+                    {unreadCount > 0 && (
+                      <span className="rounded-full bg-red-50 text-red-600 border border-red-200/60 px-1.5 py-0.2 text-[10px] font-bold">
+                        {unreadCount} new
+                      </span>
+                    )}
                   </div>
-                  <span className="text-[10px] text-gray-400 font-mono">Real-time</span>
-                </div>
-
-                <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 py-2">
-                  {recentDeliveries.length > 0 ? (
-                    recentDeliveries.slice(0, 6).map((item) => (
-                      <div key={item.id} className="py-2.5 px-1 flex items-start gap-3 hover:bg-gray-50 rounded-lg transition-colors">
-                        <div
-                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                            item.status === "delivered" || item.status === "sent"
-                              ? "bg-emerald-50 text-emerald-600"
-                              : "bg-red-50 text-red-600"
-                          }`}
-                        >
-                          {item.platform === "whatsapp" ? "WA" : "TG"}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 truncate">
-                            {item.contact_name}
-                          </p>
-                          <p className="text-[11px] text-gray-500 truncate">
-                            {item.campaign_name}
-                          </p>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <span
-                            className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                              item.status === "delivered" || item.status === "sent"
-                                ? "text-emerald-700 bg-emerald-50"
-                                : "text-red-700 bg-red-50"
-                            }`}
-                          >
-                            {item.status}
-                          </span>
-                          <span className="block text-[10px] text-gray-400 mt-0.5">
-                            {new Date(item.created_at).toLocaleTimeString(undefined, {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="py-8 text-center text-gray-400 text-xs">
-                      No broadcast deliveries yet.
-                    </div>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={() => markAllRead()}
+                      disabled={isMarkingRead}
+                      className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-700 transition-colors disabled:opacity-50"
+                    >
+                      <CheckCheck className="h-3 w-3" />
+                      <span>Mark all read</span>
+                    </button>
                   )}
                 </div>
 
-                <div className="pt-2 border-t border-gray-100">
+                {/* Tabs */}
+                <div className="flex items-center gap-2 pt-2.5 pb-1 border-b border-gray-50">
+                  <button
+                    onClick={() => setNotifTab("alerts")}
+                    className={`pb-1.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+                      notifTab === "alerts"
+                        ? "border-indigo-600 text-indigo-600"
+                        : "border-transparent text-gray-400 hover:text-gray-600"
+                    }`}
+                  >
+                    <span>System Alerts</span>
+                    {unreadCount > 0 && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setNotifTab("deliveries")}
+                    className={`pb-1.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
+                      notifTab === "deliveries"
+                        ? "border-indigo-600 text-indigo-600"
+                        : "border-transparent text-gray-400 hover:text-gray-600"
+                    }`}
+                  >
+                    <span>Live Feed</span>
+                    {recentDeliveries.length > 0 && (
+                      <span className="text-[10px] text-gray-400 font-mono">({recentDeliveries.length})</span>
+                    )}
+                  </button>
+                </div>
+
+                {/* Tab: System Alerts */}
+                {notifTab === "alerts" && (
+                  <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 py-1">
+                    {notifications.length > 0 ? (
+                      notifications.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => {
+                            if (!item.is_read) {
+                              markRead(item.id);
+                            }
+                          }}
+                          className={`py-2.5 px-2 flex items-start gap-3 rounded-lg transition-colors cursor-pointer ${
+                            !item.is_read ? "bg-indigo-50/50 hover:bg-indigo-50/80" : "hover:bg-gray-50"
+                          }`}
+                        >
+                          <div className="mt-0.5">
+                            {item.type === "campaign_completed" ? (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </div>
+                            ) : item.type === "delivery_failure" ? (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+                                <AlertTriangle className="h-4 w-4" />
+                              </div>
+                            ) : item.type === "channel_disconnected" ? (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+                                <Radio className="h-4 w-4" />
+                              </div>
+                            ) : item.type === "new_opt_out" ? (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
+                                <UserMinus className="h-4 w-4" />
+                              </div>
+                            ) : item.type === "contact_import_finished" ? (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                                <Users className="h-4 w-4" />
+                              </div>
+                            ) : (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                                <Bell className="h-4 w-4" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1">
+                              <p className={`text-xs truncate ${!item.is_read ? "font-bold text-gray-900" : "font-medium text-gray-700"}`}>
+                                {item.title}
+                              </p>
+                              {!item.is_read && (
+                                <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2">
+                              {item.body}
+                            </p>
+                            <span className="block text-[10px] text-gray-400 mt-1">
+                              {new Date(item.created_at).toLocaleTimeString(undefined, {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-8 text-center text-gray-400 text-xs flex flex-col items-center justify-center">
+                        <CheckCircle2 className="h-7 w-7 text-emerald-500/60 mb-2" />
+                        <p className="font-semibold text-gray-700">All caught up!</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">No unread alerts or notifications.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Tab: Live Feed */}
+                {notifTab === "deliveries" && (
+                  <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 py-1">
+                    {recentDeliveries.length > 0 ? (
+                      recentDeliveries.slice(0, 6).map((item) => (
+                        <div key={item.id} className="py-2 px-1 flex items-start gap-3 hover:bg-gray-50 rounded-lg transition-colors">
+                          <div
+                            className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                              item.status === "delivered" || item.status === "sent"
+                                ? "bg-emerald-50 text-emerald-600"
+                                : "bg-red-50 text-red-600"
+                            }`}
+                          >
+                            {item.platform === "whatsapp" ? "WA" : "TG"}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-gray-900 truncate">
+                              {item.contact_name}
+                            </p>
+                            <p className="text-[11px] text-gray-500 truncate">
+                              {item.campaign_name}
+                            </p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <span
+                              className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                                item.status === "delivered" || item.status === "sent"
+                                  ? "text-emerald-700 bg-emerald-50"
+                                  : "text-red-700 bg-red-50"
+                              }`}
+                            >
+                              {item.status}
+                            </span>
+                            <span className="block text-[10px] text-gray-400 mt-0.5">
+                              {new Date(item.created_at).toLocaleTimeString(undefined, {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-8 text-center text-gray-400 text-xs">
+                        No broadcast deliveries yet.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
                   <Link
                     href={APP_ROUTES.DASHBOARD.BASE}
                     onClick={() => setShowNotifications(false)}
-                    className="block text-center text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
                   >
-                    View telemetry overview →
+                    Telemetry overview →
+                  </Link>
+                  <Link
+                    href={APP_ROUTES.DASHBOARD.BROADCAST}
+                    onClick={() => setShowNotifications(false)}
+                    className="text-[11px] font-medium text-gray-400 hover:text-gray-600"
+                  >
+                    New broadcast
                   </Link>
                 </div>
               </div>

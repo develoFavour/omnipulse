@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Users, Megaphone, Activity, Zap, MoreHorizontal, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { Users, Megaphone, Activity, Zap, MoreHorizontal, CheckCircle2, AlertCircle, Clock, Filter, AlertTriangle } from "lucide-react";
 import { FaTelegramPlane, FaWhatsapp, FaInstagram } from "react-icons/fa";
 
 import { useDashboard, DashboardDeliveryActivity } from "@/lib/api/hooks/useDashboard";
@@ -22,6 +22,27 @@ export default function ActivityPage() {
   const { stats, isLoading: isStatsLoading } = useDashboard();
   const { deliveries, isLoading: isDeliveriesLoading } = useDeliveries(100, 0); // Limit 100 for now
   const [selectedActivity, setSelectedActivity] = useState<DashboardDeliveryActivity | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "delivered" | "failed">("all");
+  const [platformFilter, setPlatformFilter] = useState<string>("all");
+
+  const failedCount = useMemo(() => deliveries.filter((d) => d.status === "failed").length, [deliveries]);
+  const deliveredCount = useMemo(
+    () => deliveries.filter((d) => d.status === "delivered" || d.status === "sent").length,
+    [deliveries]
+  );
+
+  const filteredDeliveries = useMemo(() => {
+    return deliveries.filter((item) => {
+      const matchesStatus =
+        statusFilter === "all"
+          ? true
+          : statusFilter === "failed"
+          ? item.status === "failed"
+          : item.status === "delivered" || item.status === "sent";
+      const matchesPlatform = platformFilter === "all" || item.platform === platformFilter;
+      return matchesStatus && matchesPlatform;
+    });
+  }, [deliveries, statusFilter, platformFilter]);
 
   const stagger = {
     hidden: {},
@@ -83,12 +104,64 @@ export default function ActivityPage() {
         />
       </div>
 
-      {/* Deliveries Table */}
+      {/* Deliveries & DLQ Table */}
       <motion.div variants={fadeUp}>
         <Card className="border-white/[0.08] bg-white/[0.02] backdrop-blur-md">
-          <CardHeader>
-            <CardTitle className="text-xl text-zinc-100">Delivery History</CardTitle>
-            <CardDescription className="text-zinc-500">A detailed log of all outgoing messages.</CardDescription>
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
+            <div>
+              <CardTitle className="text-xl text-zinc-100 flex items-center gap-2">
+                <span>Delivery History & Audit Logs</span>
+                {failedCount > 0 && (
+                  <span className="rounded-full bg-red-500/20 border border-red-500/30 px-2 py-0.5 text-xs font-bold text-red-400">
+                    {failedCount} failed in DLQ
+                  </span>
+                )}
+              </CardTitle>
+              <CardDescription className="text-zinc-500 mt-1">
+                Detailed telemetry and dead letter queue review for all outgoing broadcasts.
+              </CardDescription>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => setStatusFilter("all")}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                  statusFilter === "all"
+                    ? "bg-white/[0.1] text-zinc-100 shadow-xs"
+                    : "text-zinc-400 hover:text-zinc-200"
+                )}
+              >
+                All ({deliveries.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter("delivered")}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
+                  statusFilter === "delivered"
+                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                    : "text-zinc-400 hover:text-zinc-200"
+                )}
+              >
+                Delivered ({deliveredCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter("failed")}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer",
+                  statusFilter === "failed"
+                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                    : "text-zinc-400 hover:text-red-300"
+                )}
+              >
+                <AlertTriangle className="h-3 w-3 text-red-400" />
+                <span>Failed / DLQ ({failedCount})</span>
+              </button>
+            </div>
           </CardHeader>
           <CardContent>
             {isDeliveriesLoading ? (
@@ -110,21 +183,36 @@ export default function ActivityPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {deliveries.length === 0 ? (
+                  {filteredDeliveries.length === 0 ? (
                     <TableRow className="border-white/[0.08] hover:bg-white/[0.02]">
-                      <TableCell colSpan={6} className="text-center py-8 text-zinc-500">
-                        No deliveries found.
+                      <TableCell colSpan={6} className="text-center py-10 text-zinc-500">
+                        {statusFilter === "failed" ? (
+                          <div className="flex flex-col items-center justify-center">
+                            <CheckCircle2 className="h-7 w-7 text-emerald-400/80 mb-2" />
+                            <p className="font-semibold text-zinc-300">Clean Dead Letter Queue</p>
+                            <p className="text-xs text-zinc-500 mt-0.5">No failed delivery events found.</p>
+                          </div>
+                        ) : (
+                          "No deliveries found matching current filters."
+                        )}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    deliveries.map((activity) => {
+                    filteredDeliveries.map((activity) => {
                       const config = STATUS_CONFIG[activity.status] || STATUS_CONFIG.pending;
                       const StatusIcon = config.icon;
                       
                       return (
                         <TableRow key={activity.id} className="border-white/[0.08] hover:bg-white/[0.04]">
                           <TableCell className="font-medium text-zinc-200">
-                            {activity.campaign_name}
+                            <div>
+                              <p className="font-semibold text-zinc-100">{activity.campaign_name}</p>
+                              {activity.status === "failed" && activity.error_message && (
+                                <p className="text-[11px] text-red-400 font-mono mt-0.5 line-clamp-1">
+                                  {activity.error_message}
+                                </p>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="text-zinc-300">
                             {activity.contact_name}
