@@ -52,7 +52,12 @@ export function BroadcastStudio() {
   const templateIdParam = searchParams.get("templateId");
   const { templates: dbTemplates } = useTemplates();
 
-  const { contacts, isLoading: isLoadingContacts, refetch: refetchContacts } = useContacts();
+  // The broadcast picker filters contacts client-side (including tag membership),
+  // so it must receive the complete audience rather than the audience page's
+  // default 50-contact page.
+  const { contacts, isLoading: isLoadingContacts, refetch: refetchContacts } = useContacts({
+    pageSize: 500,
+  });
   const { destinations, isLoading: isLoadingDestinations, refetch: refetchDestinations } = useTelegramDestinations();
   const { channels, loading: loadingChannels, refetch: refetchChannels } = useTenantChannels();
   const { connectTelegram, loading: isConnectingTelegram } = useChannelConnection();
