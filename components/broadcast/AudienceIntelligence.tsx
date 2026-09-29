@@ -88,9 +88,9 @@ export function AudienceIntelligence({
     if (!q) return list;
     return list.filter(
       (c) =>
-        c.first_name.toLowerCase().includes(q) ||
-        c.last_name.toLowerCase().includes(q) ||
-        c.routing_value.toLowerCase().includes(q)
+        (c.first_name ?? "").toLowerCase().includes(q) ||
+        (c.last_name ?? "").toLowerCase().includes(q) ||
+        (c.routing_value ?? "").toLowerCase().includes(q)
     );
   }, [eligibleContacts, contactSearch, selectedTagFilter]);
 
@@ -389,7 +389,7 @@ export function AudienceIntelligence({
                           </div>
                           {/* Avatar */}
                           <div className="h-6 w-6 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center shrink-0">
-                            {contact.first_name[0]?.toUpperCase() || "U"}
+                            {contact.first_name?.[0]?.toUpperCase() || "U"}
                           </div>
                           <div className="truncate">
                             <p className="text-xs font-bold text-gray-900 truncate">
