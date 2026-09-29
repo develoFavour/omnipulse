@@ -90,4 +90,9 @@ export const ENDPOINTS = {
 		MARK_READ: (id: string) => `${API_VERSION}/notifications/${id}/read`,
 		MARK_ALL_READ: `${API_VERSION}/notifications/read-all`,
 	},
+
+	// Campaign Analytics Aggregate Subsystem
+	ANALYTICS: {
+		REPORT: (days: number = 30) => `${API_VERSION}/analytics?days=${days}`,
+	},
 } as const;
