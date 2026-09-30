@@ -16,6 +16,7 @@ import {
   ArrowRight,
   FileText,
   BarChart3,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
@@ -28,6 +29,7 @@ const navigation = [
   { name: "Audience Directory", href: APP_ROUTES.DASHBOARD.AUDIENCE, icon: Users },
   { name: "Connect Profiles", href: APP_ROUTES.DASHBOARD.CONNECTIONS, icon: Plug },
   { name: "Campaign Analytics", href: APP_ROUTES.DASHBOARD.ANALYTICS, icon: BarChart3 },
+  { name: "Team & Roles", href: APP_ROUTES.DASHBOARD.TEAM, icon: ShieldCheck },
   { name: "Recent Activities", href: APP_ROUTES.DASHBOARD.ACTIVITY, icon: Activity },
 ];
 

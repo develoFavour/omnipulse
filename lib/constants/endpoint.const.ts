@@ -95,4 +95,20 @@ export const ENDPOINTS = {
 	ANALYTICS: {
 		REPORT: (days: number = 30) => `${API_VERSION}/analytics?days=${days}`,
 	},
+
+	// Team Management & RBAC
+	TEAM: {
+		MEMBERS: `${API_VERSION}/team/members`,
+		INVITE: `${API_VERSION}/team/invite`,
+		REVOKE_INVITE: (id: string) => `${API_VERSION}/team/invitations/${id}`,
+		REMOVE_MEMBER: (id: string) => `${API_VERSION}/team/members/${id}`,
+		UPDATE_ROLE: (id: string) => `${API_VERSION}/team/members/${id}/role`,
+	},
+
+	// Invitations Lifecycle
+	INVITATIONS: {
+		PREVIEW: (token: string) => `${API_VERSION}/invitations/preview?token=${encodeURIComponent(token)}`,
+		ACCEPT: `${API_VERSION}/invitations/accept`,
+	},
 } as const;
+

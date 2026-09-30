@@ -6,6 +6,7 @@ export interface SyncResponse {
     id: string;
     clerk_id: string;
     email: string;
+    role: string;
   };
   tenant: {
     id: string;

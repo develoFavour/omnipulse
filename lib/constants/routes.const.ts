@@ -25,6 +25,7 @@ export const APP_ROUTES = {
     CONNECTIONS: '/connections',
     ACTIVITY: '/activity',
     ANALYTICS: '/analytics',
+    TEAM: '/team',
   },
 
   // Public/Marketing
