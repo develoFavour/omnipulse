@@ -21,6 +21,13 @@ const safeInternalRedirect = (value: string | null) => {
 }
 
 export default clerkMiddleware(async (auth, req) => {
+  // If user lands on old /connections/invite link, redirect directly to /invite
+  if (req.nextUrl.pathname.startsWith('/connections/invite')) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/invite'
+    return NextResponse.redirect(url)
+  }
+
   const { userId } = await auth()
 
   // Authenticated users should never see sign-in/sign-up again. If an OAuth

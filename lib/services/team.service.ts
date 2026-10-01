@@ -93,21 +93,23 @@ class TeamService {
    * Public preview for an invitation token without requiring authentication.
    */
   async previewInvitation(token: string): Promise<InvitationPreview> {
-    const response = await apiClient.get<InvitationPreview>(
+    const response = await apiClient.get<{ success?: boolean; data?: InvitationPreview } | InvitationPreview>(
       ENDPOINTS.INVITATIONS.PREVIEW(token)
     );
-    return response.data;
+    const body: any = response.data;
+    return body?.data || body;
   }
 
   /**
    * Accepts an invitation and joins the target workspace.
    */
   async acceptInvitation(token: string): Promise<{ message: string; tenant: any }> {
-    const response = await apiClient.post<{ message: string; tenant: any }>(
+    const response = await apiClient.post<{ success?: boolean; data?: { message: string; tenant: any } } | { message: string; tenant: any }>(
       ENDPOINTS.INVITATIONS.ACCEPT,
       { token }
     );
-    return response.data;
+    const body: any = response.data;
+    return body?.data || body;
   }
 }
 

@@ -77,8 +77,9 @@ function InviteContent() {
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    switch (role.toLowerCase()) {
+  const getRoleBadge = (role?: string) => {
+    const normalized = (role || "").toLowerCase();
+    switch (normalized) {
       case "owner":
         return (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400 border border-amber-500/20">
@@ -97,7 +98,7 @@ function InviteContent() {
         return (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-500/10 px-3 py-1 text-xs font-semibold text-zinc-300 border border-zinc-500/20">
             <UserIcon className="h-3.5 w-3.5 text-zinc-400" />
-            Member
+            {role ? role.charAt(0).toUpperCase() + role.slice(1) : "Member"}
           </span>
         );
     }
