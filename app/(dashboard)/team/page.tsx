@@ -209,13 +209,14 @@ export default function TeamManagementPage() {
     return email.slice(0, 2).toUpperCase();
   };
 
-  const getAvatarGradient = (email: string) => {
+  const getAvatarBg = (email: string) => {
     const colors = [
-      "from-indigo-500 to-purple-600",
-      "from-blue-500 to-cyan-600",
-      "from-emerald-500 to-teal-600",
-      "from-amber-500 to-orange-600",
-      "from-rose-500 to-pink-600",
+      "bg-indigo-600",
+      "bg-blue-600",
+      "bg-emerald-600",
+      "bg-amber-600",
+      "bg-purple-600",
+      "bg-slate-700",
     ];
     let hash = 0;
     for (let i = 0; i < email.length; i++) {
@@ -278,9 +279,9 @@ export default function TeamManagementPage() {
 
       {/* Role Summary Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-amber-200/80 bg-gradient-to-br from-amber-50/50 to-white p-4 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 rounded-lg bg-amber-100 text-amber-800">
+            <div className="p-1.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
               <Crown className="h-4 w-4" />
             </div>
             <h3 className="font-semibold text-gray-900 text-sm">Workspace Owner</h3>
@@ -290,9 +291,9 @@ export default function TeamManagementPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/50 to-white p-4 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 rounded-lg bg-indigo-100 text-indigo-800">
+            <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200">
               <Shield className="h-4 w-4" />
             </div>
             <h3 className="font-semibold text-gray-900 text-sm">Workspace Admin</h3>
@@ -302,9 +303,9 @@ export default function TeamManagementPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50/50 to-white p-4 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 rounded-lg bg-gray-100 text-gray-700">
+            <div className="p-1.5 rounded-lg bg-gray-100 text-gray-700 border border-gray-200">
               <User className="h-4 w-4" />
             </div>
             <h3 className="font-semibold text-gray-900 text-sm">Team Member</h3>
@@ -357,7 +358,7 @@ export default function TeamManagementPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`h-9 w-9 rounded-full bg-gradient-to-tr ${getAvatarGradient(
+                          className={`h-9 w-9 rounded-full ${getAvatarBg(
                             member.email
                           )} flex items-center justify-center text-white text-xs font-bold shadow-sm`}
                         >

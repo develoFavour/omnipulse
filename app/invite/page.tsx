@@ -14,7 +14,6 @@ import {
   Loader2,
   ArrowRight,
   LogIn,
-  Sparkles,
 } from "lucide-react";
 import { teamService, InvitationPreview } from "@/lib/services/team.service";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
@@ -60,7 +59,6 @@ function InviteContent() {
 
   const handleAccept = async () => {
     if (!isSignedIn) {
-      // Redirect to sign in with return url
       const returnUrl = encodeURIComponent(`/invite?token=${token}`);
       router.push(`${APP_ROUTES.AUTH.SIGN_IN}?redirect_url=${returnUrl}`);
       return;
@@ -82,22 +80,22 @@ function InviteContent() {
     switch (normalized) {
       case "owner":
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400 border border-amber-500/20">
-            <Crown className="h-3.5 w-3.5 text-amber-400" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 border border-amber-200">
+            <Crown className="h-3.5 w-3.5 text-amber-700" />
             Owner
           </span>
         );
       case "admin":
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-400 border border-indigo-500/20">
-            <Shield className="h-3.5 w-3.5 text-indigo-400" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 border border-indigo-200">
+            <Shield className="h-3.5 w-3.5 text-indigo-600" />
             Admin
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-500/10 px-3 py-1 text-xs font-semibold text-zinc-300 border border-zinc-500/20">
-            <UserIcon className="h-3.5 w-3.5 text-zinc-400" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 border border-gray-200">
+            <UserIcon className="h-3.5 w-3.5 text-gray-500" />
             {role ? role.charAt(0).toUpperCase() + role.slice(1) : "Member"}
           </span>
         );
@@ -106,26 +104,26 @@ function InviteContent() {
 
   if (loading || !isAuthLoaded) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-        <p className="text-sm font-medium text-zinc-400">Verifying invitation credentials...</p>
+      <div className="flex min-h-[360px] flex-col items-center justify-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <p className="text-sm font-medium text-gray-500">Verifying invitation credentials...</p>
       </div>
     );
   }
 
   if (error || !preview) {
     return (
-      <div className="mx-auto max-w-md rounded-2xl border border-red-500/20 bg-zinc-900/80 p-8 text-center shadow-2xl backdrop-blur-xl">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20">
-          <AlertCircle className="h-7 w-7 text-red-400" />
+      <div className="mx-auto w-full max-w-md rounded-2xl border border-red-200 bg-white p-8 text-center shadow-lg">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 border border-red-100 text-red-600">
+          <AlertCircle className="h-6 w-6" />
         </div>
-        <h2 className="text-xl font-bold text-white mb-2">Invitation Unavailable</h2>
-        <p className="text-sm text-zinc-400 leading-relaxed mb-6">{error}</p>
+        <h2 className="text-lg font-bold text-gray-900 mb-2">Invitation Unavailable</h2>
+        <p className="text-sm text-gray-600 leading-relaxed mb-6">{error}</p>
         <Link
           href={APP_ROUTES.AUTH.SIGN_IN}
-          className="inline-flex items-center gap-2 rounded-xl bg-zinc-800 px-5 py-2.5 text-sm font-semibold text-zinc-200 hover:bg-zinc-700 transition-colors"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
         >
-          Return to Omnipulse
+          Return to Sign In
         </Link>
       </div>
     );
@@ -133,46 +131,45 @@ function InviteContent() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="mx-auto max-w-lg overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/90 shadow-2xl backdrop-blur-2xl"
+      transition={{ duration: 0.25 }}
+      className="mx-auto w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl"
     >
-      {/* Top Graphic Header */}
-      <div className="relative border-b border-zinc-800/80 bg-gradient-to-br from-indigo-950/60 via-zinc-900 to-zinc-900 p-8 text-center overflow-hidden">
-        <div className="absolute -top-12 left-1/2 h-36 w-36 -translate-x-1/2 rounded-full bg-indigo-500/20 blur-3xl" />
-        
-        <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 shadow-inner">
-          <Users className="h-7 w-7" />
+      {/* Top Header */}
+      <div className="border-b border-gray-200 bg-white px-8 pt-8 pb-6 text-center">
+        <div className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600">
+          <Users className="h-6 w-6" />
         </div>
 
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-400 border border-indigo-500/20 mb-3">
-          <Sparkles className="h-3 w-3" />
-          Workspace Invitation
+        <div className="mb-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-0.5 text-xs font-semibold text-indigo-700 border border-indigo-200">
+            Workspace Invitation
+          </span>
         </div>
 
-        <h1 className="text-2xl font-bold text-white tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
           Join {preview.workspace_name}
         </h1>
-        <p className="mt-1 text-xs text-zinc-400">
-          Invited by <strong className="text-zinc-200">{preview.inviter_email}</strong>
+        <p className="mt-1 text-sm text-gray-500">
+          Invited by <strong className="font-semibold text-gray-800">{preview.inviter_email}</strong>
         </p>
       </div>
 
       {/* Body Details */}
       <div className="p-8 space-y-6">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-950/50 p-4 space-y-3">
+        <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4 space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400">Assigned Role</span>
+            <span className="font-medium text-gray-500">Assigned Role</span>
             {getRoleBadge(preview.role)}
           </div>
-          <div className="flex items-center justify-between text-xs border-t border-zinc-800/60 pt-3">
-            <span className="text-zinc-400">Invited Recipient</span>
-            <span className="font-mono text-zinc-200 text-xs">{preview.invited_email}</span>
+          <div className="flex items-center justify-between text-xs border-t border-gray-200 pt-3">
+            <span className="font-medium text-gray-500">Invited Recipient</span>
+            <span className="font-mono font-medium text-gray-800 text-xs">{preview.invited_email}</span>
           </div>
-          <div className="flex items-center justify-between text-xs border-t border-zinc-800/60 pt-3">
-            <span className="text-zinc-400">Expiration</span>
-            <span className="text-zinc-300">
+          <div className="flex items-center justify-between text-xs border-t border-gray-200 pt-3">
+            <span className="font-medium text-gray-500">Expiration</span>
+            <span className="font-medium text-gray-700">
               {new Date(preview.expires_at).toLocaleDateString(undefined, {
                 month: "short",
                 day: "numeric",
@@ -184,17 +181,17 @@ function InviteContent() {
 
         {/* User state message */}
         {isSignedIn ? (
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
-            <div className="text-xs text-zinc-300 leading-snug">
-              Signed in as <strong className="text-white">{user?.primaryEmailAddress?.emailAddress}</strong>. Clicking accept will attach this account to <strong>{preview.workspace_name}</strong>.
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex items-start gap-3">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="text-xs text-emerald-900 leading-snug">
+              Signed in as <strong className="font-semibold">{user?.primaryEmailAddress?.emailAddress}</strong>. Accepting will attach your account to <strong>{preview.workspace_name}</strong>.
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-3.5 flex items-center gap-3">
-            <LogIn className="h-5 w-5 text-indigo-400 shrink-0" />
-            <div className="text-xs text-zinc-300 leading-snug">
-              You will be prompted to sign in or create your Omnipulse account to claim this membership.
+          <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 flex items-start gap-3">
+            <LogIn className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+            <div className="text-xs text-indigo-900 leading-snug">
+              You will be prompted to sign in or create an Omnipulse account to accept this invitation.
             </div>
           </div>
         )}
@@ -203,7 +200,7 @@ function InviteContent() {
         <button
           onClick={handleAccept}
           disabled={accepting}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 hover:from-indigo-500 hover:to-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-zinc-900 transition-all disabled:opacity-50"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
         >
           {accepting ? (
             <>
@@ -223,7 +220,7 @@ function InviteContent() {
           )}
         </button>
 
-        <p className="text-center text-[11px] text-zinc-500">
+        <p className="text-center text-xs text-gray-400">
           By accepting, you agree to collaborate in accordance with the workspace's assigned permission tier.
         </p>
       </div>
@@ -233,11 +230,11 @@ function InviteContent() {
 
 export default function InvitePage() {
   return (
-    <div className="min-h-screen bg-[#090d16] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#f9fafb] flex flex-col items-center justify-center p-4">
       <Suspense
         fallback={
           <div className="flex h-64 w-full items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
           </div>
         }
       >
