@@ -87,7 +87,7 @@ flowchart TB
 
 ---
 
-## Key Engineering Innovations
+## Core Features & Implementation Details
 
 ### 1. Matrix Campaign Studio (Triple-Platform Simulator)
 Composing messages for multiple networks requires handling competing structural constraints simultaneously:
