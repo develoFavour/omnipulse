@@ -13,9 +13,16 @@ export const apiClient = axios.create({
 // We expose a utility to inject a dynamic token getter function from React
 // This ensures every API call always uses the freshest Clerk token, preventing expiration errors
 let tokenGetter: (() => Promise<string | null>) | null = null;
+let userInfoGetter: (() => { email?: string | null; name?: string | null } | null) | null = null;
 
 export const setAuthTokenGetter = (getter: () => Promise<string | null>) => {
   tokenGetter = getter;
+};
+
+export const setUserInfoGetter = (
+  getter: () => { email?: string | null; name?: string | null } | null
+) => {
+  userInfoGetter = getter;
 };
 
 export const getAuthToken = async (): Promise<string | null> => {
@@ -25,7 +32,7 @@ export const getAuthToken = async (): Promise<string | null> => {
   return null;
 };
 
-// Add a request interceptor to lazily inject the freshest token before every request
+// Add a request interceptor to lazily inject the freshest token and user context before every request
 apiClient.interceptors.request.use(
   async (config) => {
     // If tokenGetter has not yet mounted (during early page hydration), wait up to 2s
@@ -51,6 +58,18 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
+
+    // Attach verified user email and display name if available
+    if (userInfoGetter) {
+      const info = userInfoGetter();
+      if (info?.email) {
+        config.headers['X-User-Email'] = info.email;
+      }
+      if (info?.name) {
+        config.headers['X-User-Name'] = info.name;
+      }
+    }
+
     return config;
   },
   (error) => {

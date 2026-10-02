@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { setAuthTokenGetter } from "@/lib/api/axios-instance";
+import { useAuth, useUser } from "@clerk/nextjs";
+import { setAuthTokenGetter, setUserInfoGetter } from "@/lib/api/axios-instance";
 import { useAppStore } from "@/lib/store";
 
 interface ClerkAuthProviderProps {
@@ -11,6 +11,7 @@ interface ClerkAuthProviderProps {
 
 export function ClerkAuthProvider({ children }: ClerkAuthProviderProps) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
   const syncUser = useAppStore((state) => state.syncUser);
   const resetAuth = useAppStore((state) => state.resetAuth);
 
@@ -36,6 +37,15 @@ export function ClerkAuthProvider({ children }: ClerkAuthProviderProps) {
       return null;
     });
 
+    // 2. Inject verified user context (email and name) so backend receives real identity
+    setUserInfoGetter(() => {
+      if (!user) return null;
+      return {
+        email: user.primaryEmailAddress?.emailAddress || null,
+        name: user.fullName || user.firstName || null,
+      };
+    });
+
     // 2. Perform the initial JIT Sync if signed in
     const syncSession = async () => {
       if (!isLoaded) return;
@@ -53,7 +63,7 @@ export function ClerkAuthProvider({ children }: ClerkAuthProviderProps) {
     };
 
     syncSession();
-  }, [isLoaded, isSignedIn, getToken, syncUser, resetAuth]);
+  }, [isLoaded, isSignedIn, getToken, user, syncUser, resetAuth]);
 
   return <>{children}</>;
 }

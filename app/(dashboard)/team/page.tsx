@@ -28,6 +28,7 @@ import {
   RoleType,
 } from "@/lib/services/team.service";
 import { authService } from "@/lib/services/auth.service";
+import { useUser } from "@clerk/nextjs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +50,7 @@ import {
 import { toast } from "sonner";
 
 export default function TeamManagementPage() {
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [members, setMembers] = useState<TenantMember[]>([]);
@@ -200,8 +202,23 @@ export default function TeamManagementPage() {
     }
   };
 
-  const getInitials = (email: string) => {
-    if (!email) return "U";
+  const getDisplayEmail = (member: TenantMember, isCurrentUser: boolean) => {
+    if (member.email && !member.email.includes("@placeholder.com")) {
+      return member.email;
+    }
+    if (isCurrentUser && user?.primaryEmailAddress?.emailAddress) {
+      return user.primaryEmailAddress.emailAddress;
+    }
+    return `Team Member (${member.user_id.slice(0, 10)}...)`;
+  };
+
+  const getInitials = (email: string, isCurrentUser = false) => {
+    if (isCurrentUser && user?.fullName) {
+      const parts = user.fullName.trim().split(" ");
+      if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase();
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    if (!email || email.includes("@placeholder.com")) return "TM";
     const parts = email.split("@")[0].split(".");
     if (parts.length > 1) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -359,14 +376,14 @@ export default function TeamManagementPage() {
                       <div className="flex items-center gap-3">
                         <div
                           className={`h-9 w-9 rounded-full ${getAvatarBg(
-                            member.email
+                            getDisplayEmail(member, isCurrentUser)
                           )} flex items-center justify-center text-white text-xs font-bold shadow-sm`}
                         >
-                          {getInitials(member.email)}
+                          {getInitials(member.email, isCurrentUser)}
                         </div>
                         <div>
                           <div className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                            {member.email}
+                            {getDisplayEmail(member, isCurrentUser)}
                             {isCurrentUser && (
                               <span className="text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-medium">
                                 You
