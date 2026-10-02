@@ -91,7 +91,9 @@ export default function TeamManagementPage() {
         setCurrentUserId(authData.user.id);
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || "Failed to load team data");
+      console.error("[TeamManagement] Failed to fetch team data:", err);
+      const msg = err?.response?.data?.error || err?.message || "Failed to load team data";
+      toast.error(msg);
     } finally {
       setLoading(false);
       setRefreshing(false);
