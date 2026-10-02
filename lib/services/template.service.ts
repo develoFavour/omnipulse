@@ -1,5 +1,6 @@
-import { apiClient } from "@/lib/api/axios-instance";
+﻿import { apiClient } from "@/lib/api/axios-instance";
 import { ENDPOINTS } from "@/lib/constants/endpoint.const";
+import type { ApiResponse } from "@/lib/api/response";
 
 export interface MessageTemplate {
   id: string;
@@ -32,35 +33,31 @@ export interface UpdateTemplateInput {
 class TemplateService {
   async listTemplates(category?: string): Promise<MessageTemplate[]> {
     try {
-      const url = category && category !== "all"
-        ? `${ENDPOINTS.TEMPLATES.BASE}?category=${encodeURIComponent(category)}`
-        : ENDPOINTS.TEMPLATES.BASE;
-      const response = await apiClient.get<any>(url);
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      if (Array.isArray(response.data?.data)) {
-        return response.data.data;
-      }
-      return [];
+      const url =
+        category && category !== "all"
+          ? `${ENDPOINTS.TEMPLATES.BASE}?category=${encodeURIComponent(category)}`
+          : ENDPOINTS.TEMPLATES.BASE;
+      const response = await apiClient.get<ApiResponse<MessageTemplate[]>>(url);
+      const payload = response.data as unknown as MessageTemplate[];
+      return Array.isArray(payload) ? payload : [];
     } catch {
       return [];
     }
   }
 
   async getTemplate(id: string): Promise<MessageTemplate> {
-    const response = await apiClient.get<any>(ENDPOINTS.TEMPLATES.BY_ID(id));
-    return response.data?.data || response.data;
+    const response = await apiClient.get<ApiResponse<MessageTemplate>>(ENDPOINTS.TEMPLATES.BY_ID(id));
+    return response.data as unknown as MessageTemplate;
   }
 
   async createTemplate(data: CreateTemplateInput): Promise<MessageTemplate> {
-    const response = await apiClient.post<any>(ENDPOINTS.TEMPLATES.BASE, data);
-    return response.data?.data || response.data;
+    const response = await apiClient.post<ApiResponse<MessageTemplate>>(ENDPOINTS.TEMPLATES.BASE, data);
+    return response.data as unknown as MessageTemplate;
   }
 
   async updateTemplate(id: string, data: UpdateTemplateInput): Promise<MessageTemplate> {
-    const response = await apiClient.put<any>(ENDPOINTS.TEMPLATES.BY_ID(id), data);
-    return response.data?.data || response.data;
+    const response = await apiClient.put<ApiResponse<MessageTemplate>>(ENDPOINTS.TEMPLATES.BY_ID(id), data);
+    return response.data as unknown as MessageTemplate;
   }
 
   async deleteTemplate(id: string): Promise<void> {

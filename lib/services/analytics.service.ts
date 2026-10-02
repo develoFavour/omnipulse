@@ -1,5 +1,6 @@
-import { apiClient } from "@/lib/api/axios-instance";
+﻿import { apiClient } from "@/lib/api/axios-instance";
 import { ENDPOINTS } from "@/lib/constants/endpoint.const";
+import type { ApiResponse } from "@/lib/api/response";
 
 export interface AnalyticsOverview {
   total_sent: number;
@@ -21,7 +22,7 @@ export interface DailyDeliveryPoint {
 }
 
 export interface PlatformAnalytics {
-  platform: string; // "whatsapp", "telegram"
+  platform: string;
   total: number;
   delivered: number;
   failed: number;
@@ -58,24 +59,26 @@ export interface AggregateAnalyticsReport {
   top_campaigns: TopCampaignMetric[];
 }
 
+const EMPTY_OVERVIEW: AnalyticsOverview = {
+  total_sent: 0,
+  total_delivered: 0,
+  total_failed: 0,
+  delivery_rate: 0,
+  campaigns_count: 0,
+  total_audience_reach: 0,
+  period_growth_sent: 0,
+  period_growth_rate: 0,
+};
+
 class AnalyticsService {
   async getReport(days = 30): Promise<AggregateAnalyticsReport> {
-    const response = await apiClient.get<any>(ENDPOINTS.ANALYTICS.REPORT(days));
-    const data = response.data?.data ?? response.data;
+    const response = await apiClient.get<ApiResponse<AggregateAnalyticsReport>>(ENDPOINTS.ANALYTICS.REPORT(days));
+    const data = response.data as unknown as AggregateAnalyticsReport;
     return {
       days: data?.days ?? days,
       start_date: data?.start_date ?? "",
       end_date: data?.end_date ?? "",
-      overview: data?.overview ?? {
-        total_sent: 0,
-        total_delivered: 0,
-        total_failed: 0,
-        delivery_rate: 0,
-        campaigns_count: 0,
-        total_audience_reach: 0,
-        period_growth_sent: 0,
-        period_growth_rate: 0,
-      },
+      overview: data?.overview ?? EMPTY_OVERVIEW,
       daily_trend: data?.daily_trend ?? [],
       platform_breakdown: data?.platform_breakdown ?? [],
       hourly_distribution: data?.hourly_distribution ?? [],

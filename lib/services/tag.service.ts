@@ -1,5 +1,6 @@
-import { apiClient } from "@/lib/api/axios-instance";
+﻿import { apiClient } from "@/lib/api/axios-instance";
 import { ENDPOINTS } from "@/lib/constants/endpoint.const";
+import type { ApiResponse } from "@/lib/api/response";
 
 export interface Tag {
   id: string;
@@ -14,22 +15,17 @@ export interface Tag {
 class TagService {
   async listTags(): Promise<Tag[]> {
     try {
-      const response = await apiClient.get<any>(ENDPOINTS.TAGS.BASE);
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      if (Array.isArray(response.data?.data)) {
-        return response.data.data;
-      }
-      return [];
+      const response = await apiClient.get<ApiResponse<Tag[]>>(ENDPOINTS.TAGS.BASE);
+      const payload = response.data as unknown as Tag[];
+      return Array.isArray(payload) ? payload : [];
     } catch {
       return [];
     }
   }
 
   async createTag(name: string, color: string = "#6366f1"): Promise<Tag> {
-    const response = await apiClient.post<any>(ENDPOINTS.TAGS.BASE, { name, color });
-    return response.data?.data || response.data;
+    const response = await apiClient.post<ApiResponse<Tag>>(ENDPOINTS.TAGS.BASE, { name, color });
+    return response.data as unknown as Tag;
   }
 
   async deleteTag(id: string): Promise<void> {
@@ -45,15 +41,12 @@ class TagService {
   }
 
   async bulkTagContacts(tagId: string, contactIds: string[], action: "assign" | "remove"): Promise<void> {
-    await apiClient.post(ENDPOINTS.TAGS.BULK_ASSIGN(tagId), {
-      action,
-      contact_ids: contactIds,
-    });
+    await apiClient.post(ENDPOINTS.TAGS.BULK_ASSIGN(tagId), { action, contact_ids: contactIds });
   }
 
   async updateTag(id: string, name: string, color: string): Promise<Tag> {
-    const response = await apiClient.put<any>(ENDPOINTS.TAGS.BY_ID(id), { name, color });
-    return response.data?.data || response.data;
+    const response = await apiClient.put<ApiResponse<Tag>>(ENDPOINTS.TAGS.BY_ID(id), { name, color });
+    return response.data as unknown as Tag;
   }
 }
 

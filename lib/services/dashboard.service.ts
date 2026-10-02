@@ -1,5 +1,6 @@
-import { apiClient } from "@/lib/api/axios-instance";
+﻿import { apiClient } from "@/lib/api/axios-instance";
 import { ENDPOINTS } from "@/lib/constants/endpoint.const";
+import type { ApiResponse } from "@/lib/api/response";
 
 export interface ChannelStat {
   name: string;
@@ -77,22 +78,16 @@ export interface DashboardStats {
 }
 
 class DashboardService {
-  /**
-   * Retrieves the aggregated global dashboard statistics.
-   */
   async getStats(): Promise<DashboardStats> {
-    const response = await apiClient.get<DashboardStats>(ENDPOINTS.DASHBOARD.STATS);
-    return response.data;
+    const response = await apiClient.get<ApiResponse<DashboardStats>>(ENDPOINTS.DASHBOARD.STATS);
+    return response.data as unknown as DashboardStats;
   }
 
-  /**
-   * Retrieves the paginated delivery history.
-   */
   async listDeliveries(limit: number = 100, offset: number = 0): Promise<DashboardDeliveryActivity[]> {
-    const response = await apiClient.get<DashboardDeliveryActivity[]>(
+    const response = await apiClient.get<ApiResponse<DashboardDeliveryActivity[]>>(
       `${ENDPOINTS.DASHBOARD.DELIVERIES}?limit=${limit}&offset=${offset}`
     );
-    return response.data;
+    return response.data as unknown as DashboardDeliveryActivity[];
   }
 }
 

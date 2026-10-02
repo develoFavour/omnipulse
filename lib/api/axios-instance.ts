@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { ApiEnvelope } from './response';
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -57,10 +58,27 @@ apiClient.interceptors.request.use(
   }
 );
 
-// If a request encounters a 401 (e.g. token expired or momentary auth desync),
-// attempt a one-time retry with a freshly obtained token before failing.
+// Response interceptor – unwrap backend envelope { success, data } / { success, error }
+// so all callers receive the inner payload directly via response.data.
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const body = response.data as ApiEnvelope<unknown>;
+
+    // Only touch responses that match our envelope contract
+    if (body && typeof body === 'object' && 'success' in body) {
+      if (body.success === false) {
+        // Surface the backend error message as a proper rejection
+        const err = new Error(body.error ?? 'An unexpected error occurred');
+        (err as any).response = response;
+        (err as any).isApiError = true;
+        return Promise.reject(err);
+      }
+      // Unwrap: replace response.data with the inner payload
+      response.data = body.data;
+    }
+
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
     if (
@@ -85,3 +103,4 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+

@@ -1,5 +1,6 @@
-import { apiClient } from "@/lib/api/axios-instance";
+﻿import { apiClient } from "@/lib/api/axios-instance";
 import { ENDPOINTS } from "@/lib/constants/endpoint.const";
+import type { ApiResponse } from "@/lib/api/response";
 
 export type NotificationType =
   | "campaign_completed"
@@ -27,10 +28,10 @@ export interface NotificationsResponse {
 class NotificationService {
   async list(limit = 20): Promise<NotificationsResponse> {
     try {
-      const response = await apiClient.get<any>(ENDPOINTS.NOTIFICATIONS.BASE, {
+      const response = await apiClient.get<ApiResponse<NotificationsResponse>>(ENDPOINTS.NOTIFICATIONS.BASE, {
         params: { limit },
       });
-      const data = response.data?.data ?? response.data;
+      const data = response.data as unknown as NotificationsResponse;
       return {
         notifications: data?.notifications ?? [],
         unread_count: data?.unread_count ?? 0,

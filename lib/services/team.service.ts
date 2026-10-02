@@ -1,5 +1,6 @@
-import { apiClient } from "@/lib/api/axios-instance";
+﻿import { apiClient } from "@/lib/api/axios-instance";
 import { ENDPOINTS } from "@/lib/constants/endpoint.const";
+import type { ApiResponse } from "@/lib/api/response";
 
 export type RoleType = "owner" | "admin" | "member";
 
@@ -39,77 +40,64 @@ export interface InvitationPreview {
 }
 
 class TeamService {
-  /**
-   * Fetches all active workspace members and pending invitations.
-   */
+  /** Fetches all active workspace members and pending invitations. */
   async listTeam(): Promise<TeamOverview> {
-    const response = await apiClient.get<{ success: boolean; data: TeamOverview }>(ENDPOINTS.TEAM.MEMBERS);
-    return response.data.data;
+    const response = await apiClient.get<ApiResponse<TeamOverview>>(ENDPOINTS.TEAM.MEMBERS);
+    return response.data as unknown as TeamOverview;
   }
 
-  /**
-   * Sends an invitation to join the current workspace.
-   */
-  async inviteMember(email: string, role: "admin" | "member"): Promise<{ message: string; invitation: TeamInvitation }> {
-    const response = await apiClient.post<{ success: boolean; data: { message: string; invitation: TeamInvitation } }>(
+  /** Sends an invitation to join the current workspace. */
+  async inviteMember(
+    email: string,
+    role: "admin" | "member"
+  ): Promise<{ message: string; invitation: TeamInvitation }> {
+    const response = await apiClient.post<ApiResponse<{ message: string; invitation: TeamInvitation }>>(
       ENDPOINTS.TEAM.INVITE,
       { email, role }
     );
-    return response.data.data;
+    return response.data as unknown as { message: string; invitation: TeamInvitation };
   }
 
-  /**
-   * Revokes a pending invitation.
-   */
+  /** Revokes a pending invitation. */
   async revokeInvitation(invitationId: string): Promise<{ message: string }> {
-    const response = await apiClient.delete<{ success: boolean; data: { message: string } }>(
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
       ENDPOINTS.TEAM.REVOKE_INVITE(invitationId)
     );
-    return response.data.data;
+    return response.data as unknown as { message: string };
   }
 
-  /**
-   * Removes a member from the workspace.
-   */
+  /** Removes a member from the workspace. */
   async removeMember(memberId: string): Promise<{ message: string }> {
-    const response = await apiClient.delete<{ success: boolean; data: { message: string } }>(
+    const response = await apiClient.delete<ApiResponse<{ message: string }>>(
       ENDPOINTS.TEAM.REMOVE_MEMBER(memberId)
     );
-    return response.data.data;
+    return response.data as unknown as { message: string };
   }
 
-  /**
-   * Updates a member's role (owner only).
-   */
+  /** Updates a member's role (owner only). */
   async updateMemberRole(memberId: string, role: RoleType): Promise<{ message: string }> {
-    const response = await apiClient.patch<{ success: boolean; data: { message: string } }>(
+    const response = await apiClient.patch<ApiResponse<{ message: string }>>(
       ENDPOINTS.TEAM.UPDATE_ROLE(memberId),
       { role }
     );
-    return response.data.data;
+    return response.data as unknown as { message: string };
   }
 
-  /**
-   * Public preview for an invitation token without requiring authentication.
-   */
+  /** Public preview for an invitation token — no authentication required. */
   async previewInvitation(token: string): Promise<InvitationPreview> {
-    const response = await apiClient.get<{ success?: boolean; data?: InvitationPreview } | InvitationPreview>(
+    const response = await apiClient.get<ApiResponse<InvitationPreview>>(
       ENDPOINTS.INVITATIONS.PREVIEW(token)
     );
-    const body: any = response.data;
-    return body?.data || body;
+    return response.data as unknown as InvitationPreview;
   }
 
-  /**
-   * Accepts an invitation and joins the target workspace.
-   */
+  /** Accepts an invitation and joins the target workspace. */
   async acceptInvitation(token: string): Promise<{ message: string; tenant: any }> {
-    const response = await apiClient.post<{ success?: boolean; data?: { message: string; tenant: any } } | { message: string; tenant: any }>(
+    const response = await apiClient.post<ApiResponse<{ message: string; tenant: any }>>(
       ENDPOINTS.INVITATIONS.ACCEPT,
       { token }
     );
-    const body: any = response.data;
-    return body?.data || body;
+    return response.data as unknown as { message: string; tenant: any };
   }
 }
 
