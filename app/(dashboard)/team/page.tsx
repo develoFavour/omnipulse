@@ -25,6 +25,7 @@ import {
   teamService,
   TenantMember,
   TeamInvitation,
+  TeamOverview,
   RoleType,
 } from "@/lib/services/team.service";
 import { authService } from "@/lib/services/auth.service";
@@ -79,16 +80,43 @@ export default function TeamManagementPage() {
   const fetchTeamData = useCallback(async () => {
     try {
       const [teamData, authData] = await Promise.all([
-        teamService.listTeam(),
-        authService.syncUser().catch(() => null),
+        teamService.listTeam().catch((err) => {
+          console.error("[TeamManagement] Failed to list team:", err);
+          return { members: [], invitations: [] } as TeamOverview;
+        }),
+        authService.syncUser().catch((err) => {
+          console.error("[TeamManagement] Failed to sync user:", err);
+          return null;
+        }),
       ]);
 
-      setMembers(teamData.members || []);
-      setInvitations(teamData.invitations || []);
+      const membersList = teamData?.members || [];
+      const invitationsList = teamData?.invitations || [];
+      setMembers(membersList);
+      setInvitations(invitationsList);
 
-      if (authData?.user) {
-        setCurrentUserRole(authData.user.role || "member");
-        setCurrentUserId(authData.user.id);
+      // Determine user ID from available sources
+      const resolvedUserId = user?.id || authData?.user?.id || currentUserId;
+      if (resolvedUserId) {
+        setCurrentUserId(resolvedUserId);
+      }
+
+      // Authoritative Role Resolution Priority:
+      // 1. Explicit membership record in members list (matching user_id or email)
+      const userEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
+      const myMembership = membersList.find(
+        (m: TenantMember) =>
+          (resolvedUserId && m.user_id === resolvedUserId) ||
+          (userEmail && m.email && m.email.toLowerCase() === userEmail)
+      );
+
+      if (myMembership?.role) {
+        setCurrentUserRole(myMembership.role);
+      } else if (authData?.user?.role) {
+        setCurrentUserRole(authData.user.role);
+      } else if (membersList.length === 1 && (!resolvedUserId || membersList[0].user_id === resolvedUserId)) {
+        // Workspace creator / sole member default
+        setCurrentUserRole(membersList[0].role || "owner");
       }
     } catch (err: any) {
       console.error("[TeamManagement] Failed to fetch team data:", err);
@@ -98,11 +126,33 @@ export default function TeamManagementPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [user, currentUserId]);
 
   useEffect(() => {
     fetchTeamData();
   }, [fetchTeamData]);
+
+  // Synchronize current user ID and role whenever Clerk user or members list loads
+  useEffect(() => {
+    if (!user) return;
+
+    if (user.id && user.id !== currentUserId) {
+      setCurrentUserId(user.id);
+    }
+
+    if (members.length > 0) {
+      const userEmail = user.primaryEmailAddress?.emailAddress?.toLowerCase();
+      const myMembership = members.find(
+        (m: TenantMember) =>
+          m.user_id === user.id ||
+          (userEmail && m.email && m.email.toLowerCase() === userEmail)
+      );
+
+      if (myMembership?.role && myMembership.role !== currentUserRole) {
+        setCurrentUserRole(myMembership.role);
+      }
+    }
+  }, [user, members, currentUserId, currentUserRole]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -371,7 +421,12 @@ export default function TeamManagementPage() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {members.map((member) => {
-                const isCurrentUser = member.user_id === currentUserId;
+                const isCurrentUser =
+                  member.user_id === currentUserId ||
+                  (user?.id ? member.user_id === user.id : false) ||
+                  (user?.primaryEmailAddress?.emailAddress && member.email
+                    ? member.email.toLowerCase() === user.primaryEmailAddress.emailAddress.toLowerCase()
+                    : false);
                 return (
                   <tr key={member.id} className="hover:bg-gray-50/60 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">

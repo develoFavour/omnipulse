@@ -1,4 +1,4 @@
-﻿import { apiClient } from "@/lib/api/axios-instance";
+import { apiClient } from "@/lib/api/axios-instance";
 import { ENDPOINTS } from "@/lib/constants/endpoint.const";
 import type { ApiResponse } from "@/lib/api/response";
 
@@ -42,8 +42,12 @@ export interface InvitationPreview {
 class TeamService {
   /** Fetches all active workspace members and pending invitations. */
   async listTeam(): Promise<TeamOverview> {
-    const response = await apiClient.get<ApiResponse<TeamOverview>>(ENDPOINTS.TEAM.MEMBERS);
-    return response.data as unknown as TeamOverview;
+    const response = await apiClient.get<any>(ENDPOINTS.TEAM.MEMBERS);
+    const data =
+      response.data && typeof response.data === "object" && "data" in response.data
+        ? response.data.data
+        : response.data;
+    return (data || { members: [], invitations: [] }) as TeamOverview;
   }
 
   /** Sends an invitation to join the current workspace. */

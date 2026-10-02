@@ -20,8 +20,13 @@ class AuthService {
    * Syncs the authenticated Clerk user to the Go backend.
    */
   async syncUser(): Promise<SyncResponse> {
-    const response = await apiClient.post<{ data: SyncResponse }>(ENDPOINTS.AUTH.SYNC);
-    return response.data.data;
+    const response = await apiClient.post<any>(ENDPOINTS.AUTH.SYNC);
+    // Robust envelope handler: works whether axios interceptor unwrapped response.data or not
+    const data =
+      response.data && typeof response.data === "object" && "data" in response.data
+        ? (response.data as { data: SyncResponse }).data
+        : (response.data as SyncResponse);
+    return data;
   }
 
   /**
