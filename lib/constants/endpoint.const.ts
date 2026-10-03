@@ -110,5 +110,12 @@ export const ENDPOINTS = {
 		PREVIEW: (token: string) => `${API_VERSION}/invitations/preview?token=${encodeURIComponent(token)}`,
 		ACCEPT: `${API_VERSION}/invitations/accept`,
 	},
+
+	// Multi-Workspace Switching & Management
+	WORKSPACES: {
+		LIST: `${API_VERSION}/workspaces`,
+		SWITCH: `${API_VERSION}/workspaces/switch`,
+		CREATE: `${API_VERSION}/workspaces`,
+	},
 } as const;
 

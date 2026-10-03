@@ -3,18 +3,26 @@
 import { useState, useRef, useEffect } from "react";
 import { UserButton } from "@clerk/nextjs";
 import { 
-  Bell, HelpCircle, Share2, Check, ExternalLink, ChevronDown, 
-  CheckCircle2, Circle, Sparkles, MessageSquare, Send,
-  CheckCheck, AlertTriangle, Radio, UserMinus, Users 
+  Bell, ExternalLink, ChevronDown, 
+  CheckCircle2, Circle, Send,
+  CheckCheck, AlertTriangle, Radio, UserMinus, Users,
+  Building2, Plus, Loader2, Crown, Shield, User as UserIcon,
+  Check, ChevronsUpDown
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useDashboard } from "@/lib/api/hooks/useDashboard";
 import { useNotifications } from "@/lib/api/hooks/useNotifications";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export function TopNav() {
   const tenant = useAppStore((state) => state.tenant);
+  const workspaces = useAppStore((state) => state.workspaces);
+  const loadWorkspaces = useAppStore((state) => state.loadWorkspaces);
+  const switchWorkspace = useAppStore((state) => state.switchWorkspace);
+  const createWorkspace = useAppStore((state) => state.createWorkspace);
+  const isSwitchingWorkspace = useAppStore((state) => state.isSwitchingWorkspace);
   const { stats } = useDashboard();
   const { notifications, unreadCount, markRead, markAllRead, isMarkingRead } = useNotifications();
 
@@ -22,10 +30,18 @@ export function TopNav() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifTab, setNotifTab] = useState<"alerts" | "deliveries">("alerts");
   const [showUsage, setShowUsage] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const onboardingRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
   const usageRef = useRef<HTMLDivElement>(null);
+
+  // Load workspaces on mount
+  useEffect(() => {
+    loadWorkspaces();
+  }, [loadWorkspaces]);
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -84,71 +100,224 @@ export function TopNav() {
 
         <div className="h-6 w-px bg-gray-200" />
 
-        {/* Workspace & Plan Selector */}
+        {/* Workspace Switcher */}
         <div className="relative" ref={usageRef}>
           <button
             onClick={() => setShowUsage(!showUsage)}
             className="flex items-center gap-2 rounded-full bg-gray-50 px-3 py-1.5 border border-gray-100 hover:bg-gray-100 cursor-pointer transition-colors text-left"
+            disabled={isSwitchingWorkspace}
           >
-            <div className="h-5 w-5 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] text-white font-medium">
-              {tenant?.company_name?.[0]?.toUpperCase() || "O"}
-            </div>
+            {isSwitchingWorkspace ? (
+              <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+            ) : (
+              <div className="h-5 w-5 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] text-white font-medium shrink-0">
+                {tenant?.company_name?.[0]?.toUpperCase() || "O"}
+              </div>
+            )}
             <span className="text-sm font-semibold text-gray-700 max-w-[140px] truncate">
-              {tenant?.company_name || "Workspace"}
+              {isSwitchingWorkspace ? "Switching..." : (tenant?.company_name || "Workspace")}
             </span>
             <span className="rounded-full bg-indigo-100/70 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold text-indigo-700 uppercase tracking-wide">
               {planUsage.plan_badge}
             </span>
-            <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+            <ChevronsUpDown className="h-3.5 w-3.5 text-gray-400" />
           </button>
 
-          {/* Usage & Plan Dropdown */}
+          {/* Workspace Switcher Dropdown */}
           {showUsage && (
-            <div className="absolute left-0 mt-2 w-72 rounded-2xl bg-white p-4 shadow-xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <div>
-                  <h4 className="text-xs font-bold text-gray-900">{planUsage.plan_tier}</h4>
-                  <p className="text-[11px] text-emerald-600 font-medium">● Active Workspace</p>
+            <div className="absolute left-0 mt-2 w-80 rounded-2xl bg-white shadow-xl border border-gray-100 z-50 animate-in fade-in slide-in-from-top-2 duration-150 overflow-hidden">
+              {/* Header */}
+              <div className="px-4 pt-4 pb-3 border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-900">Workspaces</h4>
+                    <p className="text-[11px] text-gray-500 mt-0.5">{workspaces.length} workspace{workspaces.length !== 1 ? "s" : ""} on this account</p>
+                  </div>
+                  <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
+                    {planUsage.plan_badge}
+                  </span>
                 </div>
-                <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
-                  Unlimited
-                </span>
               </div>
 
-              <div className="space-y-3 py-3 text-xs">
-                <div>
-                  <div className="flex justify-between text-gray-600 mb-1">
-                    <span>Dispatches this month</span>
-                    <span className="font-semibold text-gray-900">{planUsage.messages_sent_this_month} / ∞</span>
+              {/* Workspace List */}
+              <div className="max-h-56 overflow-y-auto py-1.5 px-2">
+                {workspaces.length === 0 ? (
+                  <div className="py-6 text-center">
+                    <Building2 className="h-6 w-6 text-gray-300 mx-auto mb-2" />
+                    <p className="text-xs text-gray-400">No workspaces found</p>
                   </div>
-                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-600 rounded-full w-2" />
-                  </div>
-                </div>
+                ) : (
+                  workspaces.map((ws) => {
+                    const isActive = ws.id === tenant?.id || ws.is_active;
+                    return (
+                      <button
+                        key={ws.id}
+                        onClick={async () => {
+                          if (isActive) return;
+                          setShowUsage(false);
+                          try {
+                            await switchWorkspace(ws.id);
+                          } catch (err: any) {
+                            toast.error(err?.message || "Failed to switch workspace");
+                          }
+                        }}
+                        disabled={isActive || isSwitchingWorkspace}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all mb-0.5 ${
+                          isActive
+                            ? "bg-indigo-50 cursor-default"
+                            : "hover:bg-gray-50 cursor-pointer"
+                        }`}
+                      >
+                        {/* Avatar */}
+                        <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center text-sm font-bold text-white shadow-sm ${
+                          isActive ? "bg-indigo-600" : "bg-gray-400"
+                        }`}>
+                          {ws.company_name?.[0]?.toUpperCase() || "W"}
+                        </div>
 
-                <div className="flex justify-between text-gray-600 pt-1">
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs font-semibold truncate ${isActive ? "text-indigo-700" : "text-gray-800"}`}>
+                            {ws.company_name}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {ws.role === "owner" ? (
+                              <Crown className="h-2.5 w-2.5 text-amber-500" />
+                            ) : ws.role === "admin" ? (
+                              <Shield className="h-2.5 w-2.5 text-indigo-500" />
+                            ) : (
+                              <UserIcon className="h-2.5 w-2.5 text-gray-400" />
+                            )}
+                            <span className="text-[10px] capitalize text-gray-500">{ws.role}</span>
+                          </div>
+                        </div>
+
+                        {/* Active check */}
+                        {isActive && (
+                          <Check className="h-4 w-4 text-indigo-600 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Usage Stats */}
+              <div className="px-4 py-3 border-t border-gray-100 space-y-2 text-xs">
+                <div className="flex justify-between text-gray-600">
+                  <span>Dispatches this month</span>
+                  <span className="font-semibold text-gray-900">{planUsage.messages_sent_this_month} / ∞</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
                   <span>Connected channels</span>
                   <span className="font-semibold text-gray-900">{stats?.active_channels || 0} active</span>
                 </div>
-
                 <div className="flex justify-between text-gray-600">
                   <span>Audience contacts</span>
                   <span className="font-semibold text-gray-900">{stats?.total_audience || 0} contacts</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-gray-100">
+              {/* Footer actions */}
+              <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between gap-2">
                 <Link
                   href={APP_ROUTES.DASHBOARD.CONNECTIONS}
                   onClick={() => setShowUsage(false)}
-                  className="block text-center text-xs font-bold text-indigo-600 hover:text-indigo-700 py-1"
+                  className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
                 >
-                  Manage channels & integrations →
+                  Manage channels →
                 </Link>
+                <button
+                  onClick={() => { setShowUsage(false); setShowCreateModal(true); }}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-indigo-600 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-indigo-50 border border-gray-200 hover:border-indigo-200"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  New workspace
+                </button>
               </div>
             </div>
           )}
         </div>
+
+        {/* Create Workspace Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => !isCreating && setShowCreateModal(false)}>
+            <div
+              className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm mx-4 p-6 animate-in fade-in zoom-in-95 duration-150"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">Create new workspace</h3>
+                  <p className="text-xs text-gray-500">You'll be set as owner immediately</p>
+                </div>
+              </div>
+
+              <input
+                id="new-workspace-name"
+                type="text"
+                value={newWorkspaceName}
+                onChange={(e) => setNewWorkspaceName(e.target.value)}
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter" && newWorkspaceName.trim() && !isCreating) {
+                    setIsCreating(true);
+                    try {
+                      await createWorkspace(newWorkspaceName.trim());
+                      setShowCreateModal(false);
+                      setNewWorkspaceName("");
+                      toast.success("Workspace created! Setting it up for you...");
+                    } catch (err: any) {
+                      toast.error(err?.message || "Failed to create workspace");
+                    } finally {
+                      setIsCreating(false);
+                    }
+                  }
+                }}
+                placeholder="e.g. Acme Corp, Personal Brand..."
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-4"
+                autoFocus
+                disabled={isCreating}
+              />
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { setShowCreateModal(false); setNewWorkspaceName(""); }}
+                  disabled={isCreating}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!newWorkspaceName.trim() || isCreating) return;
+                    setIsCreating(true);
+                    try {
+                      await createWorkspace(newWorkspaceName.trim());
+                      setShowCreateModal(false);
+                      setNewWorkspaceName("");
+                      toast.success("Workspace created! Setting it up for you...");
+                    } catch (err: any) {
+                      toast.error(err?.message || "Failed to create workspace");
+                    } finally {
+                      setIsCreating(false);
+                    }
+                  }}
+                  disabled={!newWorkspaceName.trim() || isCreating}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCreating ? (
+                    <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Creating...</>
+                  ) : (
+                    <><Plus className="h-3.5 w-3.5" /> Create workspace</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right section */}
