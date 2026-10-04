@@ -29,6 +29,7 @@ import { useTemplates } from "@/lib/api/hooks/useTemplates";
 import { TEMPLATE_CATEGORIES } from "@/components/broadcast/TemplatePickerModal";
 import { MessageTemplate } from "@/lib/services/template.service";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
+import { usePermissions } from "@/lib/hooks/usePermissions";
 
 const SAMPLE_CONTACT = {
   first_name: "Sarah",
@@ -38,6 +39,7 @@ const SAMPLE_CONTACT = {
 
 export default function TemplatesPage() {
   const router = useRouter();
+  const { canDeleteTemplates } = usePermissions();
   const { templates: dbTemplates, isLoading, createTemplate, updateTemplate, deleteTemplate } = useTemplates();
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -433,14 +435,16 @@ export default function TemplatesPage() {
                     <Edit3 className="h-4 w-4" />
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(template.id, template.title)}
-                    title="Delete template"
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  {canDeleteTemplates && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(template.id, template.title)}
+                      title="Delete template"
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
 
                 <button

@@ -20,16 +20,24 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
+import { usePermissions, RoleType } from "@/lib/hooks/usePermissions";
 
-const navigation = [
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles?: RoleType[];
+}
+
+const navigation: NavItem[] = [
   { name: "Dashboard", href: APP_ROUTES.DASHBOARD.BASE, icon: LayoutDashboard },
   { name: "Broadcast Studio", href: APP_ROUTES.DASHBOARD.BROADCAST, icon: Megaphone },
   { name: "Scheduled Queue", href: APP_ROUTES.DASHBOARD.SCHEDULED, icon: CalendarClock },
   { name: "Message Templates", href: APP_ROUTES.DASHBOARD.TEMPLATES, icon: FileText },
   { name: "Audience Directory", href: APP_ROUTES.DASHBOARD.AUDIENCE, icon: Users },
-  { name: "Connect Profiles", href: APP_ROUTES.DASHBOARD.CONNECTIONS, icon: Plug },
+  { name: "Connect Profiles", href: APP_ROUTES.DASHBOARD.CONNECTIONS, icon: Plug, roles: ["owner", "admin"] },
   { name: "Campaign Analytics", href: APP_ROUTES.DASHBOARD.ANALYTICS, icon: BarChart3 },
-  { name: "Team & Roles", href: APP_ROUTES.DASHBOARD.TEAM, icon: ShieldCheck },
+  { name: "Team & Roles", href: APP_ROUTES.DASHBOARD.TEAM, icon: ShieldCheck, roles: ["owner", "admin"] },
   { name: "Recent Activities", href: APP_ROUTES.DASHBOARD.ACTIVITY, icon: Activity },
 ];
 
@@ -40,13 +48,18 @@ const secondaryNavigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { role } = usePermissions();
+
+  const visibleNav = navigation.filter(
+    (item) => !item.roles || item.roles.includes(role)
+  );
 
   return (
     <div className="flex h-full w-64 flex-col bg-white border-r border-gray-200">
       {/* Main Navigation */}
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">
         <nav className="flex-1 space-y-1">
-          {navigation.map((item) => {
+          {visibleNav.map((item) => {
             const isActive =
               item.href === APP_ROUTES.DASHBOARD.SCHEDULED
                 ? pathname.startsWith(APP_ROUTES.DASHBOARD.SCHEDULED)

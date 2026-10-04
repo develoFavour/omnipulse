@@ -17,7 +17,9 @@ import {
 	ChevronRight,
 	ExternalLink,
 	AlertCircle,
+	ShieldAlert,
 } from "lucide-react";
+import { usePermissions } from "@/lib/hooks/usePermissions";
 import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
 import { useTelegramDestinations } from "@/lib/api/hooks/useTelegramDestinations";
 import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
@@ -119,6 +121,7 @@ const PLATFORMS: PlatformCatalogItem[] = [
 ];
 
 export default function ConnectionsCatalogPage() {
+	const { canManageChannels } = usePermissions();
 	const {
 		channels,
 		loading: loadingChannels,
@@ -221,6 +224,16 @@ export default function ConnectionsCatalogPage() {
 				</div>
 			</div>
 
+			{/* Member Read-Only Notice */}
+			{!canManageChannels && (
+				<div className="mb-8 flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700">
+					<ShieldAlert className="h-5 w-5 text-slate-400 shrink-0" />
+					<p className="text-xs">
+						<strong>Member View:</strong> You have read-only access to channel status and broadcast targets. Connecting new channels, scanning QR codes, and disconnecting profiles are restricted to workspace administrators and the owner.
+					</p>
+				</div>
+			)}
+
 			{/* Catalog Grid */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
 				{PLATFORMS.map((platform) => {
@@ -289,18 +302,27 @@ export default function ConnectionsCatalogPage() {
 								) : platform.available ? (
 									<button
 										onClick={() => {
+											if (!connected && !canManageChannels) {
+												toast.info("Channel setup requires administrator privileges");
+												return;
+											}
 											if (platform.id === "whatsapp" && !connected) {
 												setIsWhatsAppQRModalOpen(true);
 											} else {
 												setActiveManagePlatform(platform.id);
 											}
 										}}
-										className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-bold text-white hover:bg-gray-800 transition-all shadow-sm group-hover:bg-indigo-600"
+										disabled={!connected && !canManageChannels}
+										className={`w-full flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all shadow-sm ${
+											!connected && !canManageChannels
+												? "bg-gray-100 text-gray-400 cursor-not-allowed"
+												: "bg-gray-900 text-white hover:bg-gray-800 group-hover:bg-indigo-600"
+										}`}
 									>
 										<span>
 											{connected
-												? "Manage Channel & Targets"
-												: "Connect Platform"}
+												? canManageChannels ? "Manage Channel & Targets" : "View Channel & Targets"
+												: canManageChannels ? "Connect Platform" : "Admin Setup Required"}
 										</span>
 										<ChevronRight className="h-4 w-4" />
 									</button>
@@ -384,11 +406,17 @@ export default function ConnectionsCatalogPage() {
 												</span>
 											)}
 										</div>
-										<TelegramConnectionForm
-											onSubmit={handleTelegramSubmit}
-											isLoading={isConnectingTelegram}
-											onClose={() => setActiveManagePlatform(null)}
-										/>
+										{canManageChannels ? (
+											<TelegramConnectionForm
+												onSubmit={handleTelegramSubmit}
+												isLoading={isConnectingTelegram}
+												onClose={() => setActiveManagePlatform(null)}
+											/>
+										) : (
+											<div className="p-4 rounded-xl bg-gray-100 text-xs text-gray-500 font-medium">
+												Bot token and webhook credentials can only be edited by workspace administrators.
+											</div>
+										)}
 									</div>
 
 									<div className="space-y-4 pt-4 border-t border-gray-100">
@@ -497,51 +525,53 @@ export default function ConnectionsCatalogPage() {
 												</span>
 											</div>
 											<div className="mt-5 pt-4 border-t border-emerald-200/60">
-												<AlertDialog
-													open={isDisconnectDialogOpen}
-													onOpenChange={setIsDisconnectDialogOpen}
-												>
-													<AlertDialogTrigger
-														disabled={isMetaDisconnecting}
-														className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-50 border border-red-200 px-5 py-3 text-sm font-bold text-red-700 hover:bg-red-100 transition-all disabled:opacity-50"
+												{canManageChannels && (
+													<AlertDialog
+														open={isDisconnectDialogOpen}
+														onOpenChange={setIsDisconnectDialogOpen}
 													>
-														{isMetaDisconnecting ? (
-															<>
-																<Loader2 className="h-4 w-4 animate-spin" />{" "}
-																Disconnecting...
-															</>
-														) : (
-															<>Disconnect WhatsApp</>
-														)}
-													</AlertDialogTrigger>
-													<AlertDialogContent>
-														<AlertDialogHeader>
-															<AlertDialogTitle>
-																Disconnect WhatsApp?
-															</AlertDialogTitle>
-															<AlertDialogDescription>
-																This will remove the channel and you&apos;ll
-																need to reconnect via Meta OAuth.
-															</AlertDialogDescription>
-														</AlertDialogHeader>
-														<AlertDialogFooter>
-															<AlertDialogCancel>Cancel</AlertDialogCancel>
-															<AlertDialogAction
-																variant="destructive"
-																onClick={async () => {
-																	await disconnectWhatsApp();
-																	toast.success(
-																		"WhatsApp disconnected successfully",
-																	);
-																	refetchChannels();
-																	setActiveManagePlatform(null);
-																}}
-															>
-																Disconnect
-															</AlertDialogAction>
-														</AlertDialogFooter>
-													</AlertDialogContent>
-												</AlertDialog>
+														<AlertDialogTrigger
+															disabled={isMetaDisconnecting}
+															className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-50 border border-red-200 px-5 py-3 text-sm font-bold text-red-700 hover:bg-red-100 transition-all disabled:opacity-50"
+														>
+															{isMetaDisconnecting ? (
+																<>
+																	<Loader2 className="h-4 w-4 animate-spin" />{" "}
+																	Disconnecting...
+																</>
+															) : (
+																<>Disconnect WhatsApp</>
+															)}
+														</AlertDialogTrigger>
+														<AlertDialogContent>
+															<AlertDialogHeader>
+																<AlertDialogTitle>
+																	Disconnect WhatsApp?
+																</AlertDialogTitle>
+																<AlertDialogDescription>
+																	This will remove the channel and you&apos;ll
+																	need to reconnect via Meta OAuth or QR code.
+																</AlertDialogDescription>
+															</AlertDialogHeader>
+															<AlertDialogFooter>
+																<AlertDialogCancel>Cancel</AlertDialogCancel>
+																<AlertDialogAction
+																	variant="destructive"
+																	onClick={async () => {
+																		await disconnectWhatsApp();
+																		toast.success(
+																			"WhatsApp disconnected successfully",
+																		);
+																		refetchChannels();
+																		setActiveManagePlatform(null);
+																	}}
+																>
+																	Disconnect
+																</AlertDialogAction>
+															</AlertDialogFooter>
+														</AlertDialogContent>
+													</AlertDialog>
+												)}
 											</div>
 										</div>
 									)}
@@ -602,15 +632,21 @@ export default function ConnectionsCatalogPage() {
 												</ol>
 											</div>
 
-											<button
-												onClick={() => {
-													setActiveManagePlatform(null);
-													setIsWhatsAppQRModalOpen(true);
-												}}
-												className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-4 text-sm font-bold text-white hover:bg-[#20bd5a] transition-all shadow-md"
-											>
-												<MessageCircle className="h-5 w-5" /> Scan WhatsApp QR Code
-											</button>
+											{canManageChannels ? (
+												<button
+													onClick={() => {
+														setActiveManagePlatform(null);
+														setIsWhatsAppQRModalOpen(true);
+													}}
+													className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-4 text-sm font-bold text-white hover:bg-[#20bd5a] transition-all shadow-md"
+												>
+													<MessageCircle className="h-5 w-5" /> Scan WhatsApp QR Code
+												</button>
+											) : (
+												<div className="p-4 rounded-xl bg-gray-100 text-xs text-gray-500 font-medium text-center">
+													Device linking is restricted to workspace administrators.
+												</div>
+											)}
 										</div>
 									)}
 								</div>

@@ -17,6 +17,7 @@ import { webhookService } from "@/lib/services/webhook.service";
 import { channelService } from "@/lib/services/channel.service";
 import { getPlatformIcon } from "@/lib/utils/platform.utils";
 import { toast } from "sonner";
+import { usePermissions } from "@/lib/hooks/usePermissions";
 
 const TAG_COLOR_PRESETS = [
   "#6366f1", "#10b981", "#f59e0b", "#ef4444",
@@ -27,6 +28,7 @@ type SortKey = "name" | "channel" | "source" | "created_at";
 type SortDir = "asc" | "desc";
 
 export default function AudiencePage() {
+  const { canSyncContacts, canDeleteAudience, canManageChannels } = usePermissions();
   const { channels } = useTenantChannels();
   const { tags, createTag, deleteTag, tagContact, untagContact, bulkTagContacts, updateTag } = useTags();
   const tenant = useAppStore((state) => state.tenant);
@@ -291,14 +293,18 @@ export default function AudiencePage() {
           <p className="text-sm font-medium text-gray-500 mt-1">Manage your synchronized audience across WhatsApp, Telegram, and segmented tags with optimized backend search.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button onClick={handleSyncWhatsApp} disabled={isSyncingWA} className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm shadow-emerald-200 disabled:opacity-50">
-            {isSyncingWA ? <Loader2 className="h-4 w-4 animate-spin" /> : <FaWhatsapp className="h-4 w-4" />}
-            Sync WhatsApp
-          </button>
-          <button onClick={handleSyncTelegram} disabled={isSyncingTG} className="flex items-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-700 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm shadow-sky-200 disabled:opacity-50">
-            {isSyncingTG ? <Loader2 className="h-4 w-4 animate-spin" /> : <FaTelegram className="h-4 w-4" />}
-            Sync Telegram
-          </button>
+          {canSyncContacts && (
+            <>
+              <button onClick={handleSyncWhatsApp} disabled={isSyncingWA} className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm shadow-emerald-200 disabled:opacity-50">
+                {isSyncingWA ? <Loader2 className="h-4 w-4 animate-spin" /> : <FaWhatsapp className="h-4 w-4" />}
+                Sync WhatsApp
+              </button>
+              <button onClick={handleSyncTelegram} disabled={isSyncingTG} className="flex items-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-700 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm shadow-sky-200 disabled:opacity-50">
+                {isSyncingTG ? <Loader2 className="h-4 w-4 animate-spin" /> : <FaTelegram className="h-4 w-4" />}
+                Sync Telegram
+              </button>
+            </>
+          )}
           <button onClick={() => refetch()} className="rounded-xl border border-gray-200 bg-white p-2.5 text-gray-600 hover:bg-gray-50 transition-colors shadow-xs" title="Refresh">
             <RefreshCw className="h-4 w-4" />
           </button>
@@ -338,14 +344,18 @@ export default function AudiencePage() {
                 </button>
               </>
             )}
-            <button onClick={handleSimulateWebhook} disabled={isSimulating || !tenant} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-3.5 py-2 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50">
-              <Webhook className="h-3.5 w-3.5" />{isSimulating ? "Simulating..." : "Simulate Inbound Contact"}
-            </button>
-            <button onClick={() => setShowWebhookDetails(!showWebhookDetails)} className="text-xs font-semibold text-gray-500 hover:text-indigo-600 transition-colors ml-auto py-1">
-              {showWebhookDetails ? "Hide Webhook URL" : "Show Advanced Webhook URL"}
-            </button>
+            {canManageChannels && (
+              <>
+                <button onClick={handleSimulateWebhook} disabled={isSimulating || !tenant} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-3.5 py-2 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50">
+                  <Webhook className="h-3.5 w-3.5" />{isSimulating ? "Simulating..." : "Simulate Inbound Contact"}
+                </button>
+                <button onClick={() => setShowWebhookDetails(!showWebhookDetails)} className="text-xs font-semibold text-gray-500 hover:text-indigo-600 transition-colors ml-auto py-1">
+                  {showWebhookDetails ? "Hide Webhook URL" : "Show Advanced Webhook URL"}
+                </button>
+              </>
+            )}
           </div>
-          {showWebhookDetails && (
+          {canManageChannels && showWebhookDetails && (
             <div className="mt-3 pt-3 border-t border-indigo-100 flex items-center gap-2">
               <div className="flex-1 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-1.5 shadow-inner">
                 <code className="text-xs text-indigo-600 font-mono font-bold select-all truncate mr-2">{webhookUrl}</code>
@@ -389,10 +399,12 @@ export default function AudiencePage() {
                     <span className={`text-[10px] px-1.5 rounded-full ${isSelected ? "bg-white/25 text-white" : "bg-gray-100 text-gray-600"}`}>{tag.contact_count}</span>
                   )}
                 </button>
-                <div className="opacity-0 group-hover:opacity-100 flex items-center transition-opacity ml-0.5">
-                  <button onClick={(e) => { e.stopPropagation(); setEditingTag({ id: tag.id, name: tag.name, color: tag.color }); }} className="p-1 text-gray-400 hover:text-indigo-600 transition-colors" title="Edit tag"><Pencil className="h-3 w-3" /></button>
-                  <button onClick={async (e) => { e.stopPropagation(); if (confirm(`Delete tag "${tag.name}"?`)) { await deleteTag(tag.id); if (selectedTagId === tag.id) setSelectedTagId(null); toast.success("Tag deleted."); } }} className="p-1 text-gray-400 hover:text-red-500 transition-colors" title="Delete tag"><Trash2 className="h-3 w-3" /></button>
-                </div>
+                {canDeleteAudience && (
+                  <div className="opacity-0 group-hover:opacity-100 flex items-center transition-opacity ml-0.5">
+                    <button onClick={(e) => { e.stopPropagation(); setEditingTag({ id: tag.id, name: tag.name, color: tag.color }); }} className="p-1 text-gray-400 hover:text-indigo-600 transition-colors" title="Edit tag"><Pencil className="h-3 w-3" /></button>
+                    <button onClick={async (e) => { e.stopPropagation(); if (confirm(`Delete tag "${tag.name}"?`)) { await deleteTag(tag.id); if (selectedTagId === tag.id) setSelectedTagId(null); toast.success("Tag deleted."); } }} className="p-1 text-gray-400 hover:text-red-500 transition-colors" title="Delete tag"><Trash2 className="h-3 w-3" /></button>
+                  </div>
+                )}
               </div>
             );
           })}

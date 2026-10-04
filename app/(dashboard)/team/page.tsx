@@ -346,6 +346,16 @@ export default function TeamManagementPage() {
         </div>
       </div>
 
+      {/* Member Read-Only Notice */}
+      {!canInvite && (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-700">
+          <ShieldAlert className="h-5 w-5 text-slate-400 shrink-0" />
+          <p className="text-xs">
+            <strong>Member View:</strong> You have read-only access to the workspace directory. Inviting teammates, revoking invitations, and role management are restricted to workspace administrators and the owner.
+          </p>
+        </div>
+      )}
+
       {/* Role Summary Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -493,79 +503,77 @@ export default function TeamManagementPage() {
         </div>
       </div>
 
-      {/* Pending Invitations Section */}
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50/50">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-gray-900">Pending Invitations</h2>
-            <span className="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-medium">
-              {invitations.length}
+      {/* Pending Invitations Section (Admins & Owners only) */}
+      {canInvite && (
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between bg-gray-50/50">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-gray-900">Pending Invitations</h2>
+              <span className="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-medium">
+                {invitations.length}
+              </span>
+            </div>
+            <span className="text-xs text-gray-500">
+              Invited via Brevo transactional email
             </span>
           </div>
-          <span className="text-xs text-gray-500">
-            Invited via Brevo transactional email
-          </span>
-        </div>
 
-        {invitations.length === 0 ? (
-          <div className="p-8 text-center">
-            <Clock className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-            <p className="text-sm font-medium text-gray-600">No pending invitations</p>
-            <p className="text-xs text-gray-400 mt-1">
-              Invite coworkers or agency staff to grant them access to this workspace.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Recipient
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Assigned Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Invited By
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Expires
-                  </th>
-                  {canInvite && (
+          {invitations.length === 0 ? (
+            <div className="p-8 text-center">
+              <Clock className="mx-auto h-8 w-8 text-gray-300 mb-2" />
+              <p className="text-sm font-medium text-gray-600">No pending invitations</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Invite coworkers or agency staff to grant them access to this workspace.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Recipient
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Assigned Role
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Invited By
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Expires
+                    </th>
                     <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Action
                     </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {invitations.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-gray-50/60 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2.5">
-                        <div className="p-1.5 bg-gray-100 rounded-full text-gray-500">
-                          <Mail className="h-4 w-4" />
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {invitations.map((inv) => (
+                    <tr key={inv.id} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-1.5 bg-gray-100 rounded-full text-gray-500">
+                            <Mail className="h-4 w-4" />
+                          </div>
+                          <span className="text-sm font-medium text-gray-900">{inv.email}</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{inv.email}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getRoleBadge(inv.role)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {inv.inviter_email || "Teammate"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className="inline-flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                        <Clock className="h-3 w-3" />
-                        {new Date(inv.expires_at).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                    </td>
-                    {canInvite && (
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getRoleBadge(inv.role)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {inv.inviter_email || "Teammate"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          <Clock className="h-3 w-3" />
+                          {new Date(inv.expires_at).toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button
                           onClick={() => handleRevokeInvitation(inv.id)}
@@ -580,14 +588,14 @@ export default function TeamManagementPage() {
                           Revoke
                         </button>
                       </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Invite Member Dialog */}
       <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
