@@ -16,6 +16,7 @@ export interface AuthState {
   loadWorkspaces: () => Promise<void>;
   switchWorkspace: (tenantId: string) => Promise<void>;
   createWorkspace: (name: string) => Promise<void>;
+  renameWorkspace: (name: string) => Promise<void>;
   resetAuth: () => void;
 }
 
@@ -106,6 +107,19 @@ export const createAuthSlice: StateCreator<AuthState> = (set, get) => ({
       set({ isSwitchingWorkspace: false });
       throw err;
     }
+  },
+
+  renameWorkspace: async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) throw new Error("Workspace name cannot be empty");
+    await authService.updateBrand(trimmed);
+    // Update local state immediately — no reload needed
+    set((state) => ({
+      tenant: state.tenant ? { ...state.tenant, company_name: trimmed } : state.tenant,
+      workspaces: state.workspaces.map((w) =>
+        w.is_active ? { ...w, company_name: trimmed } : w
+      ),
+    }));
   },
 
   resetAuth: () =>

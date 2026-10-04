@@ -7,7 +7,7 @@ import {
   CheckCircle2, Circle, Send,
   CheckCheck, AlertTriangle, Radio, UserMinus, Users,
   Building2, Plus, Loader2, Crown, Shield, User as UserIcon,
-  Check, ChevronsUpDown
+  Check, ChevronsUpDown, Pencil, X
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useDashboard } from "@/lib/api/hooks/useDashboard";
@@ -22,6 +22,7 @@ export function TopNav() {
   const loadWorkspaces = useAppStore((state) => state.loadWorkspaces);
   const switchWorkspace = useAppStore((state) => state.switchWorkspace);
   const createWorkspace = useAppStore((state) => state.createWorkspace);
+  const renameWorkspace = useAppStore((state) => state.renameWorkspace);
   const isSwitchingWorkspace = useAppStore((state) => state.isSwitchingWorkspace);
   const { stats } = useDashboard();
   const { notifications, unreadCount, markRead, markAllRead, isMarkingRead } = useNotifications();
@@ -33,6 +34,9 @@ export function TopNav() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [isRenaming, setIsRenaming] = useState(false);
 
   const onboardingRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -149,57 +153,140 @@ export function TopNav() {
                 ) : (
                   workspaces.map((ws) => {
                     const isActive = ws.id === tenant?.id || ws.is_active;
+                    const isOwner = ws.role === "owner";
+                    const isCurrentlyRenaming = renamingId === ws.id;
+
                     return (
-                      <button
-                        key={ws.id}
-                        onClick={async () => {
-                          if (isActive) return;
-                          setShowUsage(false);
-                          try {
-                            await switchWorkspace(ws.id);
-                          } catch (err: any) {
-                            toast.error(err?.message || "Failed to switch workspace");
-                          }
-                        }}
-                        disabled={isActive || isSwitchingWorkspace}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all mb-0.5 ${
-                          isActive
-                            ? "bg-indigo-50 cursor-default"
-                            : "hover:bg-gray-50 cursor-pointer"
-                        }`}
-                      >
-                        {/* Avatar */}
-                        <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center text-sm font-bold text-white shadow-sm ${
-                          isActive ? "bg-indigo-600" : "bg-gray-400"
-                        }`}>
-                          {ws.company_name?.[0]?.toUpperCase() || "W"}
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-xs font-semibold truncate ${isActive ? "text-indigo-700" : "text-gray-800"}`}>
-                            {ws.company_name}
-                          </p>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            {ws.role === "owner" ? (
-                              <Crown className="h-2.5 w-2.5 text-amber-500" />
-                            ) : ws.role === "admin" ? (
-                              <Shield className="h-2.5 w-2.5 text-indigo-500" />
-                            ) : (
-                              <UserIcon className="h-2.5 w-2.5 text-gray-400" />
-                            )}
-                            <span className="text-[10px] capitalize text-gray-500">{ws.role}</span>
+                      <div key={ws.id} className="mb-0.5">
+                        {/* Rename inline form (shown when pencil clicked on active workspace) */}
+                        {isCurrentlyRenaming ? (
+                          <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
+                            <div className="h-8 w-8 shrink-0 rounded-lg bg-indigo-600 flex items-center justify-center text-sm font-bold text-white shadow-sm">
+                              {renameValue?.[0]?.toUpperCase() || ws.company_name?.[0]?.toUpperCase() || "W"}
+                            </div>
+                            <input
+                              autoFocus
+                              type="text"
+                              value={renameValue}
+                              onChange={(e) => setRenameValue(e.target.value)}
+                              onKeyDown={async (e) => {
+                                if (e.key === "Enter" && renameValue.trim() && !isRenaming) {
+                                  setIsRenaming(true);
+                                  try {
+                                    await renameWorkspace(renameValue.trim());
+                                    setRenamingId(null);
+                                    toast.success("Workspace renamed successfully");
+                                  } catch (err: any) {
+                                    toast.error(err?.message || "Failed to rename workspace");
+                                  } finally {
+                                    setIsRenaming(false);
+                                  }
+                                }
+                                if (e.key === "Escape") {
+                                  setRenamingId(null);
+                                  setRenameValue("");
+                                }
+                              }}
+                              className="flex-1 min-w-0 text-xs font-semibold text-indigo-700 bg-transparent border-none outline-none placeholder:text-indigo-400"
+                              placeholder="Workspace name..."
+                              disabled={isRenaming}
+                            />
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                onClick={async () => {
+                                  if (!renameValue.trim() || isRenaming) return;
+                                  setIsRenaming(true);
+                                  try {
+                                    await renameWorkspace(renameValue.trim());
+                                    setRenamingId(null);
+                                    toast.success("Workspace renamed successfully");
+                                  } catch (err: any) {
+                                    toast.error(err?.message || "Failed to rename workspace");
+                                  } finally {
+                                    setIsRenaming(false);
+                                  }
+                                }}
+                                disabled={!renameValue.trim() || isRenaming}
+                                className="p-1 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 transition-colors"
+                                title="Save (Enter)"
+                              >
+                                {isRenaming ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                              </button>
+                              <button
+                                onClick={() => { setRenamingId(null); setRenameValue(""); }}
+                                disabled={isRenaming}
+                                className="p-1 rounded-md text-indigo-400 hover:bg-indigo-100 transition-colors"
+                                title="Cancel (Esc)"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <button
+                            onClick={async () => {
+                              if (isActive) return;
+                              setShowUsage(false);
+                              try {
+                                await switchWorkspace(ws.id);
+                              } catch (err: any) {
+                                toast.error(err?.message || "Failed to switch workspace");
+                              }
+                            }}
+                            disabled={isActive || isSwitchingWorkspace}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group/ws ${
+                              isActive
+                                ? "bg-indigo-50 cursor-default"
+                                : "hover:bg-gray-50 cursor-pointer"
+                            }`}
+                          >
+                            {/* Avatar */}
+                            <div className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center text-sm font-bold text-white shadow-sm ${
+                              isActive ? "bg-indigo-600" : "bg-gray-400"
+                            }`}>
+                              {ws.company_name?.[0]?.toUpperCase() || "W"}
+                            </div>
 
-                        {/* Active check */}
-                        {isActive && (
-                          <Check className="h-4 w-4 text-indigo-600 shrink-0" />
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-xs font-semibold truncate ${isActive ? "text-indigo-700" : "text-gray-800"}`}>
+                                {ws.company_name}
+                              </p>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                {ws.role === "owner" ? (
+                                  <Crown className="h-2.5 w-2.5 text-amber-500" />
+                                ) : ws.role === "admin" ? (
+                                  <Shield className="h-2.5 w-2.5 text-indigo-500" />
+                                ) : (
+                                  <UserIcon className="h-2.5 w-2.5 text-gray-400" />
+                                )}
+                                <span className="text-[10px] capitalize text-gray-500">{ws.role}</span>
+                              </div>
+                            </div>
+
+                            {/* Right side: rename pencil (active+owner only) or active check */}
+                            {isActive && isOwner ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setRenamingId(ws.id);
+                                  setRenameValue(ws.company_name);
+                                }}
+                                className="p-1.5 rounded-lg text-indigo-300 hover:text-indigo-600 hover:bg-indigo-100 transition-colors opacity-0 group-hover/ws:opacity-100 shrink-0"
+                                title="Rename workspace"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                            ) : isActive ? (
+                              <Check className="h-4 w-4 text-indigo-600 shrink-0" />
+                            ) : null}
+                          </button>
                         )}
-                      </button>
+                      </div>
                     );
                   })
                 )}
+
               </div>
 
               {/* Usage Stats */}

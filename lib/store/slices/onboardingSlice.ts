@@ -1,5 +1,6 @@
 import { StateCreator } from "zustand";
 import { authService } from "@/lib/services/auth.service";
+import { AuthState } from "./authSlice";
 
 export interface OnboardingState {
   isOnboarding: boolean;
@@ -8,7 +9,7 @@ export interface OnboardingState {
   completeOnboarding: () => Promise<void>;
 }
 
-export const createOnboardingSlice: StateCreator<OnboardingState> = (set) => ({
+export const createOnboardingSlice: StateCreator<OnboardingState & AuthState, [], [], OnboardingState> = (set) => ({
   isOnboarding: false,
   onboardingError: null,
 
@@ -16,7 +17,15 @@ export const createOnboardingSlice: StateCreator<OnboardingState> = (set) => ({
     set({ isOnboarding: true, onboardingError: null });
     try {
       await authService.updateBrand(name);
-      set({ isOnboarding: false });
+      // Patch the tenant name in the auth slice immediately so the UI
+      // reflects the real workspace name without requiring a page reload.
+      set((state: any) => ({
+        isOnboarding: false,
+        tenant: state.tenant ? { ...state.tenant, company_name: name } : state.tenant,
+        workspaces: (state.workspaces ?? []).map((w: any) =>
+          w.is_active ? { ...w, company_name: name } : w
+        ),
+      }));
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || "Failed to update brand workspace name";
       set({ onboardingError: msg, isOnboarding: false });
