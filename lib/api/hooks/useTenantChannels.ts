@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { channelService } from "@/lib/services/channel.service";
 import { useAppStore } from "@/lib/store";
@@ -25,17 +25,24 @@ export function useTenantChannels(options?: UseTenantChannelsOptions) {
 	const storeChannels = useAppStore((s) => s.channels as unknown as TenantChannel[]);
 	const setStoreChannels = useAppStore((s) => s.setChannels);
 
-	// If the store already holds channels, do not flash a loading skeleton or Not Configured state
+	// Keep a ref to avoid storeChannels being a dep of fetchChannels (which causes infinite re-fetching)
+	const storeChannelsRef = useRef(storeChannels);
+	storeChannelsRef.current = storeChannels;
+
+	// If the store already holds channels, do not flash a loading skeleton
 	const [loading, setLoading] = useState<boolean>(
 		!globalHasFetchedChannels && (!storeChannels || storeChannels.length === 0)
 	);
 	const [error, setError] = useState<string | null>(null);
 
+	// NOTE: storeChannels is intentionally NOT in the dep array here.
+	// Reading it via ref prevents the callback from being recreated on every fetch,
+	// which would cause the useEffect below to re-fire in an infinite loop.
 	const fetchChannels = useCallback(async () => {
 		if (!isLoaded || !isSignedIn) return;
 
 		try {
-			if (!storeChannels || storeChannels.length === 0) {
+			if (!storeChannelsRef.current || storeChannelsRef.current.length === 0) {
 				setLoading(true);
 			}
 			const data = await channelService.getChannels();
@@ -50,7 +57,7 @@ export function useTenantChannels(options?: UseTenantChannelsOptions) {
 		} finally {
 			setLoading(false);
 		}
-	}, [isLoaded, isSignedIn, storeChannels, setStoreChannels]);
+	}, [isLoaded, isSignedIn, setStoreChannels]); // storeChannels removed — accessed via ref
 
 	// Fetch on mount or when auth becomes ready
 	useEffect(() => {
