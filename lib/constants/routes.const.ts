@@ -26,6 +26,7 @@ export const APP_ROUTES = {
     ACTIVITY: '/activity',
     ANALYTICS: '/analytics',
     TEAM: '/team',
+    SETTINGS: '/settings',
   },
 
   // Public/Marketing

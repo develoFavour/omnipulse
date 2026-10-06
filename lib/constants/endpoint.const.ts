@@ -116,6 +116,20 @@ export const ENDPOINTS = {
 		LIST: `${API_VERSION}/workspaces`,
 		SWITCH: `${API_VERSION}/workspaces/switch`,
 		CREATE: `${API_VERSION}/workspaces`,
+		DELETE: `${API_VERSION}/workspaces`,
+	},
+
+	// User Profile & Security Settings
+	PROFILE: {
+		GET: `${API_VERSION}/profile`,
+		UPDATE: `${API_VERSION}/profile`,
+	},
+
+	// API Keys Management
+	API_KEYS: {
+		LIST: `${API_VERSION}/api-keys`,
+		CREATE: `${API_VERSION}/api-keys`,
+		REVOKE: (id: string) => `${API_VERSION}/api-keys/${id}`,
 	},
 } as const;
 
