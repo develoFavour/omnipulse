@@ -30,7 +30,7 @@ export function LandingFooter() {
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
               <Link
-                href="/get-started"
+                href="/sign-up"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[#9fe870] px-8 py-3.5 text-base font-black text-[#163300] hover:brightness-105 transition-all shadow-md"
               >
                 Open Your Free Workspace <ArrowRight className="h-4 w-4 stroke-[2.5]" />

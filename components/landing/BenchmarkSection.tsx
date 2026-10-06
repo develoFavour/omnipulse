@@ -98,7 +98,7 @@ export function BenchmarkSection() {
                 </div>
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Link
-                    href="/get-started"
+                    href="/sign-up"
                     className="w-full inline-flex items-center justify-center rounded-full bg-[#163300] px-4 py-2.5 text-xs font-black text-[#9fe870] hover:bg-[#054d28] transition-all"
                   >
                     Deploy For Your Agency →

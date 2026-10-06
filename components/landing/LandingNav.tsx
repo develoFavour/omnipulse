@@ -51,14 +51,14 @@ export function LandingNav({ introComplete }: LandingNavProps) {
             Sign In
           </Link>
           <Link
-            href="/get-started"
+            href="/sign-up"
             className="hidden sm:inline-flex items-center justify-center rounded-full border border-[#163300] bg-white px-4 py-2 text-xs font-bold text-[#163300] hover:bg-[#e8ebe6] transition-all"
           >
             Open Account
           </Link>
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
-              href="/get-started"
+              href="/sign-up"
               className="inline-flex items-center justify-center rounded-full bg-[#163300] px-4 sm:px-5 py-2 text-xs font-black text-[#9fe870] hover:bg-[#054d28] transition-all"
             >
               Launch Studio →

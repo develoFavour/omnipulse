@@ -4,6 +4,8 @@ import { SignIn } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 
+import { clerkBrandAppearance } from "@/lib/constants/clerk-theme";
+
 export default function SignInPage() {
   const searchParams = useSearchParams();
   const requestedRedirect = searchParams.get("redirect_url");
@@ -19,6 +21,7 @@ export default function SignInPage() {
       signUpUrl={APP_ROUTES.AUTH.SIGN_UP}
       forceRedirectUrl={redirectUrl}
       fallbackRedirectUrl={redirectUrl}
+      appearance={clerkBrandAppearance as any}
     />
   );
 }
