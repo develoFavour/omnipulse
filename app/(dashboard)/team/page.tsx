@@ -30,6 +30,9 @@ import {
 } from "@/lib/services/team.service";
 import { authService } from "@/lib/services/auth.service";
 import { useUser } from "@clerk/nextjs";
+import Link from "next/link";
+import { APP_ROUTES } from "@/lib/constants/routes.const";
+import { usePermissions } from "@/lib/hooks/usePermissions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -224,9 +227,20 @@ export default function TeamManagementPage() {
     }
   };
 
-  const isOwner = currentUserRole.toLowerCase() === "owner";
-  const isAdmin = currentUserRole.toLowerCase() === "admin";
-  const canInvite = isOwner || isAdmin;
+  const {
+    isOwner: permIsOwner,
+    isAdmin: permIsAdmin,
+    isMember,
+    canManageTeam,
+    canManageRoles,
+    canRemoveMembers,
+    canInviteAdmins,
+    canInviteMembers,
+  } = usePermissions();
+
+  const isOwner = permIsOwner || currentUserRole.toLowerCase() === "owner";
+  const isAdmin = permIsAdmin || currentUserRole.toLowerCase() === "admin";
+  const canInvite = canInviteMembers;
 
   const getRoleBadge = (role: string) => {
     switch (role.toLowerCase()) {
@@ -299,6 +313,30 @@ export default function TeamManagementPage() {
       <div className="flex h-96 w-full flex-col items-center justify-center gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
         <p className="text-sm font-medium text-gray-500">Loading workspace team...</p>
+      </div>
+    );
+  }
+
+  if (!canManageTeam) {
+    return (
+      <div className="max-w-2xl mx-auto py-16 px-4 text-center">
+        <div className="mx-auto h-16 w-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-4 shadow-sm">
+          <ShieldAlert className="h-8 w-8" />
+        </div>
+        <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight font-heading">
+          Team Management Restricted
+        </h2>
+        <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto leading-relaxed">
+          Managing workspace team members, invitations, and permissions is reserved for workspace Administrators and Owners.
+        </p>
+        <div className="mt-6 flex justify-center gap-3">
+          <Link
+            href={APP_ROUTES.DASHBOARD.BASE}
+            className="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm transition-all"
+          >
+            Return to Dashboard
+          </Link>
+        </div>
       </div>
     );
   }
@@ -422,7 +460,7 @@ export default function TeamManagementPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Joined
                 </th>
-                {isOwner && (
+                {canManageRoles && (
                   <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
@@ -471,7 +509,7 @@ export default function TeamManagementPage() {
                         day: "numeric",
                       })}
                     </td>
-                    {isOwner && (
+                    {canManageRoles && (
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
                           <button
@@ -483,7 +521,7 @@ export default function TeamManagementPage() {
                           >
                             Change Role
                           </button>
-                          {!isCurrentUser && (
+                          {!isCurrentUser && canRemoveMembers && (
                             <button
                               onClick={() => setRemovingMember(member)}
                               className="text-gray-400 hover:text-red-600 transition-colors p-1"
@@ -652,7 +690,7 @@ export default function TeamManagementPage() {
                   </span>
                 </button>
 
-                {isOwner && (
+                {canInviteAdmins ? (
                   <button
                     type="button"
                     onClick={() => setInviteRole("admin")}
@@ -670,6 +708,16 @@ export default function TeamManagementPage() {
                       Manages channels, campaigns, and invites members.
                     </span>
                   </button>
+                ) : (
+                  <div className="flex flex-col p-3 rounded-xl border border-gray-100 bg-gray-50/70 text-left opacity-60 cursor-not-allowed">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-semibold text-gray-400">Admin</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60">Owner only</span>
+                    </div>
+                    <span className="text-[11px] text-gray-400 leading-snug">
+                      Only workspace owners can invite or promote administrators.
+                    </span>
+                  </div>
                 )}
               </div>
             </div>

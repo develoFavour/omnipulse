@@ -25,6 +25,7 @@ import { TopCampaignsTable } from "@/components/analytics/TopCampaignsTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/lib/hooks/usePermissions";
 
 const TIME_RANGES = [
   { label: "Last 7 Days", days: 7 },
@@ -33,6 +34,7 @@ const TIME_RANGES = [
 ] as const;
 
 export default function AnalyticsPage() {
+  const { canExportData } = usePermissions();
   const [selectedDays, setSelectedDays] = useState<number>(30);
   const { report, isLoading, refetch } = useAnalytics(selectedDays);
   const [isExporting, setIsExporting] = useState(false);
@@ -49,6 +51,11 @@ export default function AnalyticsPage() {
   };
 
   const handleExportCSV = () => {
+    if (!canExportData) {
+      toast.error("Exporting workspace analytics is restricted to Administrators and Owners.");
+      return;
+    }
+
     if (!report || report.daily_trend.length === 0) {
       toast.error("No analytics data available to export.");
       return;
@@ -155,11 +162,16 @@ export default function AnalyticsPage() {
           <button
             type="button"
             onClick={handleExportCSV}
-            disabled={isExporting || isLoading}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-xs cursor-pointer disabled:opacity-50"
-            title="Download CSV export"
+            disabled={isExporting || isLoading || !canExportData}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-all shadow-xs",
+              canExportData
+                ? "border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 cursor-pointer disabled:opacity-50"
+                : "border-gray-200/60 bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
+            )}
+            title={canExportData ? "Download CSV export" : "Export restricted to Admins and Owners"}
           >
-            <Download className="h-3.5 w-3.5 text-gray-500" />
+            <Download className="h-3.5 w-3.5 text-gray-400" />
             <span>Export</span>
           </button>
 

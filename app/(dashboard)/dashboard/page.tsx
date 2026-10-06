@@ -11,6 +11,7 @@ import { RecentActivityFeed } from "@/components/features/dashboard/RecentActivi
 
 import { useDashboard } from "@/lib/api/hooks/useDashboard";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
+import { usePermissions } from "@/lib/hooks/usePermissions";
 
 const stagger = {
   hidden: {},
@@ -29,6 +30,7 @@ const fadeUp = {
 };
 
 export default function DashboardPage() {
+  const { canManageChannels } = usePermissions();
   const { user: clerkUser } = useUser();
   const storeUser = useAppStore((state) => state.user);
   const tenant = useAppStore((state) => state.tenant);
@@ -142,7 +144,9 @@ export default function DashboardPage() {
               {stats?.onboarding_progress?.completion_percentage === 100
                 ? "Workspace ready for high-throughput broadcast missions"
                 : !stats?.onboarding_progress?.channels_connected
-                ? "Step 1: Connect your messaging channels"
+                ? canManageChannels
+                  ? "Step 1: Connect your messaging channels"
+                  : "Step 1: Channel setup managed by workspace admin"
                 : !stats?.onboarding_progress?.contacts_imported
                 ? "Step 2: Add or import audience contacts"
                 : "Step 3: Dispatch your first omnichannel broadcast"}
@@ -157,7 +161,9 @@ export default function DashboardPage() {
         <a
           href={
             !stats?.onboarding_progress?.channels_connected
-              ? APP_ROUTES.DASHBOARD.CONNECTIONS
+              ? canManageChannels
+                ? APP_ROUTES.DASHBOARD.CONNECTIONS
+                : APP_ROUTES.DASHBOARD.AUDIENCE
               : !stats?.onboarding_progress?.contacts_imported
               ? APP_ROUTES.DASHBOARD.AUDIENCE
               : APP_ROUTES.DASHBOARD.BROADCAST
@@ -165,7 +171,9 @@ export default function DashboardPage() {
           className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition-colors shadow-sm shrink-0"
         >
           {!stats?.onboarding_progress?.channels_connected
-            ? "Connect Channel →"
+            ? canManageChannels
+              ? "Connect Channel →"
+              : "Explore Audience →"
             : !stats?.onboarding_progress?.contacts_imported
             ? "Add Contacts →"
             : "Launch Broadcast →"}
