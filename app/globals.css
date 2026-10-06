@@ -47,9 +47,36 @@
 	--radius-2xl: calc(var(--radius) * 1.8);
 	--radius-3xl: calc(var(--radius) * 2.2);
 	--radius-4xl: calc(var(--radius) * 2.6);
+
+	/* Wise-inspired Forest/Lime Theme Tokens */
+	--color-forest-ink: #163300;
+	--color-lime-voltage: #9fe870;
+	--color-spruce: #054d28;
+	--color-linen-mist: #e2f6d5;
+	--color-signal-blue: #0b4c72;
+	--color-alarm-red: #cb272f;
+	--color-charcoal: #454745;
+	--color-obsidian: #0e0f0c;
+	--color-pebble: #868685;
+	--color-slate: #6a6c6a;
+	--color-fog: #e8ebe6;
+	--color-paper: #ffffff;
 }
 
 :root {
+	/* Wise-inspired Forest/Lime Theme Tokens */
+	--color-forest-ink: #163300;
+	--color-lime-voltage: #9fe870;
+	--color-spruce: #054d28;
+	--color-linen-mist: #e2f6d5;
+	--color-signal-blue: #0b4c72;
+	--color-alarm-red: #cb272f;
+	--color-charcoal: #454745;
+	--color-obsidian: #0e0f0c;
+	--color-pebble: #868685;
+	--color-slate: #6a6c6a;
+	--color-fog: #e8ebe6;
+	--color-paper: #ffffff;
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.145 0 0);
 	--card: oklch(1 0 0);
