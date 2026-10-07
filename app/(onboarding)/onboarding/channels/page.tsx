@@ -3,9 +3,6 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-	MessageCircle,
-	Send,
-	Hash,
 	Loader2,
 	Link2,
 	X as XIcon,
@@ -32,28 +29,28 @@ const CHANNELS = [
 		id: "whatsapp",
 		title: "WhatsApp QR Pairing",
 		description: "Instant 10-second device linking via WhatsApp Multi-Device",
-		icon: MessageCircle,
+		logoSrc: "/logos/whatsapp.svg",
 		colorClass: "bg-[#25D366]",
 	},
 	{
 		id: "telegram",
 		title: "Telegram BotFather",
 		description: "High-speed token dispatch & channel broadcasting",
-		icon: Send,
+		logoSrc: "/logos/telegram.svg",
 		colorClass: "bg-[#229ED9]",
 	},
 	{
 		id: "instagram",
 		title: "Instagram DM",
 		description: "Direct community broadcasting & story triggers",
-		icon: MessageCircle,
+		logoSrc: "/logos/instagram.svg",
 		colorClass: "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]",
 	},
 	{
 		id: "x",
 		title: "X (Twitter)",
 		description: "Public timeline announcements and engagement",
-		icon: Hash,
+		logoSrc: "/logos/x.svg",
 		colorClass: "bg-[#0e0f0c]",
 	},
 ];
@@ -214,7 +211,7 @@ function ChannelsSetupInner() {
 						key={channel.id}
 						title={channel.title}
 						description={channel.description}
-						icon={channel.icon}
+						logoSrc={channel.logoSrc}
 						colorClass={channel.colorClass}
 						isConnected={isChannelConnected(channel.id)}
 						onToggle={() => {
@@ -237,24 +234,31 @@ function ChannelsSetupInner() {
 					<span>Back</span>
 				</Button>
 
-				<Button
-					type="button"
-					onClick={handleFinish}
-					disabled={isSubmitting}
-					className="w-full sm:flex-1 h-12 rounded-full bg-[#9fe870] hover:bg-[#8ee05c] text-[#163300] font-black text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
-				>
-					{isSubmitting ? (
-						<>
-							<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-							<span>Activating Engine...</span>
-						</>
-					) : (
-						<>
-							<span>Continue to Studio</span>
-							<ArrowRight className="w-4 h-4 ml-1.5" />
-						</>
+				<div className="flex flex-col gap-1.5 sm:flex-1 w-full">
+					<Button
+						type="button"
+						onClick={handleFinish}
+						disabled={isSubmitting || connectedCount === 0}
+						className="w-full h-12 rounded-full bg-[#9fe870] hover:bg-[#8ee05c] text-[#163300] font-black text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:active:scale-100"
+					>
+						{isSubmitting ? (
+							<>
+								<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+								<span>Activating Engine...</span>
+							</>
+						) : (
+							<>
+								<span>Continue to Studio</span>
+								<ArrowRight className="w-4 h-4 ml-1.5" />
+							</>
+						)}
+					</Button>
+					{connectedCount === 0 && (
+						<p className="text-center text-[11px] font-medium text-[#868685]">
+							Connect at least one channel to continue
+						</p>
 					)}
-				</Button>
+				</div>
 			</div>
 		</div>
 	);

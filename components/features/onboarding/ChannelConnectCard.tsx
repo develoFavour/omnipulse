@@ -1,12 +1,13 @@
 "use client";
 
-import { LucideIcon, Check, Plus } from "lucide-react";
+import Image from "next/image";
+import { Check, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChannelConnectCardProps {
   title: string;
   description: string;
-  icon: LucideIcon;
+  logoSrc: string;
   isConnected: boolean;
   onToggle: () => void;
   colorClass: string;
@@ -15,7 +16,7 @@ interface ChannelConnectCardProps {
 export function ChannelConnectCard({
   title,
   description,
-  icon: Icon,
+  logoSrc,
   isConnected,
   onToggle,
   colorClass,
@@ -34,11 +35,17 @@ export function ChannelConnectCard({
       <div className="flex gap-3.5 min-w-0">
         <div
           className={cn(
-            "flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-transform group-hover:scale-105",
+            "flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-transform group-hover:scale-105 overflow-hidden",
             colorClass
           )}
         >
-          <Icon className="w-5 h-5 text-white" />
+          <Image
+            src={logoSrc}
+            alt={title}
+            width={28}
+            height={28}
+            className="object-contain"
+          />
         </div>
         <div className="pt-0.5">
           <div className="flex items-center gap-2">
