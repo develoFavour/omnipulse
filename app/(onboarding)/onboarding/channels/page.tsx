@@ -19,7 +19,7 @@ import { createPortal } from "react-dom";
 import { OnboardingLayout } from "@/components/features/onboarding/OnboardingLayout";
 import { ChannelConnectCard } from "@/components/features/onboarding/ChannelConnectCard";
 import { TelegramConnectionForm } from "@/components/features/onboarding/TelegramConnectionForm";
-import { WhatsAppConnectionForm } from "@/components/features/onboarding/WhatsAppConnectionForm";
+import { WhatsAppQRConnect } from "@/components/features/onboarding/WhatsAppQRConnect";
 import { Button } from "@/components/ui/button";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
@@ -28,18 +28,18 @@ import { useAppStore } from "@/lib/store";
 
 const CHANNELS = [
 	{
+		id: "whatsapp",
+		title: "WhatsApp QR Pairing",
+		description: "Instant 10-second device linking via WhatsApp Multi-Device",
+		icon: MessageCircle,
+		colorClass: "bg-[#25D366]",
+	},
+	{
 		id: "telegram",
 		title: "Telegram BotFather",
 		description: "High-speed token dispatch & channel broadcasting",
 		icon: Send,
 		colorClass: "bg-[#229ED9]",
-	},
-	{
-		id: "whatsapp",
-		title: "WhatsApp Cloud API",
-		description: "Official Meta dual-pipeline direct customer messaging",
-		icon: MessageCircle,
-		colorClass: "bg-[#25D366]",
 	},
 	{
 		id: "instagram",
@@ -65,7 +65,6 @@ export default function ChannelsSetupPage() {
 	});
 	const {
 		connectTelegram,
-		connectWhatsApp,
 		loading: connectionLoading,
 		error: connectionError,
 		reset: resetError,
@@ -100,11 +99,6 @@ export default function ChannelsSetupPage() {
 	).length;
 
 	const handleFinish = async () => {
-		if (safeChannels.length === 0) {
-			toast.error("Please connect at least one channel before continuing.");
-			return;
-		}
-
 		setIsSubmitting(true);
 		try {
 			await completeOnboarding();
@@ -123,7 +117,7 @@ export default function ChannelsSetupPage() {
 		<OnboardingLayout
 			currentStep={2}
 			title="Connect Channels"
-			description="Integrate your communication pipelines. Start with at least one to activate the engine."
+			description="Link your broadcasting accounts. You can link now via QR code or configure additional channels later in the Studio."
 			stepIcon={Link2}
 			stepLabel="Step 2 of 3"
 		>
@@ -181,12 +175,12 @@ export default function ChannelsSetupPage() {
 			</div>
 
 			{/* Action Buttons */}
-			<div className="flex items-center gap-3 pt-4 border-t border-[#e8ebe6]">
+			<div className="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-[#e8ebe6]">
 				<Button
 					type="button"
 					variant="outline"
 					onClick={() => router.back()}
-					className="flex-1 h-12 rounded-full border-[#e8ebe6] hover:bg-[#f4f5f2] text-[#163300] font-bold text-xs uppercase tracking-wider shadow-none"
+					className="w-full sm:w-auto h-12 px-6 rounded-full border-[#e8ebe6] hover:bg-[#f4f5f2] text-[#163300] font-bold text-xs uppercase tracking-wider shadow-none"
 				>
 					<ArrowLeft className="w-4 h-4 mr-1.5" />
 					<span>Back</span>
@@ -195,8 +189,8 @@ export default function ChannelsSetupPage() {
 				<Button
 					type="button"
 					onClick={handleFinish}
-					disabled={connectedCount === 0 || isSubmitting}
-					className="flex-[2] h-12 rounded-full bg-[#9fe870] hover:bg-[#8ee05c] text-[#163300] font-black text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
+					disabled={isSubmitting}
+					className="w-full sm:flex-1 h-12 rounded-full bg-[#9fe870] hover:bg-[#8ee05c] text-[#163300] font-black text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
 				>
 					{isSubmitting ? (
 						<>
@@ -205,7 +199,11 @@ export default function ChannelsSetupPage() {
 						</>
 					) : (
 						<>
-							<span>Complete Setup</span>
+							<span>
+								{connectedCount > 0
+									? "Continue to Studio"
+									: "Set Up Later in Studio"}
+							</span>
 							<ArrowRight className="w-4 h-4 ml-1.5" />
 						</>
 					)}
@@ -220,13 +218,13 @@ export default function ChannelsSetupPage() {
 				className="mt-8 pt-6 border-t border-[#e8ebe6]"
 			>
 				<p className="text-xs font-bold uppercase tracking-wider text-[#163300] mb-3">
-					What happens next?
+					Channel Deployment Protocol
 				</p>
 				<ul className="space-y-2.5">
 					{[
-						"Synchronize real-time contact intake via webhooks",
-						"Author unified broadcast messages with dynamic tags",
-						"Monitor delivery telemetry in the Live Studio console",
+						"WhatsApp Multi-Device sessions persist across server restarts",
+						"Telegram BotFather webhooks index subscribers instantaneously",
+						"Full channel management and reconnection available anytime in Settings",
 					].map((item, idx) => (
 						<li key={idx} className="flex items-center gap-2.5 text-xs font-medium text-[#454745]">
 							<span className="text-[10px] font-mono font-bold text-[#163300] bg-[#f4f5f2] border border-[#e8ebe6] px-1.5 py-0.5 rounded">
@@ -260,22 +258,23 @@ export default function ChannelsSetupPage() {
 									transition={{ duration: 0.2 }}
 									onClick={(e) => e.stopPropagation()}
 									className={`w-full ${
-										activeChannelModal === "telegram"
-											? "max-w-[900px]"
+										activeChannelModal === "telegram" || activeChannelModal === "whatsapp"
+											? "max-w-[760px]"
 											: "max-w-md"
-									} bg-white border border-[#e8ebe6] rounded-3xl p-6 sm:p-8 shadow-2xl relative my-8`}
+									} bg-white border border-[#e8ebe6] rounded-3xl shadow-2xl relative my-8 overflow-hidden`}
 								>
 									{/* Top Lime Accent */}
-									<div className="absolute top-0 inset-x-0 h-1 bg-[#9fe870] rounded-t-3xl" />
+									<div className="h-1.5 w-full bg-[#9fe870]" />
 
-									{/* Close Button */}
-									<button
-										onClick={() => setActiveChannelModal(null)}
-										disabled={connectionLoading}
-										className="absolute top-5 right-5 p-1.5 hover:bg-[#f4f5f2] rounded-full transition-colors text-[#454745] hover:text-[#0e0f0c] disabled:opacity-50"
-									>
-										<XIcon className="w-5 h-5" />
-									</button>
+									<div className="p-6 sm:p-8 relative">
+										{/* Close Button */}
+										<button
+											onClick={() => setActiveChannelModal(null)}
+											disabled={connectionLoading}
+											className="absolute top-6 right-6 p-1.5 hover:bg-[#f4f5f2] rounded-full transition-colors text-[#454745] hover:text-[#0e0f0c] disabled:opacity-50 z-10"
+										>
+											<XIcon className="w-5 h-5" />
+										</button>
 
 									{/* Modal Header */}
 									<div className="mb-6 pr-8">
@@ -287,14 +286,14 @@ export default function ChannelsSetupPage() {
 											{activeChannelModal === "telegram"
 												? "Telegram BotFather"
 												: activeChannelModal === "whatsapp"
-												? "WhatsApp Cloud API"
+												? "WhatsApp via QR"
 												: "Channel"}
 										</h3>
 										<p className="text-xs font-medium text-[#454745] mt-1">
 											{activeChannelModal === "telegram"
 												? "Integrate your Telegram bot token to enable instantaneous subscriber broadcasts."
 												: activeChannelModal === "whatsapp"
-												? "Authenticate your Meta Cloud API credentials for multi-tenant delivery."
+												? "Scan the QR code with WhatsApp on your phone to link your broadcasting device in seconds."
 												: "Follow the steps below."}
 										</p>
 									</div>
@@ -309,14 +308,16 @@ export default function ChannelsSetupPage() {
 										/>
 									)}
 
-									{/* WhatsApp Form */}
+									{/* WhatsApp QR Form */}
 									{activeChannelModal === "whatsapp" && (
-										<WhatsAppConnectionForm
-											onSubmit={async (creds) => {
-												await connectWhatsApp(creds);
+										<WhatsAppQRConnect
+											onSuccess={(phone, name) => {
+												toast.success("WhatsApp Linked!", {
+													description: `${name || "Device"} (${phone}) is ready for broadcasting.`,
+												});
+												setActiveChannelModal(null);
+												refetch();
 											}}
-											isLoading={connectionLoading}
-											error={connectionError}
 											onClose={() => setActiveChannelModal(null)}
 										/>
 									)}
@@ -346,6 +347,7 @@ export default function ChannelsSetupPage() {
 												</Button>
 											</div>
 										)}
+									</div>
 								</motion.div>
 							</motion.div>
 						)}
