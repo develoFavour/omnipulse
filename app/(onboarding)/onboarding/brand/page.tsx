@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { Sparkles, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAppStore } from "@/lib/store";
 import { OnboardingLayout } from "@/components/features/onboarding/OnboardingLayout";
@@ -41,8 +41,8 @@ export default function BrandSetupPage() {
 	return (
 		<OnboardingLayout
 			currentStep={1}
-			title="Tell us about your brand"
-			description="What's the name of your business or personal brand?"
+			title="Set Up Your Workspace"
+			description="Name your brand or organization to initialize your multi-channel broadcast pipeline."
 			stepIcon={Sparkles}
 			stepLabel="Step 1 of 3"
 		>
@@ -52,21 +52,23 @@ export default function BrandSetupPage() {
 			<motion.div
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 1 }}
-				transition={{ delay: 0.5, duration: 0.5 }}
-				className="mt-10 pt-8 border-t border-white/10"
+				transition={{ delay: 0.3, duration: 0.5 }}
+				className="mt-8 pt-6 border-t border-[#e8ebe6]"
 			>
-				<p className="text-sm font-medium text-white mb-4">
-					What happens next?
+				<p className="text-xs font-bold uppercase tracking-wider text-[#163300] mb-3">
+					Pipeline Deployment Sequence
 				</p>
-				<ul className="space-y-3">
+				<ul className="space-y-2.5">
 					{[
-						"Your workspace will be provisioned instantly",
-						"Connect your communication channels",
-						"Start broadcasting to your audience",
+						"Instant multi-tenant workspace & domain routing",
+						"Direct connector sync (Telegram BotFather & WhatsApp Cloud API)",
+						"Unified studio broadcast console access",
 					].map((item, idx) => (
-						<li key={idx} className="flex gap-3 text-sm text-zinc-400">
-							<span className="text-zinc-500 font-mono">0{idx + 1}.</span>
-							{item}
+						<li key={idx} className="flex items-center gap-2.5 text-xs font-medium text-[#454745]">
+							<span className="text-[10px] font-mono font-bold text-[#163300] bg-[#f4f5f2] border border-[#e8ebe6] px-1.5 py-0.5 rounded">
+								0{idx + 1}
+							</span>
+							<span>{item}</span>
 						</li>
 					))}
 				</ul>

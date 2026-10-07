@@ -1,8 +1,10 @@
 "use client";
 
 import { ReactNode } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
+import { ParticleGrid } from "@/components/landing/ParticleGrid";
 
 interface OnboardingLayoutProps {
   children: ReactNode;
@@ -15,18 +17,18 @@ interface OnboardingLayoutProps {
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: "easeOut" as const },
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
   },
 };
 
 const stagger = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.1, delayChildren: 0.15 },
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
   },
 };
 
@@ -40,93 +42,111 @@ export function OnboardingLayout({
   stepLabel,
 }: OnboardingLayoutProps) {
   return (
-    <div className="min-h-screen bg-zinc-950 text-white relative overflow-hidden flex flex-col">
-      {/* Animated background orbs */}
-      <div className="absolute inset-0 pointer-events-none">
-        <motion.div
-          className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-white/[0.04] rounded-full blur-[120px]"
-          animate={{ scale: [1, 1.15, 1], opacity: [0.04, 0.07, 0.04] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute -bottom-32 -left-32 w-[500px] h-[500px] bg-white/[0.03] rounded-full blur-[100px]"
-          animate={{ scale: [1, 1.1, 1], opacity: [0.03, 0.06, 0.03] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+    <div className="relative min-h-screen bg-[#fafbf8] text-[#0e0f0c] overflow-x-hidden flex flex-col justify-between selection:bg-[#9fe870] selection:text-[#163300]">
+      {/* ── Background: Particle Grid & Ambient Glow ── */}
+      <div className="absolute inset-0 pointer-events-none opacity-50">
+        <ParticleGrid />
+      </div>
+
+      <div
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+        aria-hidden="true"
+      >
+        <div
+          className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full blur-[140px] pointer-events-none opacity-45"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(159, 232, 112, 0.25) 0%, rgba(226, 246, 213, 0.45) 45%, transparent 75%)",
+          }}
         />
       </div>
 
+      {/* ── Layout Wrapper ── */}
       <motion.div
         className="relative z-10 flex flex-col items-center flex-1 px-4 sm:px-6 lg:px-8"
         variants={stagger}
         initial="hidden"
         animate="visible"
       >
-        {/* Header */}
-        <motion.div className="w-full max-w-xl pt-10 pb-8" variants={fadeUp}>
+        {/* ── Brand Header ── */}
+        <motion.div className="w-full max-w-xl pt-8 pb-6" variants={fadeUp}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/[0.12] flex items-center justify-center">
-                <div className="w-4 h-4 bg-white rounded-sm" />
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="h-8 w-8 rounded-full bg-[#163300] flex items-center justify-center text-[#9fe870] font-black text-sm transition-transform group-hover:scale-105">
+                OP
               </div>
-              <span className="text-sm font-semibold tracking-widest uppercase text-zinc-300">
-                OmniPulse
+              <span className="text-xl font-black tracking-tight text-[#0e0f0c] font-heading">
+                OmniPulse<span className="text-[#9fe870]">.</span>
               </span>
+            </Link>
+
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#e2f6d5] border border-[#9fe870]/70 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#163300] shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#163300] animate-pulse" />
+              <span>{stepLabel}</span>
             </div>
           </div>
         </motion.div>
 
-        {/* Progress bars */}
-        <motion.div className="w-full max-w-xl mb-10" variants={fadeUp}>
-          <div className="flex items-center gap-2.5">
-            {Array.from({ length: totalSteps }, (_, i) => (
-              <div key={i} className="flex-1">
-                <motion.div
-                  className="h-1 rounded-full bg-white/[0.08] overflow-hidden"
-                >
-                  <motion.div
-                    className="h-full rounded-full bg-white"
-                    initial={{ width: i < currentStep ? "100%" : "0%" }}
-                    animate={{ width: i < currentStep ? "100%" : "0%" }}
-                    transition={{ duration: 0.6, ease: "easeOut" as const, delay: i * 0.1 }}
-                  />
-                </motion.div>
-              </div>
-            ))}
+        {/* ── Progress Indicators ── */}
+        <motion.div className="w-full max-w-xl mb-8" variants={fadeUp}>
+          <div className="flex items-center gap-2">
+            {Array.from({ length: totalSteps }, (_, i) => {
+              const isPastOrCurrent = i < currentStep;
+              return (
+                <div key={i} className="flex-1">
+                  <div className="h-1.5 rounded-full bg-[#e8ebe6] overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-full bg-[#163300]"
+                      initial={{ width: isPastOrCurrent ? "100%" : "0%" }}
+                      animate={{ width: isPastOrCurrent ? "100%" : "0%" }}
+                      transition={{
+                        duration: 0.6,
+                        ease: [0.16, 1, 0.3, 1] as const,
+                        delay: i * 0.1,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </motion.div>
 
-        {/* Content container */}
-        <div className="w-full max-w-xl flex-1 flex flex-col">
-          {/* Step badge + heading */}
-          <motion.div className="mb-10" variants={fadeUp}>
-            <div className="flex items-center gap-2.5 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-white/[0.08] border border-white/[0.1] flex items-center justify-center">
-                <StepIcon className="w-4 h-4 text-zinc-400" />
-              </div>
-              <span className="text-xs font-medium text-zinc-500 uppercase tracking-widest">
+        {/* ── Main Container ── */}
+        <div className="w-full max-w-xl flex-1 flex flex-col pb-12">
+          {/* Step Icon & Headings */}
+          <motion.div className="mb-8" variants={fadeUp}>
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#f4f5f2] border border-[#e8ebe6] px-3 py-1 mb-4">
+              <StepIcon className="w-3.5 h-3.5 text-[#163300]" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#454745]">
                 {stepLabel}
               </span>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-light tracking-tight text-white leading-tight mb-4">
+            <h1 className="text-3xl sm:text-4xl font-heading font-black tracking-tight text-[#163300] uppercase leading-tight mb-2.5">
               {title}
             </h1>
-            <p className="text-zinc-400 text-lg font-light leading-relaxed max-w-md">
+            <p className="text-[#454745] text-base font-medium leading-relaxed max-w-lg">
               {description}
             </p>
           </motion.div>
 
-          {/* Form card */}
+          {/* Elevated Floating White Card */}
           <motion.div
-            className="rounded-2xl border border-white/[0.1] bg-white/[0.04] backdrop-blur-xl p-8 sm:p-10 shadow-2xl shadow-black/20"
+            className="rounded-3xl bg-white/95 backdrop-blur-xl border border-[#e8ebe6] shadow-[0_24px_70px_rgba(22,51,0,0.07),0_1px_3px_rgba(0,0,0,0.03)] overflow-hidden"
             variants={fadeUp}
           >
-            {children}
+            {/* Top Lime Voltage Accent Line */}
+            <div className="h-1.5 w-full bg-[#9fe870]" />
+
+            <div className="p-7 sm:p-9">{children}</div>
           </motion.div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-center py-10 mt-auto">
-            <p className="text-xs text-zinc-600 tracking-wide">
-              Your data is encrypted and never shared with third parties.
+          {/* Footer note */}
+          <div className="flex items-center justify-center py-8 mt-auto">
+            <p className="text-xs font-semibold text-[#868685] tracking-wide flex items-center gap-2">
+              <span>Enterprise-grade encryption</span>
+              <span className="w-1 h-1 rounded-full bg-[#d0d3cd]" />
+              <span>SOC 2 Type II Certified</span>
             </p>
           </div>
         </div>

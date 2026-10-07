@@ -48,28 +48,27 @@ export function WhatsAppConnectionForm({
   return (
     <div className="space-y-6">
       {/* Setup Guide Card */}
-      <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5 space-y-4">
+      <div className="rounded-2xl border border-[#9fe870]/70 bg-[#e2f6d5]/40 p-5 space-y-4">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-xl bg-[#163300] text-[#9fe870] flex items-center justify-center shrink-0">
             <MessageCircle className="h-5 w-5" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-white">Meta WhatsApp Cloud API Setup</h4>
-            <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-              Connect your WhatsApp Business Account via Meta&apos;s official Cloud API. You&apos;ll need credentials from the
-              Meta Developer Console.
+            <h4 className="text-sm font-bold text-[#163300]">Meta WhatsApp Cloud API Configuration</h4>
+            <p className="text-xs text-[#454745] mt-1 leading-relaxed">
+              Authenticate your official Meta Cloud API application to enable multi-tenant customer delivery.
             </p>
           </div>
         </div>
 
         <div className="space-y-2 ml-[52px]">
-          <p className="text-xs font-bold text-zinc-300">Quick Setup Steps:</p>
-          <ol className="text-xs text-zinc-400 space-y-1.5 list-decimal list-inside">
-            <li>Go to <a href="https://developers.facebook.com" target="_blank" rel="noreferrer" className="text-emerald-400 hover:underline font-medium">developers.facebook.com</a> and create a Meta App</li>
-            <li>Add the <strong className="text-zinc-300">WhatsApp</strong> product to your app</li>
-            <li>From the API Setup page, copy your <strong className="text-zinc-300">Phone Number ID</strong> and <strong className="text-zinc-300">Permanent Access Token</strong></li>
-            <li>Choose a <strong className="text-zinc-300">Verify Token</strong> (any secure passphrase you pick)</li>
-            <li>Paste all three below and click <strong className="text-zinc-300">Save & Register</strong></li>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#163300]">Setup Sequence:</p>
+          <ol className="text-xs text-[#454745] space-y-1.5 list-decimal list-inside font-medium">
+            <li>Visit <a href="https://developers.facebook.com" target="_blank" rel="noreferrer" className="text-[#163300] underline font-bold">developers.facebook.com</a> and select your Meta App</li>
+            <li>Add the <strong>WhatsApp</strong> product to your application</li>
+            <li>From the API Setup view, copy your <strong>Phone Number ID</strong> and <strong>Permanent Access Token</strong></li>
+            <li>Create a custom <strong>Verify Token</strong> (any secure secret passphrase)</li>
+            <li>Paste the values below to activate the webhook listener</li>
           </ol>
         </div>
 
@@ -77,105 +76,125 @@ export function WhatsAppConnectionForm({
           href="https://developers.facebook.com/apps/"
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-2 ml-[52px] text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+          className="inline-flex items-center gap-1.5 ml-[52px] text-xs font-bold text-[#163300] hover:underline transition-colors"
         >
           <ExternalLink className="h-3.5 w-3.5" />
-          Open Meta Developer Console
+          <span>Open Meta Developer Console</span>
         </a>
       </div>
 
       {/* Credentials Form */}
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="phone_number_id" className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+        <div className="space-y-1.5">
+          <Label htmlFor="phone_number_id" className="text-xs font-bold uppercase tracking-wider text-[#163300]">
             Phone Number ID
           </Label>
           <Input
             id="phone_number_id"
             placeholder="e.g. 115552648411001"
-            className="h-10 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-1 focus-visible:ring-emerald-500 font-mono text-sm"
+            className="h-11 bg-[#f4f5f2] border-[#e8ebe6] text-[#0e0f0c] placeholder:text-[#868685] rounded-xl focus-visible:ring-2 focus-visible:ring-[#9fe870]/50 focus-visible:border-[#163300] focus:bg-white font-mono text-sm transition-all shadow-none"
             {...form.register("phone_number_id")}
             disabled={isLoading}
           />
           {form.formState.errors.phone_number_id && (
-            <p className="text-xs text-red-400">{form.formState.errors.phone_number_id.message}</p>
+            <p className="text-xs font-semibold text-red-600">{form.formState.errors.phone_number_id.message}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="access_token" className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+        <div className="space-y-1.5">
+          <Label htmlFor="access_token" className="text-xs font-bold uppercase tracking-wider text-[#163300]">
             Permanent Access Token
           </Label>
           <Input
             id="access_token"
             type="password"
             placeholder="EAAG..."
-            className="h-10 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-1 focus-visible:ring-emerald-500 font-mono text-sm"
+            className="h-11 bg-[#f4f5f2] border-[#e8ebe6] text-[#0e0f0c] placeholder:text-[#868685] rounded-xl focus-visible:ring-2 focus-visible:ring-[#9fe870]/50 focus-visible:border-[#163300] focus:bg-white font-mono text-sm transition-all shadow-none"
             {...form.register("access_token")}
             disabled={isLoading}
           />
           {form.formState.errors.access_token && (
-            <p className="text-xs text-red-400">{form.formState.errors.access_token.message}</p>
+            <p className="text-xs font-semibold text-red-600">{form.formState.errors.access_token.message}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="verify_token" className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+        <div className="space-y-1.5">
+          <Label htmlFor="verify_token" className="text-xs font-bold uppercase tracking-wider text-[#163300]">
             Webhook Verify Token
           </Label>
           <Input
             id="verify_token"
             placeholder="e.g. omnipulse_whatsapp_secret"
-            className="h-10 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-1 focus-visible:ring-emerald-500 font-mono text-sm"
+            className="h-11 bg-[#f4f5f2] border-[#e8ebe6] text-[#0e0f0c] placeholder:text-[#868685] rounded-xl focus-visible:ring-2 focus-visible:ring-[#9fe870]/50 focus-visible:border-[#163300] focus:bg-white font-mono text-sm transition-all shadow-none"
             {...form.register("verify_token")}
             disabled={isLoading}
           />
-          <p className="text-xs text-zinc-500">
-            You choose this token. It must match the value you enter in Meta&apos;s webhook configuration.
+          <p className="text-xs font-medium text-[#868685]">
+            Choose any secure secret passphrase. It must match the verify token configured in Meta&apos;s webhook settings.
           </p>
           {form.formState.errors.verify_token && (
-            <p className="text-xs text-red-400">{form.formState.errors.verify_token.message}</p>
+            <p className="text-xs font-semibold text-red-600">{form.formState.errors.verify_token.message}</p>
           )}
         </div>
 
         {/* Info about webhook URL */}
-        <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-4 flex gap-3">
-          <Info className="h-4 w-4 text-sky-400 shrink-0 mt-0.5" />
-          <div className="text-xs text-sky-200 leading-relaxed">
-            <p className="font-bold text-sky-100 mb-1">After saving, configure your Meta webhook:</p>
-            <p>In the Meta Developer Console, set your Webhook URL to your OmniPulse public URL and paste the verify token you entered above.</p>
+        <div className="rounded-2xl border border-[#e8ebe6] bg-[#f8faf7] p-4 flex gap-3">
+          <Info className="h-4 w-4 text-[#163300] shrink-0 mt-0.5" />
+          <div className="text-xs text-[#454745] leading-relaxed">
+            <p className="font-bold text-[#163300] mb-0.5">Webhook Endpoint Setup:</p>
+            <p>Once registered, configure your Meta Developer Console Webhook URL to your OmniPulse domain endpoint and paste the Verify Token above.</p>
           </div>
         </div>
 
-        <div className="flex gap-2 pt-4">
+        <div className="flex items-center gap-3 pt-3">
           {onClose && (
-            <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading} className="flex-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isLoading}
+              className="flex-1 h-11 rounded-full border-[#e8ebe6] hover:bg-[#f4f5f2] text-[#163300] font-bold text-xs uppercase tracking-wider shadow-none"
+            >
               Cancel
             </Button>
           )}
           <Button
             type="submit"
             disabled={!form.formState.isValid || isLoading}
-            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold"
+            className="flex-[2] h-11 rounded-full bg-[#9fe870] hover:bg-[#8ee05c] text-[#163300] font-black text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
           >
-            {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
-            {isLoading ? "Verifying & Saving..." : "Save & Register Webhook"}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <span>Verifying Pipeline...</span>
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                <span>Save & Register Webhook</span>
+              </>
+            )}
           </Button>
         </div>
 
-        <p className="text-xs text-zinc-500 text-center">
-          🔒 Credentials are encrypted and stored securely. Only used for outbound message delivery.
+        <p className="text-[11px] font-semibold text-[#868685] text-center pt-1">
+          🔒 Meta credentials are encrypted via AES-256 and stored in high-security multi-tenant vaults.
         </p>
       </form>
 
       {/* Error Message */}
       <AnimatePresence>
         {error && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 flex gap-3">
-            <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="p-4 rounded-2xl border border-red-200 bg-red-50 flex items-start gap-3"
+          >
+            <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-bold text-red-200">Connection Failed</p>
-              <p className="text-xs text-red-300 mt-1">{error}</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-red-700">Connection Failed</p>
+              <p className="text-xs font-medium text-red-600 mt-0.5">{error}</p>
             </div>
           </motion.div>
         )}

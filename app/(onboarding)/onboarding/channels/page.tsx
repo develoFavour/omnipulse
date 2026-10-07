@@ -11,6 +11,7 @@ import {
 	Link2,
 	X as XIcon,
 	CheckCircle2,
+	ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,37 +24,36 @@ import { Button } from "@/components/ui/button";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
 import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
-
 import { useAppStore } from "@/lib/store";
 
 const CHANNELS = [
 	{
 		id: "telegram",
-		title: "Telegram",
-		description: "Reach tech-savvy audiences",
+		title: "Telegram BotFather",
+		description: "High-speed token dispatch & channel broadcasting",
 		icon: Send,
-		colorClass: "bg-[#229ED9]/20",
+		colorClass: "bg-[#229ED9]",
 	},
 	{
 		id: "whatsapp",
-		title: "WhatsApp",
-		description: "Send messages directly to customers",
+		title: "WhatsApp Cloud API",
+		description: "Official Meta dual-pipeline direct customer messaging",
 		icon: MessageCircle,
-		colorClass: "bg-[#25D366]/20",
+		colorClass: "bg-[#25D366]",
 	},
 	{
 		id: "instagram",
-		title: "Instagram",
-		description: "Post to your followers",
+		title: "Instagram DM",
+		description: "Direct community broadcasting & story triggers",
 		icon: MessageCircle,
-		colorClass: "bg-pink-500/20",
+		colorClass: "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]",
 	},
 	{
 		id: "x",
 		title: "X (Twitter)",
-		description: "Post to public timelines",
+		description: "Public timeline announcements and engagement",
 		icon: Hash,
-		colorClass: "bg-zinc-800",
+		colorClass: "bg-[#0e0f0c]",
 	},
 ];
 
@@ -122,41 +122,38 @@ export default function ChannelsSetupPage() {
 	return (
 		<OnboardingLayout
 			currentStep={2}
-			title="Connect your channels"
-			description="Start with one channel. You can add more anytime."
+			title="Connect Channels"
+			description="Integrate your communication pipelines. Start with at least one to activate the engine."
 			stepIcon={Link2}
 			stepLabel="Step 2 of 3"
 		>
-			{/* Connected Channels Summary */}
+			{/* Connected Channels Summary Banner */}
 			<AnimatePresence>
 				{connectedCount > 0 && (
 					<motion.div
-						initial={{ opacity: 0, height: 0, y: -10 }}
+						initial={{ opacity: 0, height: 0, y: -8 }}
 						animate={{ opacity: 1, height: "auto", y: 0 }}
-						exit={{ opacity: 0, height: 0, y: -10 }}
-						transition={{ duration: 0.3 }}
-						className="overflow-hidden mb-8"
+						exit={{ opacity: 0, height: 0, y: -8 }}
+						transition={{ duration: 0.25 }}
+						className="overflow-hidden mb-6"
 					>
-						<div className="p-4 rounded-xl border border-green-500/30 bg-green-500/10 backdrop-blur-sm">
-							<div className="flex items-start gap-3">
-								<CheckCircle2 className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
-								<div>
-									<p className="text-sm font-medium text-green-200">
-										{connectedCount} channel{connectedCount !== 1 ? "s" : ""}{" "}
-										connected
-									</p>
-									<div className="flex flex-wrap gap-2 mt-2">
-										{connectedChannels
-											.filter((ch) => ch.status === "active")
-											.map((ch) => (
-												<span
-													key={ch.id}
-													className="text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded-full"
-												>
-													✓ {ch.platform_name}
-												</span>
-											))}
-									</div>
+						<div className="p-4 rounded-2xl border border-[#9fe870]/70 bg-[#e2f6d5]/50 flex items-start gap-3">
+							<CheckCircle2 className="w-5 h-5 text-[#163300] shrink-0 mt-0.5" />
+							<div>
+								<p className="text-xs font-bold uppercase tracking-wider text-[#163300]">
+									{connectedCount} Pipeline{connectedCount !== 1 ? "s" : ""} Online
+								</p>
+								<div className="flex flex-wrap gap-1.5 mt-2">
+									{connectedChannels
+										.filter((ch) => ch.status === "active")
+										.map((ch) => (
+											<span
+												key={ch.id}
+												className="text-[11px] font-bold bg-[#163300] text-[#9fe870] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1"
+											>
+												✓ {ch.platform_name}
+											</span>
+										))}
 								</div>
 							</div>
 						</div>
@@ -165,7 +162,7 @@ export default function ChannelsSetupPage() {
 			</AnimatePresence>
 
 			{/* Channel Grid */}
-			<div className="space-y-4 mb-8">
+			<div className="space-y-3.5 mb-7">
 				{CHANNELS.map((channel) => (
 					<ChannelConnectCard
 						key={channel.id}
@@ -175,13 +172,71 @@ export default function ChannelsSetupPage() {
 						colorClass={channel.colorClass}
 						isConnected={isChannelConnected(channel.id)}
 						onToggle={() => {
-							if (isChannelConnected(channel.id)) return; // Prevent toggle if already connected
+							if (isChannelConnected(channel.id)) return;
 							resetError();
 							setActiveChannelModal(channel.id);
 						}}
 					/>
 				))}
 			</div>
+
+			{/* Action Buttons */}
+			<div className="flex items-center gap-3 pt-4 border-t border-[#e8ebe6]">
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => router.back()}
+					className="flex-1 h-12 rounded-full border-[#e8ebe6] hover:bg-[#f4f5f2] text-[#163300] font-bold text-xs uppercase tracking-wider shadow-none"
+				>
+					<ArrowLeft className="w-4 h-4 mr-1.5" />
+					<span>Back</span>
+				</Button>
+
+				<Button
+					type="button"
+					onClick={handleFinish}
+					disabled={connectedCount === 0 || isSubmitting}
+					className="flex-[2] h-12 rounded-full bg-[#9fe870] hover:bg-[#8ee05c] text-[#163300] font-black text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
+				>
+					{isSubmitting ? (
+						<>
+							<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+							<span>Activating Engine...</span>
+						</>
+					) : (
+						<>
+							<span>Complete Setup</span>
+							<ArrowRight className="w-4 h-4 ml-1.5" />
+						</>
+					)}
+				</Button>
+			</div>
+
+			{/* Info Section */}
+			<motion.div
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ delay: 0.3, duration: 0.5 }}
+				className="mt-8 pt-6 border-t border-[#e8ebe6]"
+			>
+				<p className="text-xs font-bold uppercase tracking-wider text-[#163300] mb-3">
+					What happens next?
+				</p>
+				<ul className="space-y-2.5">
+					{[
+						"Synchronize real-time contact intake via webhooks",
+						"Author unified broadcast messages with dynamic tags",
+						"Monitor delivery telemetry in the Live Studio console",
+					].map((item, idx) => (
+						<li key={idx} className="flex items-center gap-2.5 text-xs font-medium text-[#454745]">
+							<span className="text-[10px] font-mono font-bold text-[#163300] bg-[#f4f5f2] border border-[#e8ebe6] px-1.5 py-0.5 rounded">
+								0{idx + 1}
+							</span>
+							<span>{item}</span>
+						</li>
+					))}
+				</ul>
+			</motion.div>
 
 			{/* Modal Overlay for Channel Connection */}
 			{mounted &&
@@ -193,44 +248,54 @@ export default function ChannelsSetupPage() {
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
 								transition={{ duration: 0.2 }}
-								className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+								className="fixed inset-0 bg-[#0e0f0c]/60 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto"
 								onClick={() =>
 									!connectionLoading && setActiveChannelModal(null)
 								}
 							>
 								<motion.div
-									initial={{ scale: 0.95, opacity: 0 }}
-									animate={{ scale: 1, opacity: 1 }}
-									exit={{ scale: 0.95, opacity: 0 }}
+									initial={{ scale: 0.96, opacity: 0, y: 12 }}
+									animate={{ scale: 1, opacity: 1, y: 0 }}
+									exit={{ scale: 0.96, opacity: 0, y: 12 }}
 									transition={{ duration: 0.2 }}
 									onClick={(e) => e.stopPropagation()}
 									className={`w-full ${
 										activeChannelModal === "telegram"
-											? "max-w-[1000px]"
+											? "max-w-[900px]"
 											: "max-w-md"
-									} bg-zinc-900 border border-white/10 rounded-2xl p-6 relative`}
+									} bg-white border border-[#e8ebe6] rounded-3xl p-6 sm:p-8 shadow-2xl relative my-8`}
 								>
+									{/* Top Lime Accent */}
+									<div className="absolute top-0 inset-x-0 h-1 bg-[#9fe870] rounded-t-3xl" />
+
 									{/* Close Button */}
 									<button
 										onClick={() => setActiveChannelModal(null)}
 										disabled={connectionLoading}
-										className="absolute top-4 right-4 p-1 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+										className="absolute top-5 right-5 p-1.5 hover:bg-[#f4f5f2] rounded-full transition-colors text-[#454745] hover:text-[#0e0f0c] disabled:opacity-50"
 									>
-										<XIcon className="w-5 h-5 text-zinc-400" />
+										<XIcon className="w-5 h-5" />
 									</button>
 
 									{/* Modal Header */}
-									<div className="mb-6">
-										<h3 className="text-lg font-semibold text-white">
+									<div className="mb-6 pr-8">
+										<div className="inline-flex items-center gap-2 rounded-full bg-[#e2f6d5] border border-[#9fe870]/70 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#163300] mb-2">
+											Pipeline Connector
+										</div>
+										<h3 className="text-xl font-heading font-black text-[#163300] uppercase tracking-tight">
 											Connect{" "}
 											{activeChannelModal === "telegram"
-												? "Telegram"
+												? "Telegram BotFather"
+												: activeChannelModal === "whatsapp"
+												? "WhatsApp Cloud API"
 												: "Channel"}
 										</h3>
-										<p className="text-sm text-zinc-400 mt-1">
+										<p className="text-xs font-medium text-[#454745] mt-1">
 											{activeChannelModal === "telegram"
-												? "Enter your Telegram bot token to start broadcasting"
-												: "Follow the steps below"}
+												? "Integrate your Telegram bot token to enable instantaneous subscriber broadcasts."
+												: activeChannelModal === "whatsapp"
+												? "Authenticate your Meta Cloud API credentials for multi-tenant delivery."
+												: "Follow the steps below."}
 										</p>
 									</div>
 
@@ -257,79 +322,36 @@ export default function ChannelsSetupPage() {
 									)}
 
 									{/* Placeholder for other channels */}
-									{activeChannelModal !== "telegram" && activeChannelModal !== "whatsapp" && (
-										<div className="text-center py-8">
-											<p className="text-sm text-zinc-400 mb-4">
-												{activeChannelModal === "instagram"
-													? "Instagram connection coming soon"
-													: "X connection coming soon"}
-											</p>
-											<Button
-												onClick={() => setActiveChannelModal(null)}
-												variant="ghost"
-												className="w-full"
-											>
-												Close
-											</Button>
-										</div>
-									)}
+									{activeChannelModal !== "telegram" &&
+										activeChannelModal !== "whatsapp" && (
+											<div className="text-center py-8 space-y-4">
+												<div className="w-12 h-12 rounded-full bg-[#f4f5f2] border border-[#e8ebe6] mx-auto flex items-center justify-center text-[#163300]">
+													<Link2 className="w-5 h-5" />
+												</div>
+												<div>
+													<h4 className="text-sm font-bold text-[#163300]">
+														Integration In Progress
+													</h4>
+													<p className="text-xs text-[#868685] mt-1">
+														{activeChannelModal === "instagram"
+															? "Instagram Direct Messaging pipeline is currently in closed beta."
+															: "X (Twitter) enterprise connector is coming in the next release."}
+													</p>
+												</div>
+												<Button
+													onClick={() => setActiveChannelModal(null)}
+													className="rounded-full bg-[#163300] hover:bg-[#054d28] text-[#9fe870] font-bold text-xs uppercase px-6 py-2"
+												>
+													Close Window
+												</Button>
+											</div>
+										)}
 								</motion.div>
 							</motion.div>
 						)}
 					</AnimatePresence>,
 					document.body,
 				)}
-
-			{/* Action Buttons */}
-			<div className="flex gap-3 pt-6">
-				<Button
-					variant="ghost"
-					onClick={() => router.back()}
-					className="flex-1"
-				>
-					<ArrowLeft className="w-4 h-4 mr-2" />
-					Back
-				</Button>
-				<Button
-					onClick={handleFinish}
-					disabled={connectedCount === 0 || isSubmitting}
-					className="flex-1 bg-white hover:bg-zinc-200 text-zinc-950 font-medium"
-				>
-					{isSubmitting ? (
-						<>
-							<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-							Finishing...
-						</>
-					) : (
-						<>
-							<CheckCircle2 className="w-4 h-4 mr-2" />
-							Finish Setup
-						</>
-					)}
-				</Button>
-			</div>
-
-			{/* Info Section */}
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 0.5, duration: 0.5 }}
-				className="mt-10 pt-8 border-t border-white/10"
-			>
-				<p className="text-sm font-medium text-white mb-4">What comes next?</p>
-				<ul className="space-y-3">
-					{[
-						"Build your audience directory",
-						"Compose your first broadcast",
-						"Track engagement and delivery",
-					].map((item, idx) => (
-						<li key={idx} className="flex gap-3 text-sm text-zinc-400">
-							<span className="text-zinc-500 font-mono">0{idx + 1}.</span>
-							{item}
-						</li>
-					))}
-				</ul>
-			</motion.div>
 		</OnboardingLayout>
 	);
 }

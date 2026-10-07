@@ -1,6 +1,6 @@
 "use client";
 
-import { LucideIcon, Check } from "lucide-react";
+import { LucideIcon, Check, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChannelConnectCardProps {
@@ -25,26 +25,33 @@ export function ChannelConnectCard({
       type="button"
       onClick={onToggle}
       className={cn(
-        "w-full flex items-start justify-between p-4 rounded-xl border transition-all duration-300 text-left group",
+        "w-full flex items-start justify-between p-4 sm:p-5 rounded-2xl border transition-all duration-200 text-left group active:scale-[0.99]",
         isConnected
-          ? "border-white/30 bg-white/[0.08]"
-          : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
+          ? "border-[#163300] bg-[#e2f6d5]/40 shadow-sm"
+          : "border-[#e8ebe6] bg-[#f8faf7] hover:border-[#163300]/30 hover:bg-white hover:shadow-sm"
       )}
     >
-      <div className="flex gap-4 min-w-0">
+      <div className="flex gap-3.5 min-w-0">
         <div
           className={cn(
-            "flex items-center justify-center w-12 h-12 rounded-xl shrink-0 transition-colors",
+            "flex items-center justify-center w-11 h-11 rounded-xl shrink-0 transition-transform group-hover:scale-105",
             colorClass
           )}
         >
-          <Icon className="w-6 h-6 text-white" />
+          <Icon className="w-5 h-5 text-white" />
         </div>
-        <div className="pt-1">
-          <h4 className="text-sm font-semibold text-white tracking-wide truncate">
-            {title}
-          </h4>
-          <p className="text-xs text-zinc-400 mt-1 max-w-[200px] leading-relaxed">
+        <div className="pt-0.5">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-bold text-[#0e0f0c] group-hover:text-[#163300] transition-colors">
+              {title}
+            </h4>
+            {isConnected && (
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#163300] bg-[#e2f6d5] border border-[#9fe870]/70 rounded-full px-2 py-0.5">
+                Connected
+              </span>
+            )}
+          </div>
+          <p className="text-xs font-medium text-[#454745] mt-1 max-w-[220px] leading-relaxed">
             {description}
           </p>
         </div>
@@ -52,13 +59,17 @@ export function ChannelConnectCard({
 
       <div
         className={cn(
-          "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 mt-1 mr-1",
+          "w-6 h-6 rounded-full border flex items-center justify-center transition-all shrink-0 mt-0.5",
           isConnected
-            ? "border-white bg-white text-zinc-950"
-            : "border-zinc-700 bg-transparent group-hover:border-zinc-500"
+            ? "border-[#163300] bg-[#163300] text-[#9fe870]"
+            : "border-[#d0d3cd] bg-white text-[#868685] group-hover:border-[#163300]"
         )}
       >
-        {isConnected && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+        {isConnected ? (
+          <Check className="w-3.5 h-3.5 stroke-[3]" />
+        ) : (
+          <Plus className="w-3.5 h-3.5 stroke-[2]" />
+        )}
       </div>
     </button>
   );
