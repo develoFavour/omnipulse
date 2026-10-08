@@ -124,7 +124,7 @@ export function WhatsAppConnectionForm({
           </Label>
           <Input
             id="verify_token"
-            placeholder="e.g. omnipulse_whatsapp_secret"
+            placeholder="e.g. messagerail_whatsapp_secret"
             className="h-11 bg-[#f4f5f2] border-[#e8ebe6] text-[#0e0f0c] placeholder:text-[#868685] rounded-xl focus-visible:ring-2 focus-visible:ring-[#9fe870]/50 focus-visible:border-[#163300] focus:bg-white font-mono text-sm transition-all shadow-none"
             {...form.register("verify_token")}
             disabled={isLoading}
@@ -142,7 +142,7 @@ export function WhatsAppConnectionForm({
           <Info className="h-4 w-4 text-[#163300] shrink-0 mt-0.5" />
           <div className="text-xs text-[#454745] leading-relaxed">
             <p className="font-bold text-[#163300] mb-0.5">Webhook Endpoint Setup:</p>
-            <p>Once registered, configure your Meta Developer Console Webhook URL to your OmniPulse domain endpoint and paste the Verify Token above.</p>
+            <p>Once registered, configure your Meta Developer Console Webhook URL to your MessageRail domain endpoint and paste the Verify Token above.</p>
           </div>
         </div>
 

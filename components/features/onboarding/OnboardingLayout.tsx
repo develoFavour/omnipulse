@@ -73,10 +73,10 @@ export function OnboardingLayout({
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="h-8 w-8 rounded-full bg-[#163300] flex items-center justify-center text-[#9fe870] font-black text-sm transition-transform group-hover:scale-105">
-                OP
+                MR
               </div>
               <span className="text-xl font-black tracking-tight text-[#0e0f0c] font-heading">
-                OmniPulse<span className="text-[#9fe870]">.</span>
+                MessageRail<span className="text-[#9fe870]">.</span>
               </span>
             </Link>
 

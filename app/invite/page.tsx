@@ -191,7 +191,7 @@ function InviteContent() {
           <div className="rounded-xl border border-[#9fe870]/60 bg-[#e2f6d5]/30 p-4 flex items-start gap-3">
             <LogIn className="h-5 w-5 text-[#163300] shrink-0 mt-0.5" />
             <div className="text-xs text-[#163300] leading-snug">
-              You will be prompted to sign in or create an Omnipulse account to accept this invitation.
+              You will be prompted to sign in or create a MessageRail account to accept this invitation.
             </div>
           </div>
         )}

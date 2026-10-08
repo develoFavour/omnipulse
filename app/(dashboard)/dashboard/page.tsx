@@ -153,7 +153,7 @@ export default function DashboardPage() {
             </div>
             <p className="text-xs text-gray-500 mt-0.5">
               {stats?.onboarding_progress?.completion_percentage === 100
-                ? "Omnichannel delivery pipeline active across WhatsApp and Telegram"
+                ? "Multi-channel delivery pipeline active across your connected channels"
                 : `${stats?.onboarding_progress?.completion_percentage || 25}% of setup completed • Next action recommended`}
             </p>
           </div>
@@ -321,7 +321,7 @@ export default function DashboardPage() {
               </div>
               <p className="text-sm font-semibold text-gray-800">No campaigns dispatched yet</p>
               <p className="text-xs text-gray-500 max-w-sm mt-0.5 mb-3">
-                Send your first message across WhatsApp and Telegram to track real-time delivery telemetry here.
+                Send your first campaign across your connected channels to track real-time delivery telemetry here.
               </p>
               <a
                 href={APP_ROUTES.DASHBOARD.BROADCAST}

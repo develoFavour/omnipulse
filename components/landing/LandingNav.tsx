@@ -26,10 +26,10 @@ export function LandingNav({ introComplete }: LandingNavProps) {
             whileTap={{ scale: 0.95 }}
             className="h-8 w-8 rounded-full bg-[#163300] flex items-center justify-center text-[#9fe870] font-black text-sm"
           >
-            OP
+            MR
           </motion.div>
           <span className="text-xl font-black tracking-tight text-[#0e0f0c] font-heading">
-            OmniPulse<span className="text-[#9fe870]">.</span>
+            MessageRail<span className="text-[#9fe870]">.</span>
           </span>
         </Link>
         <nav className="hidden md:flex items-center bg-[#f4f5f2] rounded-full p-1">

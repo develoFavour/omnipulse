@@ -22,13 +22,13 @@ export const STARTER_TEMPLATES: Omit<MessageTemplate, "id" | "tenant_id" | "crea
   {
     title: "⚡ Flash 24H Exclusive Deal",
     category: "promotions",
-    body: "Hey {{first_name}}! ⚡ For the next 24 hours only, unlock 30% off our premier service bundle with code FLASH30.\n\nClaim your spot here before seats fill up: https://omnipulse.link/flash\n\nReply STOP to opt out.",
+    body: "Hey {{first_name}}! ⚡ For the next 24 hours only, unlock 30% off our premier service bundle with code FLASH30.\n\nClaim your spot here before seats fill up: https://messagerail.link/flash\n\nReply STOP to opt out.",
     variables: ["first_name"],
   },
   {
     title: "⭐ VIP Early Access Invitation",
     category: "promotions",
-    body: "Hello {{first_name}}, as one of our top-tier partners, you get exclusive private access to our upcoming release 48 hours before the public.\n\nExplore the catalog here: https://omnipulse.link/vip-early\n\nNeed assistance? Reply directly to this chat!",
+    body: "Hello {{first_name}}, as one of our top-tier partners, you get exclusive private access to our upcoming release 48 hours before the public.\n\nExplore the catalog here: https://messagerail.link/vip-early\n\nNeed assistance? Reply directly to this chat!",
     variables: ["first_name"],
   },
   {
@@ -40,13 +40,13 @@ export const STARTER_TEMPLATES: Omit<MessageTemplate, "id" | "tenant_id" | "crea
   {
     title: "💔 We Miss You — Special Comeback Offer",
     category: "re_engagement",
-    body: "Hey {{first_name}}, we noticed it's been a while! We've made huge improvements to our platform and want to welcome you back.\n\nUse voucher WELCOMEBACK for a free credit on your next campaign: https://omnipulse.link/return\n\nLet us know if you need anything!",
+    body: "Hey {{first_name}}, we noticed it's been a while! We've made huge improvements to our platform and want to welcome you back.\n\nUse voucher WELCOMEBACK for a free credit on your next campaign: https://messagerail.link/return\n\nLet us know if you need anything!",
     variables: ["first_name"],
   },
   {
     title: "⏰ Event Starts in 1 Hour",
     category: "reminders",
-    body: "Quick reminder {{first_name}}: Our live masterclass starts in exactly 60 minutes! 🎙️\n\nHave your questions ready and join the live stream using your secure link:\nhttps://omnipulse.link/room\n\nSee you inside!",
+    body: "Quick reminder {{first_name}}: Our live masterclass starts in exactly 60 minutes! 🎙️\n\nHave your questions ready and join the live stream using your secure link:\nhttps://messagerail.link/room\n\nSee you inside!",
     variables: ["first_name"],
   },
   {

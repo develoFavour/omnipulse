@@ -23,28 +23,28 @@ export function FeatureShowcase() {
         return (
           <div className="rounded-2xl bg-[#163300] p-6 text-white space-y-4 font-mono text-xs shadow-lg">
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
-              <span className="text-[#9fe870] font-bold uppercase">Dual Dispatch Live</span>
-              <span className="text-white/40">ID: msn_91283</span>
+              <span className="text-[#9fe870] font-bold uppercase">Multi-Channel Dispatch</span>
+              <span className="text-white/40">ID: cmp_spring_01</span>
             </div>
             <div className="space-y-2">
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FaWhatsapp className="h-4 w-4 text-[#25D366]" />
-                  <span>Meta Cloud Pipeline</span>
+                  <span>WhatsApp Cloud API</span>
                 </div>
-                <span className="text-emerald-400 font-bold">● 1,200 msg/m</span>
+                <span className="text-emerald-400 font-bold">● Rate-Safe Paced</span>
               </div>
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FaTelegram className="h-4 w-4 text-[#229ED9]" />
-                  <span>Telegram Bot Pipeline</span>
+                  <span>Telegram Bot Channel</span>
                 </div>
-                <span className="text-sky-400 font-bold">● Instant Broadcast</span>
+                <span className="text-sky-400 font-bold">● Direct Dispatched</span>
               </div>
             </div>
             <div className="pt-2 text-[11px] text-white/50 flex justify-between">
-              <span>Avg Dispatch Rate: 1,200/min</span>
-              <span className="text-[#9fe870]">Synced ✓</span>
+              <span>Delivery Pacing: Meta & Telegram Safe</span>
+              <span className="text-[#9fe870]">Active ✓</span>
             </div>
           </div>
         );
@@ -52,12 +52,12 @@ export function FeatureShowcase() {
         return (
           <div className="rounded-2xl bg-white p-6 border border-[#e8ebe6] shadow-sm space-y-3">
             <div className="text-xs font-bold text-[#0e0f0c] uppercase tracking-wider pb-2 border-b border-[#e8ebe6]">
-              Inbound Contacts Pipeline
+              Inbound Contact Capture
             </div>
             {[
               { name: "Sarah Jenkins", handle: "@sarah_j", tag: "VIP Member", platform: "telegram", time: "Just now" },
-              { name: "Marcus Reed", handle: "+1 (555) 0192", tag: "Beta Lead", platform: "whatsapp", time: "12s ago" },
-              { name: "Elena Rostova", handle: "@elena_growth", tag: "Enterprise", platform: "telegram", time: "45s ago" },
+              { name: "Marcus Reed", handle: "+1 (555) 0192", tag: "Client Lead", platform: "whatsapp", time: "12s ago" },
+              { name: "Elena Rostova", handle: "@elena_growth", tag: "Partner", platform: "telegram", time: "45s ago" },
             ].map((c) => (
               <div key={c.name} className="p-3 rounded-xl bg-[#f4f5f2] flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2.5">
@@ -83,28 +83,28 @@ export function FeatureShowcase() {
         return (
           <div className="rounded-2xl bg-[#0e0f0c] p-6 text-white space-y-4 shadow-lg font-mono text-xs">
             <div className="flex items-center justify-between text-white/60 pb-2 border-b border-white/10">
-              <span className="text-[#9fe870] font-bold">MISSION CONSOLE</span>
-              <span>BATCH #8812</span>
+              <span className="text-[#9fe870] font-bold">CAMPAIGN MONITOR</span>
+              <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-white/70">SAMPLE RUN</span>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-[11px] text-white/70">
-                <span>Total Dispatched:</span>
-                <span className="font-bold text-white">14,280</span>
+                <span>Audience Target:</span>
+                <span className="font-bold text-white">450 contacts</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-                <div className="bg-[#9fe870] h-full rounded-full" style={{ width: "99.8%" }} />
+                <div className="bg-[#9fe870] h-full rounded-full" style={{ width: "98%" }} />
               </div>
               <div className="flex justify-between text-[10px] text-white/50">
-                <span className="text-[#9fe870]">14,251 Delivered (99.8%)</span>
-                <span>29 Retrying...</span>
+                <span className="text-[#9fe870]">441 Verified Receipts</span>
+                <span>9 In Progress...</span>
               </div>
             </div>
             <div className="pt-2 border-t border-white/10 space-y-1 text-[11px] text-white/60">
               <div className="text-emerald-400 flex items-center gap-1.5">
-                <CheckCircle2 className="h-3 w-3" /> Meta Cloud status: 200 OK
+                <CheckCircle2 className="h-3 w-3" /> WhatsApp Cloud: Verified Delivered
               </div>
               <div className="text-sky-400 flex items-center gap-1.5">
-                <CheckCircle2 className="h-3 w-3" /> Telegram Bot API status: 200 OK
+                <CheckCircle2 className="h-3 w-3" /> Telegram Bot: Direct Dispatched
               </div>
             </div>
           </div>

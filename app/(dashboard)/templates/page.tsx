@@ -131,7 +131,7 @@ export default function TemplatesPage() {
   const handleUseTemplate = (template: { id?: string; title: string; body: string; media_url?: string }) => {
     if (typeof window !== "undefined") {
       sessionStorage.setItem(
-        "omnipulse_active_template",
+        "messagerail_active_template",
         JSON.stringify({
           id: template.id,
           title: template.title,

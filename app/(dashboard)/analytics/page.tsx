@@ -79,7 +79,7 @@ export default function AnalyticsPage() {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `omnipulse-analytics-${selectedDays}d.csv`);
+      link.setAttribute("download", `messagerail-analytics-${selectedDays}d.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

@@ -22,7 +22,7 @@ export function ComparisonSection() {
           Why Unified Wins<span className="text-[#9fe870]">.</span>
         </h2>
         <p className="text-base text-[#454745] mt-4">
-          Compare OmniPulse against juggling multiple standalone bots and disconnected browser extensions.
+          Compare MessageRail against juggling multiple standalone bots and disconnected browser extensions.
         </p>
       </motion.div>
       <motion.div
@@ -38,7 +38,7 @@ export function ComparisonSection() {
               <tr>
                 <th className="px-6 py-4">Capability</th>
                 <th className="px-6 py-4 bg-[#e2f6d5] text-[#163300] font-black">
-                  OmniPulse Command Center
+                  MessageRail
                 </th>
                 <th className="px-6 py-4">Legacy Extension / Bots</th>
               </tr>

@@ -87,7 +87,7 @@ export function BrandForm({ onSubmit, isLoading }: BrandFormProps) {
                   {watchedName}
                 </p>
                 <p className="text-xs font-mono font-bold text-[#163300] bg-white border border-[#e8ebe6] px-2.5 py-1 rounded-lg inline-block">
-                  {watchedName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.omnipulse.app
+                  {watchedName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.messagerail.app
                 </p>
               </div>
 

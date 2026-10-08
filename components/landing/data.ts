@@ -1,125 +1,127 @@
 import { TransmissionItem, FeatureItem, PipelineStep, ComparisonRow, BenchmarkStat } from './types';
 
 export const TRANSMISSIONS: TransmissionItem[] = [
-  { text: "WhatsApp DM → +1 (555) 912-8821 delivered", latency: "74ms", channel: "Meta Cloud API" },
-  { text: "Mirrored to Telegram 'VIP Growth' Channel", latency: "48ms", channel: "@OmniPulseBot" },
-  { text: "Inbound webhook: Captured new contact @sarah_media", latency: "31ms", channel: "Webhook Flywheel" },
-  { text: "WhatsApp DM → +44 7700 900142 delivered", latency: "89ms", channel: "Meta Cloud API" },
-  { text: "Dispatched to 6 Telegram Subscriber Cohorts", latency: "52ms", channel: "@OmniPulseBot" },
+  { text: "WhatsApp update → +1 (555) 912-8821 delivered", latency: "Delivered", channel: "WhatsApp Cloud API" },
+  { text: "Published to Telegram 'VIP Announcements' Channel", latency: "Delivered", channel: "@MessageRailBot" },
+  { text: "New opted-in subscriber tagged from WhatsApp reply", latency: "Captured", channel: "Audience Sync" },
+  { text: "WhatsApp update → +44 7700 900142 delivered", latency: "Delivered", channel: "WhatsApp Cloud API" },
+  { text: "Scheduled 3 client campaigns for 11:00 AM", latency: "Queued", channel: "Campaign Manager" },
 ];
 
 export const NAV_LINKS = [
   { label: "Studio", href: "#engine" },
-  { label: "Architecture", href: "#architecture" },
-  { label: "Connectors", href: "#channels" },
-  { label: "Performance", href: "#benchmark" },
+  { label: "How It Works", href: "#workflow" },
+  { label: "Channels", href: "#channels" },
+  { label: "Capabilities", href: "#capabilities" },
+  { label: "Overview", href: "/get-started" },
 ] as const;
 
 export const TRUST_BADGES = [
-  "Official Meta Cloud API",
-  "High-Speed Telegram BotFather",
-  "Brevo Transactional Invites",
-  "Neon Postgres Multi-Tenant Core",
+  "Direct WhatsApp Cloud API",
+  "Native Telegram Integration",
+  "Opted-In Consent Safeguards",
+  "Multi-Client Isolated Workspaces",
 ] as const;
 
 export const PIPELINE_STEPS: PipelineStep[] = [
   {
     step: "01",
-    tag: "INGESTION",
-    title: "Zero-Data-Entry Capture",
-    body: "Inbound contacts indexed instantaneously as users tap /start. Segment automatically using color tags — no CSV exports ever.",
-    tags: ["Real-time webhook sync", "Zero manual CSVs"],
+    tag: "CAPTURE",
+    title: "Zero-Friction Inbound Capture",
+    body: "Subscribers join when they tap /start on Telegram or reply on WhatsApp. MessageRail logs opt-in, tags audience interests, and organizes contacts without manual spreadsheets.",
+    tags: ["Automated tagging", "No manual spreadsheets"],
   },
   {
     step: "02",
-    tag: "COMPOSITION",
-    title: "Dynamic Token Assembly",
-    body: "Craft templates with instant dynamic placeholder injection. Preview natively in WhatsApp and Telegram simulators before broadcasting.",
-    tags: ["Variable tokens", "Mobile simulator preview"],
+    tag: "COMPOSE",
+    title: "Multi-Channel Creative Studio",
+    body: "Draft message copy with dynamic personalizations like {{first_name}}. Preview live mobile layouts across device simulators before sending.",
+    tags: ["Dynamic personalization", "Live mobile preview"],
   },
   {
     step: "03",
-    tag: "DISPATCH",
-    title: "Parallel Mission Transmission",
-    body: "Go worker pools blast both platforms concurrently at 1,200 msgs/min with automated backoff that protects sender health.",
-    tags: ["1,200+ msgs/min", "Live retry telemetry"],
+    tag: "DELIVER",
+    title: "Compliant Routing & Live Tracking",
+    body: "Automated rate pacing prevents platform throttling and protects sender reputation. Monitor real-time delivery status and receipts on an interactive dashboard.",
+    tags: ["Rate-safe pacing", "Live delivery status"],
   },
 ];
 
 export const FEATURE_ITEMS: FeatureItem[] = [
   {
     id: "broadcast",
-    tag: "BROADCAST STUDIO",
-    headline: "Compose Once. Deliver Across WhatsApp & Telegram Concurrently.",
-    body: "Stop drafting copy twice. Use our unified message studio with variable substitution, channel toggle switches, and native mobile preview wrappers.",
+    tag: "CAMPAIGN STUDIO",
+    headline: "Compose Once. Deliver Across Multiple Channels Simultaneously.",
+    body: "Stop drafting copy twice. Use a unified message studio with dynamic variables, channel toggles, and native phone simulators to engage opted-in audiences across all your platforms.",
     stats: [
-      { value: "1,200/m", label: "Max Throughput" },
-      { value: "< 120ms", label: "Dispatch Latency" },
+      { value: "2 channels", label: "Simultaneous Reach" },
+      { value: "Live", label: "Delivery Tracking" },
     ],
   },
   {
     id: "flywheel",
-    tag: "INBOUND FLYWHEEL",
-    headline: "Turn Telegram /start & WhatsApp Replies into Segmented Audiences.",
-    body: "Every incoming message triggers the OmniPulse ingestion flywheel. Automatically attach metadata, tag by campaign source, and route without human intervention.",
+    tag: "INBOUND AUDIENCE SYNC",
+    headline: "Turn Inbound Inquiries Into Segmented Client Audiences.",
+    body: "Every incoming conversation automatically captures subscriber details. Attach client tags, segment by campaign source, and keep contact lists updated without human intervention.",
     stats: [
-      { value: "0", label: "Manual CSVs" },
+      { value: "0", label: "Manual Spreadsheets" },
       { value: "100%", label: "Automated Tagging" },
     ],
   },
   {
     id: "telemetry",
-    tag: "MISSION TELEMETRY",
-    headline: "Live Telemetry. Zero Silent Deliverability Failures.",
-    body: "Watch transmissions stream in real time. Inspect platform-level error codes, automatic exponential retries, and confirmed read receipts on an interactive timeline.",
+    tag: "DELIVERY MONITORING",
+    headline: "Live Delivery Tracking. Transparent Status Codes.",
+    body: "Watch campaign delivery status update in real time. Inspect platform-level status codes, automatic rate-safe pacing, and verified delivery receipts without guesswork.",
     stats: [
-      { value: "99.8%", label: "Delivery Rate" },
-      { value: "3x", label: "Automated Retries" },
+      { value: "Real-time", label: "Status Receipts" },
+      { value: "Rate-safe", label: "Delivery Pacing" },
     ],
   },
   {
     id: "rbac",
     tag: "AGENCY MULTI-TENANCY",
-    headline: "Workspace Isolation Built for Modern Growth Agencies.",
-    body: "Invite team members with role-based access control. Separate bot credentials, subscriber lists, and campaign history cleanly across clients.",
+    headline: "Workspace Isolation Built for Client-Facing Agencies.",
+    body: "Invite team members with role-based access control. Separate bot credentials, subscriber lists, and campaign history cleanly across every client brand.",
     stats: [
       { value: "3", label: "Role Levels (Owner/Admin/Member)" },
-      { value: "∞", label: "Isolated Workspaces" },
+      { value: "Unlimited", label: "Isolated Workspaces" },
     ],
   },
 ];
 
 export const BENCHMARK_STATS: BenchmarkStat[] = [
-  { value: 120, prefix: "<", suffix: "ms", label: "Routing Latency", color: "text-[#9fe870]" },
-  { value: 99, suffix: ".8%", label: "Verified Delivery", color: "text-white" },
-  { value: 100, suffix: "k+", label: "Daily Quota", color: "text-[#9fe870]" },
-  { value: 0, suffix: "%", label: "Data Leakage", color: "text-white" },
+  { value: 2, suffix: " channels", label: "Simultaneous Reach", color: "text-[#9fe870]" },
+  { value: 100, suffix: "%", label: "Opt-In Focused", color: "text-white" },
+  { value: 3, suffix: " roles", label: "Team Permission Levels", color: "text-[#9fe870]" },
+  { value: 0, suffix: " spreadsheets", label: "Zero Manual Imports", color: "text-white" },
 ];
 
 export const COMPARISON_ROWS: ComparisonRow[] = [
   {
-    feature: "Parallel Multi-Channel Blast",
-    omni: "✓ Unified WhatsApp & Telegram simultaneously",
-    legacy: "✕ Separate tools, double drafting effort",
+    feature: "Multi-Channel Simultaneous Reach",
+    omni: "✓ Unified multi-channel routing in one workspace",
+    legacy: "✕ Disconnected single-channel bots",
   },
   {
-    feature: "Inbound Contact Capture",
-    omni: "✓ Automated real-time webhook flywheel",
-    legacy: "✕ Manual CSV exports & imports",
+    feature: "Inbound Audience Capture",
+    omni: "✓ Automatic capture from /start and replies",
+    legacy: "✕ Manual CSV exports & messy imports",
   },
   {
-    feature: "Agency Team Multi-Tenancy",
-    omni: "✓ Workspace isolation + RBAC (Owner/Admin/Member)",
-    legacy: "✕ Shared single-login credentials",
+    feature: "Multi-Client Workspace Isolation",
+    omni: "✓ Separate credentials & lists per client",
+    legacy: "✕ Mixed client accounts and shared passwords",
   },
   {
-    feature: "Message Variable Substitution",
-    omni: "✓ Real-time {{first_name}} & {{company}} tokens",
-    legacy: "✕ Static copy or brittle mail-merge scripts",
+    feature: "Personalized Message Variables",
+    omni: "✓ Dynamic {{first_name}} and custom tokens",
+    legacy: "✕ Generic copy with no personalization",
   },
   {
-    feature: "Delivery Telemetry & Mission Tracking",
-    omni: "✓ Live Mission Control with instant retry logs",
-    legacy: "✕ Silent failures with no audit trail",
+    feature: "Delivery Visibility & Compliance",
+    omni: "✓ Live status tracking + rate-safe pacing",
+    legacy: "✕ Blind sending with high ban risk",
   },
 ];
+

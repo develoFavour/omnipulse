@@ -12,7 +12,7 @@ export function ChannelSwitcher() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText("https://api.omnipulse.io/v1/webhooks/inbound");
+    navigator.clipboard.writeText("https://api.messagerail.io/v1/webhooks/inbound");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -124,7 +124,7 @@ export function ChannelSwitcher() {
                     Automatic Telegram Group & Channel Discovery
                   </h3>
                   <p className="text-base text-[#454745] leading-relaxed mb-6">
-                    Add your bot as admin to any community. OmniPulse listens, registers Chat IDs, and exposes them in your broadcast studio selector.
+                    Add your bot as admin to any community. MessageRail listens, registers Chat IDs, and exposes them in your broadcast studio selector.
                   </p>
                   <ul className="space-y-3 text-sm text-[#454745] font-medium">
                     {[
@@ -177,7 +177,7 @@ export function ChannelSwitcher() {
                   </p>
                   <div className="p-3.5 rounded-xl bg-[#f4f5f2] border border-[#e8ebe6] flex items-center justify-between gap-2">
                     <code className="text-xs font-mono font-bold text-[#163300] truncate">
-                      https://api.omnipulse.io/v1/webhooks/inbound
+                      https://api.messagerail.io/v1/webhooks/inbound
                     </code>
                     <button
                       onClick={handleCopy}

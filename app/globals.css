@@ -72,7 +72,7 @@
 	--color-signal-blue: #0b4c72;
 	--color-alarm-red: #cb272f;
 	--color-charcoal: #454745;
-	--color-obsidian: #0e0f0c;
+	--color-obsidian: #293513;
 	--color-pebble: #868685;
 	--color-slate: #6a6c6a;
 	--color-fog: #e8ebe6;
@@ -110,6 +110,7 @@
 	--sidebar-border: oklch(0.922 0 0);
 	--sidebar-ring: oklch(0.708 0 0);
 }
+
 /* .cl-internal-d4j0pk {
 	display: none !important;
 } */
@@ -151,18 +152,27 @@
 	* {
 		@apply border-border outline-ring/50;
 	}
+
 	body {
 		@apply bg-background text-foreground;
 	}
+
 	html {
 		@apply font-sans;
 	}
-	h1, h2, h3, h4, h5, h6 {
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
 		@apply font-heading tracking-tight;
 	}
 }
 
 @layer base {
+
 	/* ── Theme Color Overrides ──────────────────────────────────────────────────
 	   Override Tailwind's neutral gray-900/800/700 to align with our
 	   Wise-inspired Forest/Obsidian palette. This avoids touching every
@@ -170,13 +180,17 @@
 	   and body labels across the dashboard.
 	   ────────────────────────────────────────────────────────────────────── */
 	.text-gray-900 {
-		color: var(--color-obsidian) !important; /* #0e0f0c — warm near-black */
+		color: var(--color-obsidian) !important;
+		/* #0e0f0c — warm near-black */
 	}
+
 	.text-gray-800 {
-		color: var(--color-charcoal) !important; /* #454745 — charcoal body */
+		color: var(--color-charcoal) !important;
+		/* #454745 — charcoal body */
 	}
+
 	.text-gray-700 {
-		color: var(--color-slate) !important;    /* #6a6c6a — warm slate */
+		color: var(--color-slate) !important;
+		/* #6a6c6a — warm slate */
 	}
 }
-

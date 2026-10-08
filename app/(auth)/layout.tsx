@@ -32,17 +32,17 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <header className="relative z-10 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="h-8 w-8 rounded-full bg-[#163300] flex items-center justify-center text-[#9fe870] font-black text-sm transition-transform group-hover:scale-105">
-            OP
+            MR
           </div>
           <span className="text-xl font-black tracking-tight text-[#0e0f0c] font-heading">
-            OmniPulse<span className="text-[#9fe870]">.</span>
+            MessageRail<span className="text-[#9fe870]">.</span>
           </span>
         </Link>
 
         <div className="flex items-center gap-3">
           <div className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#e2f6d5] border border-[#9fe870]/70 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#163300]">
             <span className="h-1.5 w-1.5 rounded-full bg-[#163300] animate-pulse" />
-            <span>Dual-Pipeline Engine</span>
+            <span>Multi-Channel Operations</span>
           </div>
 
           <Link
@@ -93,11 +93,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       {/* ── Minimal Footer ── */}
       <footer className="relative z-10 w-full py-6 px-6 text-center text-xs text-[#868685]">
         <div className="flex items-center justify-center gap-4 flex-wrap">
-          <span>Enterprise-grade security</span>
+          <span>Client Tenant Isolation</span>
           <span className="w-1 h-1 rounded-full bg-[#d0d3cd]" />
-          <span>SOC 2 Type II Compliance</span>
+          <span>Opt-In Consent Safeguards</span>
           <span className="w-1 h-1 rounded-full bg-[#d0d3cd]" />
-          <span>© {new Date().getFullYear()} OmniPulse Inc.</span>
+          <span>© {new Date().getFullYear()} MessageRail Inc.</span>
         </div>
       </footer>
     </div>

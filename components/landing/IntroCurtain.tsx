@@ -28,7 +28,7 @@ export function IntroCurtain({ introComplete, introPhase }: IntroCurtainProps) {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, ease: EASE_EXPO }}
             >
-              OP
+              MR
             </motion.div>
             <motion.div
               className="mt-4 text-2xl font-black text-white tracking-tight font-heading"
@@ -36,7 +36,7 @@ export function IntroCurtain({ introComplete, introPhase }: IntroCurtainProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2, ease: EASE_EXPO }}
             >
-              OmniPulse<span className="text-[#9fe870]">.</span>
+              MessageRail<span className="text-[#9fe870]">.</span>
             </motion.div>
             <AnimatePresence>
               {introPhase !== "logo" && (
@@ -46,7 +46,7 @@ export function IntroCurtain({ introComplete, introPhase }: IntroCurtainProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: EASE_EXPO }}
                 >
-                  Omnichannel broadcast engine
+                  Plan. Route. Deliver.
                 </motion.p>
               )}
             </AnimatePresence>

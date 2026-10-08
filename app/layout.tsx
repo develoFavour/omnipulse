@@ -22,8 +22,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "OmniPulse | Unified Communication",
-	description: "The multi-channel command center for your business.",
+	title: "MessageRail | Multi-Channel Campaign Operations",
+	description: "Plan, route, and deliver compliant multi-channel campaigns across your team. Multi-channel campaign operations for modern teams.",
 };
 
 export default function RootLayout({

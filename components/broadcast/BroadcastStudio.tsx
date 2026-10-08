@@ -112,8 +112,8 @@ export function BroadcastStudio() {
     (c) => c.platform_name === "whatsapp" && c.status === "active"
   );
 
-  const botUsername = activeTelegramChannel?.sender_identity || "@OmnipulsengBot";
-  const verifiedWhatsAppName = activeWhatsAppChannel?.sender_identity || "Omnipulse Business";
+  const botUsername = activeTelegramChannel?.sender_identity || "@MessageRailBot";
+  const verifiedWhatsAppName = activeWhatsAppChannel?.sender_identity || "MessageRail Business";
 
   // Automatically enable WhatsApp DM if WhatsApp channel is connected
   useEffect(() => {
@@ -126,7 +126,7 @@ export function BroadcastStudio() {
   useEffect(() => {
     // 1. Check if cached template is in session storage
     if (typeof window !== "undefined") {
-      const stored = sessionStorage.getItem("omnipulse_active_template");
+      const stored = sessionStorage.getItem("messagerail_active_template");
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
@@ -134,7 +134,7 @@ export function BroadcastStudio() {
             if (parsed.title) setTitle(parsed.title);
             if (parsed.body) setMessageBody(parsed.body);
             if (parsed.media_url) setMediaUrl(parsed.media_url);
-            sessionStorage.removeItem("omnipulse_active_template");
+            sessionStorage.removeItem("messagerail_active_template");
             toast.success("Template loaded!", {
               description: `Loaded "${parsed.title}" into the message composer.`,
             });

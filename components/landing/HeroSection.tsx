@@ -50,7 +50,7 @@ export function HeroSection({
       >
         <span className="h-2 w-2 rounded-full bg-[#163300] animate-pulse" />
         <span className="text-xs font-bold uppercase tracking-wider text-[#163300]">
-          Dual-Pipeline Engine · WhatsApp Cloud & Telegram Bot APIs
+          Multi-Channel Operations · Unified Provider Routing
         </span>
       </motion.div>
 
@@ -90,7 +90,7 @@ export function HeroSection({
               WITHOUT
             </span>
             <span className="hidden sm:inline-block rounded-full bg-[#9fe870] px-6 py-2 text-[clamp(14px,2vw,22px)] font-black text-[#163300] uppercase tracking-tight self-center">
-              Parallel Blast
+              Borders
             </span>
           </motion.div>
         </motion.div>
@@ -127,7 +127,7 @@ export function HeroSection({
         transition={{ duration: 0.8, delay: 0.45, ease: EASE_EXPO }}
       >
         <p className="text-base sm:text-xl text-[#454745] max-w-2xl mx-auto leading-relaxed">
-          The unified omnichannel broadcast engine for agencies. Blast WhatsApp and Telegram in parallel, capture contacts in real time, and monitor live deliveries.
+          A multi-channel campaign workspace for agencies and modern teams managing compliant outreach across multiple clients.
         </p>
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
@@ -135,7 +135,7 @@ export function HeroSection({
               href="/sign-up"
               className="inline-flex items-center justify-center gap-2.5 rounded-full bg-[#9fe870] px-8 py-3.5 text-base font-black text-[#163300] hover:brightness-105 transition-all shadow-md"
             >
-              Start Free Mission <ArrowRight className="h-4 w-4 stroke-[2.5]" />
+              Start Free — No Card Needed <ArrowRight className="h-4 w-4 stroke-[2.5]" />
             </Link>
           </motion.div>
           <a

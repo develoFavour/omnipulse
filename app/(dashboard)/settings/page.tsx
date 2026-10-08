@@ -788,7 +788,7 @@ function SecuritySection() {
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400">REST API Keys</h3>
               <p className="text-xs text-gray-500 mt-1">
-                Keys used to authenticate external integrations and services directly with OmniPulse API.
+                Keys used to authenticate external integrations and services directly with MessageRail API.
               </p>
             </div>
             <button
@@ -876,7 +876,7 @@ function SecuritySection() {
             <div className="text-center py-8">
               <KeyRound className="mx-auto h-8 w-8 text-gray-300" />
               <p className="mt-2 text-xs font-medium text-gray-500">No active API keys found</p>
-              <p className="text-xs text-gray-400 mt-0.5">Generate an API key to securely query OmniPulse from external servers.</p>
+              <p className="text-xs text-gray-400 mt-0.5">Generate an API key to securely query MessageRail from external servers.</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-100">

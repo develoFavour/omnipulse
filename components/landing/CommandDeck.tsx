@@ -79,22 +79,22 @@ export function CommandDeck({
                 </div>
                 <div>
                   <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-[#9fe870] font-heading">
-                    Broadcast Studio Command Engine
+                    Campaign Operations Studio
                   </h3>
                   <p className="text-xs text-white/60 font-medium">
-                    Parallel Pipeline Active · Concurrency: 1,200 msg/min
+                    Multi-Channel Delivery Ready · Automated Rate Pacing
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 border border-white/15 flex items-center gap-1.5">
-                  <FaWhatsapp className="h-3.5 w-3.5 text-[#25D366]" /> Meta Verified
+                  <FaWhatsapp className="h-3.5 w-3.5 text-[#25D366]" /> WhatsApp API
                 </span>
                 <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 border border-white/15 flex items-center gap-1.5">
-                  <FaTelegram className="h-3.5 w-3.5 text-[#229ED9]" /> BotFather Active
+                  <FaTelegram className="h-3.5 w-3.5 text-[#229ED9]" /> Telegram Native
                 </span>
                 <span className="rounded-full bg-[#9fe870] text-[#163300] px-3 py-1 text-xs font-black uppercase">
-                  Live Telemetry
+                  Live Receipts
                 </span>
               </div>
             </div>
@@ -102,7 +102,7 @@ export function CommandDeck({
             <div className="mt-4 py-2.5 px-4 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs overflow-hidden">
               <div className="flex items-center gap-2.5 truncate">
                 <Activity className="h-4 w-4 text-[#9fe870] shrink-0 animate-pulse" />
-                <span className="text-white/50 font-mono text-[11px] shrink-0">DISPATCH LOG:</span>
+                <span className="text-white/50 font-mono text-[11px] shrink-0">ACTIVITY LOG:</span>
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={tickerIdx}
@@ -130,12 +130,12 @@ export function CommandDeck({
               <div className="lg:col-span-7 space-y-5">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-[#9fe870] mb-2">
-                    Active Campaign Mission
+                    Active Client Campaign
                   </label>
                   <div className="rounded-xl bg-white/5 border border-white/15 px-4 py-3 text-sm font-semibold text-white font-mono flex items-center justify-between">
-                    <span>Flash VIP Omnichannel Dispatch</span>
+                    <span>Spring VIP Product Announcement</span>
                     <span className="text-[10px] bg-[#9fe870]/20 text-[#9fe870] px-2 py-0.5 rounded font-bold uppercase">
-                      Queued · 10:50 AM
+                      Scheduled · 11:00 AM
                     </span>
                   </div>
                 </div>
@@ -160,17 +160,17 @@ export function CommandDeck({
                 </div>
                 <div className="rounded-xl bg-white/10 border border-white/15 p-4 flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <div className="text-xs text-white/50 uppercase font-semibold">Verified Audience Reach</div>
+                    <div className="text-xs text-white/50 uppercase font-semibold">Opted-In Audience Target</div>
                     <div className="text-2xl font-black text-white font-heading">
-                      14,280 <span className="text-xs font-semibold text-[#9fe870]">recipients</span>
+                      1,250 <span className="text-xs font-semibold text-[#9fe870]">contacts</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="rounded-lg bg-[#25D366]/20 text-[#25D366] px-2.5 py-1 text-xs font-bold flex items-center gap-1">
-                      <FaWhatsapp className="h-3 w-3" /> 9,420 WA
+                      <FaWhatsapp className="h-3 w-3" /> 820 WhatsApp
                     </span>
                     <span className="rounded-lg bg-[#229ED9]/20 text-[#229ED9] px-2.5 py-1 text-xs font-bold flex items-center gap-1">
-                      <FaTelegram className="h-3 w-3" /> 4,860 TG
+                      <FaTelegram className="h-3 w-3" /> 430 Telegram
                     </span>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export function CommandDeck({
                         <FaWhatsapp className="h-4 w-4 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-[#0e0f0c]">OmniPulse Verified</div>
+                        <div className="text-xs font-bold text-[#0e0f0c]">MessageRail Verified</div>
                         <div className="text-[10px] text-gray-500">Official Business Sender</div>
                       </div>
                     </div>

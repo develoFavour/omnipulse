@@ -28,7 +28,7 @@ export function WhatsAppStoryModal({
   onClose,
   messageBody,
   mediaUrl,
-  brandName = "Omnipulse",
+  brandName = "MessageRail",
 }: WhatsAppStoryModalProps) {
   const [copied, setCopied] = useState(false);
 
@@ -130,7 +130,7 @@ export function WhatsAppStoryModal({
             </div>
 
             <p className="text-xs text-gray-500 font-medium leading-relaxed mt-2">
-              Meta restricts automated Bot APIs from posting to personal WhatsApp Statuses. Use Omnipulse&apos;s direct share bridge to post your formatted creative directly to WhatsApp Status with 1 click.
+              Meta restricts automated Bot APIs from posting to personal WhatsApp Statuses. Use MessageRail&apos;s direct share bridge to post your formatted creative directly to WhatsApp Status with 1 click.
             </p>
 
             <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1.5">

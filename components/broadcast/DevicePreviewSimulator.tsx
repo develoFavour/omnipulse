@@ -34,8 +34,8 @@ export function DevicePreviewSimulator({
   messageBody,
   mediaUrl,
   selectedPlacements,
-  botUsername = "@OmnipulsengBot",
-  verifiedWhatsAppName = "Omnipulse Business",
+  botUsername = "@MessageRailBot",
+  verifiedWhatsAppName = "MessageRail Business",
 }: DevicePreviewSimulatorProps) {
   // Determine default tab based on selected placements
   const [activeTab, setActiveTab] = useState<ChannelPlacement>("telegram_dm");

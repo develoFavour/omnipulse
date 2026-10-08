@@ -91,10 +91,10 @@ export function TopNav() {
         {/* Logo */}
         <Link href={APP_ROUTES.DASHBOARD.BASE} className="flex items-center gap-2 group">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#163300] text-[#9fe870] font-bold shadow-sm transition-transform group-hover:scale-105">
-            O
+            MR
           </div>
           <span className="text-xl font-bold tracking-tight text-gray-900 font-heading">
-            OmniPulse.
+            MessageRail.
           </span>
         </Link>
 

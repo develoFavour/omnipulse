@@ -7,7 +7,7 @@ const EASE_EXPO = [0.16, 1, 0.3, 1] as const;
 
 export function ArchitectureSection() {
   return (
-    <section id="architecture" className="py-24 bg-[#f4f5f2] border-y border-[#e8ebe6]">
+    <section id="workflow" className="py-24 bg-[#f4f5f2] border-y border-[#e8ebe6]">
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
         <motion.div
           className="text-center max-w-2xl mx-auto mb-16"
@@ -17,13 +17,13 @@ export function ArchitectureSection() {
           transition={{ duration: 0.6, ease: EASE_EXPO }}
         >
           <span className="text-xs font-black uppercase tracking-wider text-[#163300]">
-            The OmniPulse Concurrency Pipeline
+            The Campaign Delivery Lifecycle
           </span>
           <h2 className="text-3xl sm:text-5xl font-black uppercase text-[#0e0f0c] tracking-tight font-heading mt-2">
-            How High-Throughput Works<span className="text-[#9fe870]">.</span>
+            Plan. Route. Deliver<span className="text-[#9fe870]">.</span>
           </h2>
           <p className="mt-4 text-base text-[#454745]">
-            Engineered in Go with relational Postgres transactions and exponential backoff rate limiters.
+            From audience opt-in to verified delivery — a predictable, compliant system for managing client campaigns without account flags.
           </p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
