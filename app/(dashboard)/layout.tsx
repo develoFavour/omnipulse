@@ -25,20 +25,20 @@ export default function DashboardLayout({
 
   if (!isLoaded) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#f9fafb]">
+      <div className="flex h-screen w-full items-center justify-center bg-[#f4f5f2]">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-          <p className="text-sm font-medium text-gray-500">Initializing workspace...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-[#163300]" />
+          <p className="text-sm font-medium text-gray-600">Initializing workspace...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-[#f9fafb]">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <TopNav />
+    <div className="flex h-screen flex-col bg-[#f4f5f2]">
+      <TopNav />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
         <main className="flex-1 overflow-y-auto">
           <div className="px-8 py-8">
             {children}

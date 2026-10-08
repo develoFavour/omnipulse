@@ -74,14 +74,14 @@ export function Sidebar() {
                 className={cn(
                   "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all duration-200",
                   isActive
-                    ? "text-indigo-700"
+                    ? "text-[#163300]"
                     : "text-gray-600 hover:text-gray-900"
                 )}
               >
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active"
-                    className="absolute inset-0 rounded-lg bg-indigo-50"
+                    className="absolute inset-0 rounded-lg bg-[#e2f6d5]"
                     initial={false}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
@@ -95,7 +95,7 @@ export function Sidebar() {
                 <item.icon
                   className={cn(
                     "h-5 w-5 shrink-0 transition-all duration-200 relative z-10",
-                    isActive ? "text-indigo-600" : "text-gray-400 group-hover:text-gray-600",
+                    isActive ? "text-[#163300]" : "text-gray-400 group-hover:text-gray-600",
                     "group-hover:scale-110"
                   )}
                   aria-hidden="true"
@@ -118,14 +118,14 @@ export function Sidebar() {
                   className={cn(
                     "group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all duration-200",
                     isActive
-                      ? "text-indigo-700"
+                      ? "text-[#163300]"
                       : "text-gray-600 hover:text-gray-900"
                   )}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="sidebar-active"
-                      className="absolute inset-0 rounded-lg bg-indigo-50"
+                      className="absolute inset-0 rounded-lg bg-[#e2f6d5]"
                       initial={false}
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
@@ -138,7 +138,7 @@ export function Sidebar() {
                   <item.icon
                     className={cn(
                       "h-5 w-5 shrink-0 transition-all duration-200 relative z-10",
-                      isActive ? "text-indigo-600" : "text-gray-400 group-hover:text-gray-600",
+                      isActive ? "text-[#163300]" : "text-gray-400 group-hover:text-gray-600",
                       "group-hover:scale-110"
                     )}
                     aria-hidden="true"
@@ -152,11 +152,11 @@ export function Sidebar() {
 
         {/* What's New Widget */}
         <div className="mt-auto pt-8">
-          <div className="rounded-xl border border-indigo-100 bg-gradient-to-b from-indigo-50/50 to-white p-4 shadow-sm relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-indigo-100 blur-2xl opacity-50 transition-opacity group-hover:opacity-100" />
+          <div className="rounded-xl border border-[#9fe870]/30 bg-gradient-to-b from-[#e2f6d5]/40 to-white p-4 shadow-sm relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-[#9fe870]/20 blur-2xl opacity-50 transition-opacity group-hover:opacity-100" />
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4 text-indigo-600" />
-              <h3 className="text-sm font-bold text-indigo-900">What's New</h3>
+              <Sparkles className="h-4 w-4 text-[#163300]" />
+              <h3 className="text-sm font-bold text-[#163300]">What's New</h3>
             </div>
             <ul className="space-y-2.5">
               {[
@@ -166,15 +166,15 @@ export function Sidebar() {
               ].map((item, idx) => (
                 <li key={idx}>
                   <Link href="#" className="flex items-center justify-between group/link">
-                    <span className="text-xs font-medium text-gray-600 group-hover/link:text-indigo-600 transition-colors">
+                    <span className="text-xs font-medium text-gray-600 group-hover/link:text-[#163300] transition-colors">
                       {item.title}
                     </span>
-                    <ArrowRight className="h-3 w-3 text-gray-400 opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all text-indigo-600" />
+                    <ArrowRight className="h-3 w-3 text-gray-400 opacity-0 -translate-x-2 group-hover/link:opacity-100 group-hover/link:translate-x-0 transition-all text-[#163300]" />
                   </Link>
                 </li>
               ))}
             </ul>
-            <div className="mt-4 pt-3 border-t border-indigo-100/50 flex items-center justify-between">
+            <div className="mt-4 pt-3 border-t border-[#9fe870]/20 flex items-center justify-between">
               <span className="text-[10px] font-medium text-gray-400">version: 1.2.0</span>
             </div>
           </div>

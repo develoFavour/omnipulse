@@ -27,15 +27,15 @@ export function RecentActivityFeed({ activities, delay = 0 }: RecentActivityFeed
           <h3 className="text-sm font-bold text-gray-900">Recent Activity</h3>
           <p className="mt-1 text-xs text-gray-500">Your latest broadcast campaigns</p>
         </div>
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50">
-          <Send className="h-4 w-4 text-gray-400" />
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#e2f6d5]">
+          <Send className="h-4 w-4 text-[#163300]" />
         </div>
       </div>
 
       {activities.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-50 border border-gray-100 mb-4">
-            <Send className="h-6 w-6 text-gray-400" />
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e2f6d5]/60 border border-[#9fe870]/30 mb-4">
+            <Send className="h-6 w-6 text-[#163300]" />
           </div>
           <p className="text-sm font-semibold text-gray-700">No broadcasts yet</p>
           <p className="mt-1 text-xs text-gray-500">Your campaign activity will appear here</p>
@@ -52,11 +52,11 @@ export function RecentActivityFeed({ activities, delay = 0 }: RecentActivityFeed
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: delay + index * 0.08 }}
-                className="group flex items-center gap-4 rounded-xl p-3 transition-colors duration-200 hover:bg-gray-50"
+                className="group flex items-center gap-4 rounded-xl p-3 transition-colors duration-200 hover:bg-[#f8faf7]"
                 title={activity.error_message || ""}
               >
                 {/* Channel Icon */}
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-base">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-100 bg-[#f4f5f2] text-base">
                   {getPlatformIcon(activity.platform)}
                 </div>
 

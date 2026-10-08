@@ -54,7 +54,7 @@ export function ChannelDistributionChart({ data, delay = 0 }: ChannelDistributio
           <h3 className="text-sm font-bold text-gray-900">Ownership</h3>
           <p className="mt-1 text-xs text-gray-500">Audience distribution by platform</p>
         </div>
-        <button className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 underline decoration-indigo-200 underline-offset-4">
+        <button className="text-xs font-semibold text-[#163300] hover:text-[#163300]/80 underline decoration-[#9fe870] decoration-2 underline-offset-4 transition-colors">
           Download report
         </button>
       </div>
@@ -83,9 +83,14 @@ export function ChannelDistributionChart({ data, delay = 0 }: ChannelDistributio
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
-          {/* Center Label (Cake style cake emoji icon) */}
+          {/* Center Label (Total Audience Count) */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-3xl">🎂</span>
+            <span className="text-2xl font-extrabold text-gray-900 tracking-tight font-mono">
+              {total.toLocaleString()}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mt-0.5">
+              Audience
+            </span>
           </div>
         </div>
 
@@ -124,7 +129,7 @@ export function ChannelDistributionChart({ data, delay = 0 }: ChannelDistributio
       
       <div className="mt-8 flex items-center gap-2 text-xs font-semibold text-gray-500">
         <span className="text-gray-900">Active</span>
-        <div className="w-8 h-4 rounded-full bg-[#c8ff55] flex items-center p-0.5 shadow-inner">
+        <div className="w-8 h-4 rounded-full bg-[#9fe870] flex items-center p-0.5 shadow-inner">
           <div className="w-3 h-3 rounded-full bg-white shadow-sm" />
         </div>
         <span>Inactive</span>

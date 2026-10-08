@@ -101,7 +101,7 @@ export default function DashboardPage() {
       <motion.div variants={fadeUp} className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 font-heading">
-            Hey, <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">{userName}</span> 👋
+            Hey, <span className="text-[#163300]">{userName}</span> 👋
           </h1>
           
           <div className="mt-1.5 flex items-center gap-2 text-sm font-medium text-gray-600">
@@ -111,7 +111,7 @@ export default function DashboardPage() {
             </span>
             <span className="text-gray-300">•</span>
             <div className="flex items-center gap-1.5 text-gray-500 font-mono text-xs">
-              <Clock className="h-3.5 w-3.5 text-indigo-500" />
+              <Clock className="h-3.5 w-3.5 text-[#163300]" />
               <span>{formattedDate}</span>
               {formattedTime && <span className="font-semibold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-md border border-gray-200/60">{formattedTime}</span>}
             </div>
@@ -129,10 +129,10 @@ export default function DashboardPage() {
       {/* Dynamic Action / Onboarding Banner */}
       <motion.div 
         variants={fadeUp}
-        className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-indigo-50 via-white to-indigo-50/50 px-6 py-4 border border-indigo-100/80 shadow-sm"
+        className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-[#e2f6d5]/50 via-white to-[#f4f5f2] px-6 py-4 border border-[#9fe870]/30 shadow-sm"
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-white font-bold shadow-sm">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#163300] text-[#9fe870] font-bold shadow-sm">
             {stats?.onboarding_progress?.completion_percentage === 100 ? (
               <CheckCircle2 className="h-5 w-5" />
             ) : (
@@ -168,7 +168,7 @@ export default function DashboardPage() {
               ? APP_ROUTES.DASHBOARD.AUDIENCE
               : APP_ROUTES.DASHBOARD.BROADCAST
           }
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition-colors shadow-sm shrink-0"
+          className="rounded-lg bg-[#163300] px-4 py-2 text-xs font-bold text-[#9fe870] hover:bg-[#163300]/90 transition-all shadow-sm shrink-0"
         >
           {!stats?.onboarding_progress?.channels_connected
             ? canManageChannels
@@ -263,7 +263,7 @@ export default function DashboardPage() {
             </div>
             <a
               href={APP_ROUTES.DASHBOARD.BROADCAST}
-              className="rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-indigo-500 transition-colors shadow-sm"
+              className="rounded-lg bg-[#163300] px-3.5 py-1.5 text-xs font-bold text-[#9fe870] hover:bg-[#163300]/90 transition-all shadow-sm"
             >
               New Broadcast
             </a>
@@ -275,7 +275,7 @@ export default function DashboardPage() {
                 <span className="truncate max-w-[280px] font-semibold text-gray-800">
                   {stats.latest_campaign.title}
                 </span>
-                <span className="text-indigo-600 font-mono">
+                <span className="text-[#163300] font-mono font-bold">
                   {stats.latest_campaign.delivered_count} / {stats.latest_campaign.total_targets} dispatched
                 </span>
               </div>
@@ -284,7 +284,7 @@ export default function DashboardPage() {
               <div className="relative">
                 <div className="h-2.5 w-full rounded-full bg-gray-100 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-indigo-600 transition-all duration-500"
+                    className="h-full rounded-full bg-[#163300] transition-all duration-500"
                     style={{
                       width: `${Math.min(100, Math.max(5, stats.latest_campaign.delivery_rate || 0))}%`,
                     }}
@@ -316,7 +316,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="py-6 flex flex-col items-center justify-center text-center">
-              <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-2">
+              <div className="h-10 w-10 rounded-full bg-[#e2f6d5] flex items-center justify-center text-[#163300] mb-2">
                 <Megaphone className="h-5 w-5" />
               </div>
               <p className="text-sm font-semibold text-gray-800">No campaigns dispatched yet</p>
@@ -325,7 +325,7 @@ export default function DashboardPage() {
               </p>
               <a
                 href={APP_ROUTES.DASHBOARD.BROADCAST}
-                className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                className="text-xs font-bold text-[#163300] hover:underline"
               >
                 Launch your first broadcast →
               </a>
@@ -346,7 +346,7 @@ export default function DashboardPage() {
                   (stats?.audience_health?.status || "Optimal") === "Optimal"
                     ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                     : (stats?.audience_health?.status || "Optimal") === "Healthy"
-                    ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                    ? "bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/40"
                     : "bg-amber-50 text-amber-700 border border-amber-200"
                 }`}
               >
@@ -357,7 +357,7 @@ export default function DashboardPage() {
             <div className="space-y-4 pt-1">
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1.5">
-                  <span className="text-indigo-900 font-mono">
+                  <span className="text-[#163300] font-mono">
                     {(stats?.audience_health?.opt_out_rate || 0).toFixed(1)}%
                   </span>
                   <span className="text-gray-500 font-medium">
@@ -366,7 +366,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                    className="h-full rounded-full bg-[#163300] transition-all duration-500"
                     style={{
                       width: `${Math.min(100, Math.max(2, stats?.audience_health?.opt_out_rate || 0))}%`,
                     }}

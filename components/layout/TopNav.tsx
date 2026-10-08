@@ -90,7 +90,7 @@ export function TopNav() {
       <div className="flex items-center gap-6">
         {/* Logo */}
         <Link href={APP_ROUTES.DASHBOARD.BASE} className="flex items-center gap-2 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold shadow-sm transition-transform group-hover:scale-105">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#163300] text-[#9fe870] font-bold shadow-sm transition-transform group-hover:scale-105">
             O
           </div>
           <span className="text-xl font-bold tracking-tight text-gray-900 font-heading">
@@ -108,16 +108,16 @@ export function TopNav() {
             disabled={isSwitchingWorkspace}
           >
             {isSwitchingWorkspace ? (
-              <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+              <Loader2 className="h-4 w-4 animate-spin text-[#163300]" />
             ) : (
-              <div className="h-5 w-5 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] text-white font-medium shrink-0">
+              <div className="h-5 w-5 rounded-full bg-[#163300] flex items-center justify-center text-[10px] text-[#9fe870] font-bold shrink-0">
                 {tenant?.company_name?.[0]?.toUpperCase() || "O"}
               </div>
             )}
             <span className="text-sm font-semibold text-gray-700 max-w-[140px] truncate">
               {isSwitchingWorkspace ? "Switching..." : (tenant?.company_name || "Workspace")}
             </span>
-            <span className="rounded-full bg-indigo-100/70 border border-indigo-200/60 px-2 py-0.5 text-[10px] font-bold text-indigo-700 uppercase tracking-wide">
+            <span className="rounded-full bg-[#e2f6d5] border border-[#9fe870]/60 px-2 py-0.5 text-[10px] font-bold text-[#163300] uppercase tracking-wide">
               {planUsage.plan_badge}
             </span>
             <ChevronsUpDown className="h-3.5 w-3.5 text-gray-400" />
@@ -189,7 +189,7 @@ export function TopNav() {
                             {ws.role === "owner" ? (
                               <Crown className="h-2.5 w-2.5 text-amber-500" />
                             ) : ws.role === "admin" ? (
-                              <Shield className="h-2.5 w-2.5 text-indigo-500" />
+                              <Shield className="h-2.5 w-2.5 text-[#163300]" />
                             ) : (
                               <UserIcon className="h-2.5 w-2.5 text-gray-400" />
                             )}
@@ -199,7 +199,7 @@ export function TopNav() {
 
                         {/* Active Indicator */}
                         {isActive && (
-                          <Check className="h-4 w-4 text-indigo-600 shrink-0" />
+                          <Check className="h-4 w-4 text-[#163300] shrink-0" />
                         )}
                       </button>
                     );
@@ -229,13 +229,13 @@ export function TopNav() {
                 <Link
                   href={APP_ROUTES.DASHBOARD.CONNECTIONS}
                   onClick={() => setShowUsage(false)}
-                  className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                  className="text-xs font-bold text-[#163300] hover:underline"
                 >
                   Manage channels →
                 </Link>
                 <button
                   onClick={() => { setShowUsage(false); setShowCreateModal(true); }}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-indigo-600 transition-colors px-2.5 py-1.5 rounded-lg hover:bg-indigo-50 border border-gray-200 hover:border-indigo-200"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-[#163300] transition-colors px-2.5 py-1.5 rounded-lg hover:bg-[#e2f6d5]/50 border border-gray-200 hover:border-[#9fe870]/50"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   New workspace
@@ -253,8 +253,8 @@ export function TopNav() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-4">
-                <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-white" />
+                <div className="h-9 w-9 rounded-xl bg-[#163300] flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-[#9fe870]" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-gray-900">Create new workspace</h3>
@@ -283,7 +283,7 @@ export function TopNav() {
                   }
                 }}
                 placeholder="e.g. Acme Corp, Personal Brand..."
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-4"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#163300] focus:border-transparent mb-4"
                 autoFocus
                 disabled={isCreating}
               />
@@ -312,7 +312,7 @@ export function TopNav() {
                     }
                   }}
                   disabled={!newWorkspaceName.trim() || isCreating}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#163300] text-[#9fe870] text-xs font-bold hover:bg-[#163300]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCreating ? (
                     <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Creating...</>
@@ -334,8 +334,8 @@ export function TopNav() {
             onClick={() => setShowOnboarding(!showOnboarding)}
             className="flex items-center gap-2 rounded-full border border-gray-200 px-3.5 py-1.5 hover:bg-gray-50 cursor-pointer transition-colors bg-white shadow-xs"
           >
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-50 border border-indigo-200">
-              <span className="text-[10px] font-extrabold text-indigo-600">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#e2f6d5] border border-[#9fe870]/60">
+              <span className="text-[10px] font-extrabold text-[#163300]">
                 {onboarding.completion_percentage}%
               </span>
             </div>
@@ -355,7 +355,7 @@ export function TopNav() {
                     {onboarding.completed_steps} of {onboarding.total_steps} milestones completed
                   </p>
                 </div>
-                <span className="text-xs font-bold text-indigo-600">
+                <span className="text-xs font-bold text-[#163300]">
                   {onboarding.completion_percentage}%
                 </span>
               </div>
@@ -363,7 +363,7 @@ export function TopNav() {
               {/* Progress track */}
               <div className="my-3 h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-600 transition-all duration-300"
+                  className="h-full bg-[#163300] transition-all duration-300"
                   style={{ width: `${onboarding.completion_percentage}%` }}
                 />
               </div>
@@ -383,7 +383,7 @@ export function TopNav() {
                   className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
                     onboarding.channels_connected
                       ? "bg-emerald-50/60 text-emerald-900 hover:bg-emerald-100/60"
-                      : "bg-gray-50 hover:bg-indigo-50/60 text-gray-800"
+                      : "bg-gray-50 hover:bg-[#e2f6d5]/50 text-gray-800"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -397,7 +397,7 @@ export function TopNav() {
                     </span>
                   </div>
                   {!onboarding.channels_connected && (
-                    <ExternalLink className="h-3 w-3 text-indigo-600" />
+                    <ExternalLink className="h-3 w-3 text-[#163300]" />
                   )}
                 </Link>
 
@@ -408,7 +408,7 @@ export function TopNav() {
                   className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
                     onboarding.contacts_imported
                       ? "bg-emerald-50/60 text-emerald-900 hover:bg-emerald-100/60"
-                      : "bg-gray-50 hover:bg-indigo-50/60 text-gray-800"
+                      : "bg-gray-50 hover:bg-[#e2f6d5]/50 text-gray-800"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -422,7 +422,7 @@ export function TopNav() {
                     </span>
                   </div>
                   {!onboarding.contacts_imported && (
-                    <ExternalLink className="h-3 w-3 text-indigo-600" />
+                    <ExternalLink className="h-3 w-3 text-[#163300]" />
                   )}
                 </Link>
 
@@ -433,7 +433,7 @@ export function TopNav() {
                   className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
                     onboarding.first_broadcast_sent
                       ? "bg-emerald-50/60 text-emerald-900 hover:bg-emerald-100/60"
-                      : "bg-gray-50 hover:bg-indigo-50/60 text-gray-800"
+                      : "bg-gray-50 hover:bg-[#e2f6d5]/50 text-gray-800"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -447,7 +447,7 @@ export function TopNav() {
                     </span>
                   </div>
                   {!onboarding.first_broadcast_sent && (
-                    <ExternalLink className="h-3 w-3 text-indigo-600" />
+                    <ExternalLink className="h-3 w-3 text-[#163300]" />
                   )}
                 </Link>
               </div>
@@ -470,7 +470,7 @@ export function TopNav() {
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               ) : recentDeliveries.length > 0 ? (
-                <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-indigo-600 ring-2 ring-white" />
+                <span className="absolute top-1.5 right-1.5 flex h-2 w-2 rounded-full bg-[#9fe870] ring-2 ring-white" />
               ) : null}
             </button>
 
@@ -480,7 +480,7 @@ export function TopNav() {
                 {/* Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-gray-100">
                   <div className="flex items-center gap-2">
-                    <Bell className="h-4 w-4 text-indigo-600" />
+                    <Bell className="h-4 w-4 text-[#163300]" />
                     <h4 className="text-xs font-bold text-gray-900">Notifications</h4>
                     {unreadCount > 0 && (
                       <span className="rounded-full bg-red-50 text-red-600 border border-red-200/60 px-1.5 py-0.2 text-[10px] font-bold">
@@ -492,7 +492,7 @@ export function TopNav() {
                     <button
                       onClick={() => markAllRead()}
                       disabled={isMarkingRead}
-                      className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-700 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1 text-[11px] font-semibold text-[#163300] hover:underline transition-colors disabled:opacity-50"
                     >
                       <CheckCheck className="h-3 w-3" />
                       <span>Mark all read</span>
@@ -506,7 +506,7 @@ export function TopNav() {
                     onClick={() => setNotifTab("alerts")}
                     className={`pb-1.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
                       notifTab === "alerts"
-                        ? "border-indigo-600 text-indigo-600"
+                        ? "border-[#163300] text-[#163300]"
                         : "border-transparent text-gray-400 hover:text-gray-600"
                     }`}
                   >
@@ -519,7 +519,7 @@ export function TopNav() {
                     onClick={() => setNotifTab("deliveries")}
                     className={`pb-1.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${
                       notifTab === "deliveries"
-                        ? "border-indigo-600 text-indigo-600"
+                        ? "border-[#163300] text-[#163300]"
                         : "border-transparent text-gray-400 hover:text-gray-600"
                     }`}
                   >
@@ -543,7 +543,7 @@ export function TopNav() {
                             }
                           }}
                           className={`py-2.5 px-2 flex items-start gap-3 rounded-lg transition-colors cursor-pointer ${
-                            !item.is_read ? "bg-indigo-50/50 hover:bg-indigo-50/80" : "hover:bg-gray-50"
+                            !item.is_read ? "bg-[#e2f6d5]/40 hover:bg-[#e2f6d5]/70" : "hover:bg-gray-50"
                           }`}
                         >
                           <div className="mt-0.5">
@@ -564,11 +564,11 @@ export function TopNav() {
                                 <UserMinus className="h-4 w-4" />
                               </div>
                             ) : item.type === "contact_import_finished" ? (
-                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#e2f6d5] text-[#163300]">
                                 <Users className="h-4 w-4" />
                               </div>
                             ) : (
-                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#e2f6d5] text-[#163300]">
                                 <Bell className="h-4 w-4" />
                               </div>
                             )}
@@ -579,7 +579,7 @@ export function TopNav() {
                                 {item.title}
                               </p>
                               {!item.is_read && (
-                                <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 shrink-0" />
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#163300] shrink-0" />
                               )}
                             </div>
                             <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2">
@@ -658,7 +658,7 @@ export function TopNav() {
                   <Link
                     href={APP_ROUTES.DASHBOARD.BASE}
                     onClick={() => setShowNotifications(false)}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                    className="text-xs font-bold text-[#163300] hover:underline"
                   >
                     Telemetry overview →
                   </Link>
@@ -679,7 +679,7 @@ export function TopNav() {
             title="Create Broadcast"
             className="rounded-full p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors"
           >
-            <Send className="h-4 w-4 text-indigo-600" />
+            <Send className="h-4 w-4 text-[#163300]" />
           </Link>
         </div>
 
@@ -688,7 +688,7 @@ export function TopNav() {
         <div className="flex items-center gap-3">
           <Link
             href={APP_ROUTES.DASHBOARD.BROADCAST}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition-colors shadow-sm"
+            className="flex items-center gap-2 rounded-lg bg-[#163300] px-3.5 py-2 text-xs font-bold text-[#9fe870] hover:bg-[#163300]/90 transition-all shadow-sm"
           >
             <Send className="h-3.5 w-3.5" />
             <span>Broadcast</span>
@@ -697,7 +697,7 @@ export function TopNav() {
             <UserButton 
               appearance={{
                 elements: {
-                  avatarBox: "h-9 w-9 ring-2 ring-indigo-500/20"
+                  avatarBox: "h-9 w-9 ring-2 ring-[#163300]/10"
                 }
               }}
             />

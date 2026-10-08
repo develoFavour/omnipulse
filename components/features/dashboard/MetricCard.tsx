@@ -19,7 +19,7 @@ export function MetricCard({
   value,
   change,
   icon: Icon,
-  iconColor = "text-indigo-600",
+  iconColor = "text-[#163300]",
   delay = 0,
   className,
 }: MetricCardProps) {
@@ -37,11 +37,11 @@ export function MetricCard({
         className
       )}
     >
-      <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-indigo-50 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-[#9fe870]/20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
       <div className="relative flex items-center justify-between">
         <div className="flex flex-col gap-1">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-gray-500 mb-2 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-gray-600 mb-2 group-hover:bg-[#163300] group-hover:text-[#9fe870] transition-all duration-200">
             <Icon className="h-5 w-5" />
           </div>
           <span className="text-3xl font-bold tracking-tight text-gray-900">
