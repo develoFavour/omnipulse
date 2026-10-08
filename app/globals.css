@@ -161,3 +161,22 @@
 		@apply font-heading tracking-tight;
 	}
 }
+
+@layer base {
+	/* ── Theme Color Overrides ──────────────────────────────────────────────────
+	   Override Tailwind's neutral gray-900/800/700 to align with our
+	   Wise-inspired Forest/Obsidian palette. This avoids touching every
+	   individual component file. text-gray-900 is used heavily for headings
+	   and body labels across the dashboard.
+	   ────────────────────────────────────────────────────────────────────── */
+	.text-gray-900 {
+		color: var(--color-obsidian) !important; /* #0e0f0c — warm near-black */
+	}
+	.text-gray-800 {
+		color: var(--color-charcoal) !important; /* #454745 — charcoal body */
+	}
+	.text-gray-700 {
+		color: var(--color-slate) !important;    /* #6a6c6a — warm slate */
+	}
+}
+
