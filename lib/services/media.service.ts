@@ -25,7 +25,7 @@ class MediaService {
       },
     });
 
-    return response.data.data;
+    return response.data as unknown as MediaUploadResponse;
   }
 }
 

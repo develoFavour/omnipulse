@@ -87,6 +87,7 @@ export const ENDPOINTS = {
 	// Notification Center
 	NOTIFICATIONS: {
 		BASE: `${API_VERSION}/notifications`,
+		PREFERENCES: `${API_VERSION}/notification-preferences`,
 		MARK_READ: (id: string) => `${API_VERSION}/notifications/${id}/read`,
 		MARK_ALL_READ: `${API_VERSION}/notifications/read-all`,
 	},
@@ -124,6 +125,7 @@ export const ENDPOINTS = {
 		GET: `${API_VERSION}/profile`,
 		UPDATE: `${API_VERSION}/profile`,
 	},
+	WORKSPACE_SETTINGS: `${API_VERSION}/workspace-settings`,
 
 	// API Keys Management
 	API_KEYS: {

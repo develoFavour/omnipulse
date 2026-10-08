@@ -1,9 +1,18 @@
-"use client";
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
+import { useUser, useClerk } from "@clerk/nextjs";
 import { useAppStore } from "@/lib/store";
 import { usePermissions } from "@/lib/hooks/usePermissions";
 import { teamService } from "@/lib/services/team.service";
+import { profileService } from "@/lib/services/profile.service";
+import { apiClient } from "@/lib/api/axios-instance";
+import { ENDPOINTS } from "@/lib/constants/endpoint.const";
+import { APP_ROUTES } from "@/lib/constants/routes.const";
+import { notificationPreferencesService } from "@/lib/services/notification-preferences.service";
+import { mediaService } from "@/lib/services/media.service";
+import { workspaceSettingsService, type WorkspaceSettings } from "@/lib/services/workspace-settings.service";
+import { apiKeyService, type ApiKey } from "@/lib/services/api-key.service";
+import { channelService, type ChannelResponse } from "@/lib/services/channel.service";
 import { cn } from "@/lib/utils";
 import {
   Building2, User, Users, Bell, CreditCard, Plug, Shield, Trash2,
@@ -84,6 +93,10 @@ function WorkspaceSection() {
   const renameWorkspace = useAppStore((s) => s.renameWorkspace);
   const [name, setName] = useState(tenant?.company_name ?? "");
   const [saving, setSaving] = useState(false);
+  const [settings, setSettings] = useState<WorkspaceSettings>({ logo_url: "", timezone: "UTC", language: "en-US" });
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+  useEffect(() => { workspaceSettingsService.get().then(setSettings).catch(() => toast.error("Failed to load workspace settings")).finally(() => setLoadingSettings(false)); }, []);
   useEffect(() => { setName(tenant?.company_name ?? ""); }, [tenant?.company_name]);
   const handleSave = async () => {
     if (!name.trim() || name.trim() === tenant?.company_name) return;
@@ -117,8 +130,8 @@ function WorkspaceSection() {
         <CardSection title="Identity">
           <div className="flex items-center gap-5 mb-6">
             <div className="relative">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#163300] text-2xl font-bold text-[#9fe870] shadow-md">{name.charAt(0)?.toUpperCase() ?? "W"}</div>
-              <button className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"><Pencil className="h-3 w-3 text-gray-500" /></button>
+              {settings.logo_url ? <img src={settings.logo_url} alt="Workspace logo" className="h-16 w-16 rounded-2xl object-cover shadow-md" /> : <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#163300] text-2xl font-bold text-[#9fe870] shadow-md">{name.charAt(0)?.toUpperCase() ?? "W"}</div>}
+              <label className="absolute -bottom-1 -right-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"><Pencil className="h-3 w-3 text-gray-500" /><input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" disabled={uploadingLogo} onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be 2MB or smaller"); return; } setUploadingLogo(true); try { const uploaded = await mediaService.uploadImage(file); const updated = await workspaceSettingsService.update({ ...settings, logo_url: uploaded.url }); setSettings(updated); toast.success("Workspace logo updated"); } catch { toast.error("Failed to upload workspace logo"); } finally { setUploadingLogo(false); event.target.value = ""; } }} /></label>
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-900">Workspace Logo</p>
@@ -142,21 +155,27 @@ function WorkspaceSection() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Timezone</label>
-              <select className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all">
-                <option>UTC+01:00 – Lagos (WAT)</option><option>UTC+00:00 – London (GMT)</option>
-                <option>UTC-05:00 – New York (EST)</option><option>UTC+05:30 – Mumbai (IST)</option>
+              <select value={settings.timezone} onChange={(event) => setSettings((current) => ({ ...current, timezone: event.target.value }))} className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all">
+                <option value="Africa/Lagos">UTC+01:00 – Lagos (WAT)</option>
+                <option value="Europe/London">UTC+00:00 – London (GMT)</option>
+                <option value="America/New_York">UTC-05:00 – New York (EST)</option>
+                <option value="Asia/Kolkata">UTC+05:30 – Mumbai (IST)</option>
+                <option value="UTC">UTC – Coordinated Universal Time</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Language</label>
-              <select className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all">
-                <option>English (US)</option><option>English (UK)</option><option>French</option>
+              <select value={settings.language} onChange={(event) => setSettings((current) => ({ ...current, language: event.target.value }))} className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all">
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="fr-FR">French</option>
+                <option value="es-ES">Spanish</option>
               </select>
             </div>
           </div>
         </CardSection>
         <CardSection noBorder>
-          <div className="flex justify-end"><SaveButton onClick={() => toast.success("Regional settings saved")} /></div>
+          <div className="flex justify-end"><SaveButton loading={loadingSettings} onClick={async () => { try { await workspaceSettingsService.update(settings); toast.success("Regional settings saved"); } catch { toast.error("Failed to save regional settings"); } }} /></div>
         </CardSection>
       </Card>
     </div>
@@ -165,6 +184,7 @@ function WorkspaceSection() {
 
 // ── Profile Section ────────────────────────────────────────────────────────────
 function ProfileSection() {
+  const { user: clerkUser } = useUser();
   const user = useAppStore((s) => s.user);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -174,21 +194,53 @@ function ProfileSection() {
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [showNewPw, setShowNewPw] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    profileService.getProfile().then((profile) => {
+      setFirstName(profile.first_name ?? clerkUser?.firstName ?? ""); setLastName(profile.last_name ?? clerkUser?.lastName ?? ""); setEmail(profile.email ?? user?.email ?? "");
+    }).catch(() => { setFirstName(clerkUser?.firstName ?? ""); setLastName(clerkUser?.lastName ?? ""); setEmail(user?.email ?? ""); }).finally(() => setLoading(false));
+  }, [user?.email, clerkUser?.firstName, clerkUser?.lastName]);
   const handleProfileSave = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setSaving(false);
-    toast.success("Profile updated");
+    try { await clerkUser?.update({ firstName: firstName.trim(), lastName: lastName.trim() }); await profileService.updateProfile({ first_name: firstName.trim(), last_name: lastName.trim(), email: email.trim() }); toast.success("Profile updated"); }
+    catch { toast.error("Failed to update profile"); }
+    finally { setSaving(false); }
   };
   const handlePasswordChange = async () => {
     if (newPw !== confirmPw) { toast.error("Passwords do not match"); return; }
     if (newPw.length < 8) { toast.error("Password must be at least 8 characters"); return; }
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
+    if (!clerkUser) return;
+    try { await clerkUser.updatePassword({ currentPassword: currentPw, newPassword: newPw }); }
+    catch { toast.error("Failed to update password. Check your current password."); setSaving(false); return; }
     setSaving(false);
     setCurrentPw(""); setNewPw(""); setConfirmPw("");
     toast.success("Password changed successfully");
   };
+
+  const handleAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Profile photo must be 2MB or smaller");
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      await clerkUser?.setProfileImage({ file });
+      toast.success("Profile photo updated");
+    } catch {
+      toast.error("Failed to update profile photo");
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = "";
+    }
+  };
+
+  if (loading) return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-[#163300]" /></div>;
   return (
     <div>
       <SectionHeader title="Profile Settings" description="Manage your personal information and credentials." />
@@ -196,8 +248,11 @@ function ProfileSection() {
         <CardSection title="Personal Information">
           <div className="flex items-center gap-5 mb-6">
             <div className="relative">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-pink-500 text-2xl font-bold text-white shadow-md">{user?.email?.charAt(0)?.toUpperCase() ?? "U"}</div>
-              <button className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"><Pencil className="h-3 w-3 text-gray-500" /></button>
+              {clerkUser?.imageUrl ? <img src={clerkUser.imageUrl} alt="Profile" className="h-16 w-16 rounded-full object-cover shadow-md" /> : <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-pink-500 text-2xl font-bold text-white shadow-md">{user?.email?.charAt(0)?.toUpperCase() ?? "U"}</div>}
+              <label className="absolute -bottom-1 -right-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors">
+                {uploadingAvatar ? <Loader2 className="h-3 w-3 animate-spin text-[#163300]" /> : <Pencil className="h-3 w-3 text-gray-500" />}
+                <input ref={avatarInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" disabled={uploadingAvatar} onChange={handleAvatarFile} />
+              </label>
             </div>
             <div><p className="text-sm font-semibold text-gray-900">Profile Photo</p><p className="text-xs text-gray-400 mt-0.5">PNG, JPG up to 2MB.</p></div>
           </div>
@@ -206,33 +261,41 @@ function ProfileSection() {
             <InputField label="Last Name" id="profile-last" value={lastName} onChange={setLastName} placeholder="Last name" />
           </div>
           <div className="mt-4">
-            <InputField label="Email Address" id="profile-email" type="email" value={email} onChange={setEmail} placeholder="you@company.com" hint="Managed via Clerk — changes may require re-verification." />
+            <InputField label="Email Address" id="profile-email" type="email" value={email} disabled placeholder="you@company.com" hint="Managed via Clerk — email updates require verification via your account portal." />
           </div>
         </CardSection>
         <CardSection noBorder><div className="flex justify-end"><SaveButton onClick={handleProfileSave} loading={saving} /></div></CardSection>
       </Card>
       <Card className="mt-4">
         <CardSection title="Password">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
-              <input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} placeholder="••••••••" className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all" />
+          {clerkUser && !clerkUser.passwordEnabled ? (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-xs text-amber-800 leading-relaxed">
+              <span className="font-bold">Social Login Active:</span> You are signed in via an external OAuth provider (such as Google). Password management is handled by your provider.
             </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
-              <input type={showNewPw ? "text" : "password"} value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="Min. 8 characters" className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 pr-10 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all" />
-              <button onClick={() => setShowNewPw((v) => !v)} className="absolute right-3 top-9 text-gray-400 hover:text-gray-600">{showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
+                <input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} placeholder="••••••••" className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all" />
+              </div>
+              <div className="relative">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
+                <input type={showNewPw ? "text" : "password"} value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="Min. 8 characters" className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 pr-10 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all" />
+                <button onClick={() => setShowNewPw((v) => !v)} className="absolute right-3 top-9 text-gray-400 hover:text-gray-600">{showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
+              </div>
+              <InputField label="Confirm New Password" id="profile-confirm-pw" type="password" value={confirmPw} onChange={setConfirmPw} placeholder="Re-enter new password" />
             </div>
-            <InputField label="Confirm New Password" id="profile-confirm-pw" type="password" value={confirmPw} onChange={setConfirmPw} placeholder="Re-enter new password" />
-          </div>
+          )}
         </CardSection>
-        <CardSection noBorder>
-          <div className="flex justify-end">
-            <button onClick={handlePasswordChange} className="inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2 text-sm font-bold text-[#9fe870] hover:bg-[#163300]/90 active:scale-95 transition-all duration-150 shadow-sm">
-              <Lock className="h-4 w-4" />Update Password
-            </button>
-          </div>
-        </CardSection>
+        {clerkUser?.passwordEnabled && (
+          <CardSection noBorder>
+            <div className="flex justify-end">
+              <button onClick={handlePasswordChange} className="inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2 text-sm font-bold text-[#9fe870] hover:bg-[#163300]/90 active:scale-95 transition-all duration-150 shadow-sm">
+                <Lock className="h-4 w-4" />Update Password
+              </button>
+            </div>
+          </CardSection>
+        )}
       </Card>
     </div>
   );
@@ -310,7 +373,27 @@ function TeamSection() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize", roleColors[m.role] ?? "bg-gray-100 text-gray-600")}>{m.role}</span>
+                    {isOwner && m.role !== "owner" ? (
+                      <select
+                        value={m.role}
+                        onChange={async (e) => {
+                          const newRole = e.target.value as "admin" | "member";
+                          try {
+                            await teamService.updateMemberRole(m.id, newRole);
+                            setMembers((prev) => prev.map((item) => (item.id === m.id ? { ...item, role: newRole } : item)));
+                            toast.success(`Role updated to ${newRole}`);
+                          } catch {
+                            toast.error("Failed to update member role");
+                          }
+                        }}
+                        className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-semibold capitalize text-gray-700 focus:border-[#163300] focus:outline-none"
+                      >
+                        <option value="admin">Admin</option>
+                        <option value="member">Member</option>
+                      </select>
+                    ) : (
+                      <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize", roleColors[m.role] ?? "bg-gray-100 text-gray-600")}>{m.role}</span>
+                    )}
                     {canRemoveMembers && m.role !== "owner" && (
                       <button onClick={() => handleRemove(m.id, m.email)} className="ml-1 rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>
                     )}
@@ -339,6 +422,9 @@ const defaultNotifs: NotifSetting[] = [
 ];
 function NotificationsSection() {
   const [notifs, setNotifs] = useState<NotifSetting[]>(defaultNotifs);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { notificationPreferencesService.get().then((saved) => { if (saved.length) setNotifs(defaultNotifs.map((item) => { const match = saved.find((p) => p.key === item.key); return match ? { ...item, email: match.email, inApp: match.in_app } : item; })); }).catch(() => toast.error("Failed to load notification preferences")).finally(() => setLoading(false)); }, []);
   const toggle = (key: NotifKey, channel: "email" | "inApp") => {
     setNotifs((prev) => prev.map((n) => (n.key === key ? { ...n, [channel]: !n[channel] } : n)));
   };
@@ -346,6 +432,7 @@ function NotificationsSection() {
     <div>
       <SectionHeader title="Notification Preferences" description="Choose how and when you receive alerts about workspace activity." />
       <Card>
+        {loading && <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-[#163300]" /></div>}
         <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100 bg-gray-50/50">
           <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Event</span>
           <div className="flex gap-10 pr-1">
@@ -366,7 +453,7 @@ function NotificationsSection() {
           </div>
         ))}
         <div className="border-t border-gray-100 px-6 py-4 flex justify-end">
-          <SaveButton onClick={() => toast.success("Notification preferences saved")} />
+          <SaveButton loading={saving} onClick={async () => { setSaving(true); try { await notificationPreferencesService.update(notifs.map((item) => ({ key: item.key, email: item.email, in_app: item.inApp }))); toast.success("Notification preferences saved"); } catch { toast.error("Failed to save notification preferences"); } finally { setSaving(false); } }} />
         </div>
       </Card>
     </div>
@@ -444,143 +531,380 @@ function BillingSection() {
 // ── Integrations Section ───────────────────────────────────────────────────────
 function IntegrationsSection() {
   const { canManageChannels } = usePermissions();
+  const [channels, setChannels] = useState<ChannelResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [disconnecting, setDisconnecting] = useState<string | null>(null);
+
+  const loadChannels = useCallback(async () => {
+    try {
+      const list = await channelService.getChannels();
+      setChannels(list ?? []);
+    } catch {
+      // Keep empty fallback
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadChannels();
+  }, [loadChannels]);
+
+  const hasWhatsApp = channels.some((c) => c.platform_name === "whatsapp" && c.status === "active");
+  const hasTelegram = channels.some((c) => c.platform_name === "telegram" && c.status === "active");
+  const whatsappChannel = channels.find((c) => c.platform_name === "whatsapp" && c.status === "active");
+  const telegramChannel = channels.find((c) => c.platform_name === "telegram" && c.status === "active");
+
+  const handleDisconnect = async (platform: string, name: string) => {
+    if (!confirm(`Are you sure you want to disconnect ${name}?`)) return;
+    setDisconnecting(platform);
+    try {
+      await channelService.disconnectChannel(platform);
+      toast.success(`${name} disconnected`);
+      await loadChannels();
+    } catch {
+      toast.error(`Failed to disconnect ${name}`);
+    } finally {
+      setDisconnecting(null);
+    }
+  };
+
   const integrations = [
-    { name: "WhatsApp Business", description: "Send and receive messages via WhatsApp Web", status: "connected", icon: "💬" },
-    { name: "Telegram", description: "Broadcast to Telegram groups and channels", status: "connected", icon: "✈️" },
-    { name: "Slack", description: "Get workspace notifications in Slack", status: "disconnected", icon: "🔔" },
-    { name: "Zapier", description: "Automate workflows with 5,000+ apps", status: "disconnected", icon: "⚡" },
-    { name: "Google Sheets", description: "Export contacts and analytics to sheets", status: "disconnected", icon: "📊" },
-    { name: "Webhooks", description: "Receive real-time event payloads to any URL", status: "disconnected", icon: "🔗" },
+    {
+      id: "whatsapp",
+      name: "WhatsApp Multi-Device",
+      description: hasWhatsApp ? `Linked: ${whatsappChannel?.sender_identity || "Active Session"}` : "Broadcast and direct messages via WhatsApp Web QR link",
+      status: hasWhatsApp ? "connected" : "disconnected",
+      icon: "💬",
+      isLiveChannel: true,
+    },
+    {
+      id: "telegram",
+      name: "Telegram Bot Gateway",
+      description: hasTelegram ? `Linked: @${telegramChannel?.sender_identity || "Bot"}` : "Broadcast to Telegram groups, channels, and individual subscribers",
+      status: hasTelegram ? "connected" : "disconnected",
+      icon: "✈️",
+      isLiveChannel: true,
+    },
+    {
+      id: "slack",
+      name: "Slack",
+      description: "Get workspace notifications in Slack (Planned connector)",
+      status: "disconnected",
+      icon: "🔔",
+      isLiveChannel: false,
+    },
+    {
+      id: "zapier",
+      name: "Zapier",
+      description: "Automate workflows with 5,000+ external apps (Planned connector)",
+      status: "disconnected",
+      icon: "⚡",
+      isLiveChannel: false,
+    },
+    {
+      id: "google_sheets",
+      name: "Google Sheets",
+      description: "Export audience contacts and dispatch telemetry (Planned connector)",
+      status: "disconnected",
+      icon: "📊",
+      isLiveChannel: false,
+    },
+    {
+      id: "webhooks",
+      name: "Inbound Webhooks",
+      description: "Receive real-time event payloads to any external HTTP endpoint",
+      status: "disconnected",
+      icon: "🔗",
+      isLiveChannel: false,
+    },
   ];
+
   return (
     <div>
-      <SectionHeader title="Integrations & Connected Apps" description="Connect OmniPulse to your favorite tools and platforms." />
-      <div className="grid grid-cols-2 gap-3">
-        {integrations.map((item) => (
-          <Card key={item.name}>
-            <CardSection noBorder>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-xl border border-gray-100">{item.icon}</div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{item.name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5 leading-relaxed max-w-[200px]">{item.description}</p>
+      <SectionHeader title="Integrations & Connected Apps" description="Manage active delivery pipelines and external integrations." />
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-[#163300]" /></div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          {integrations.map((item) => (
+            <Card key={item.name}>
+              <CardSection noBorder>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-xl border border-gray-100">{item.icon}</div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{item.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5 leading-relaxed max-w-[200px]">{item.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", item.status === "connected" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500")}>
+                      {item.status}
+                    </span>
+                    {canManageChannels && (
+                      item.isLiveChannel ? (
+                        item.status === "connected" ? (
+                          <button
+                            onClick={() => handleDisconnect(item.id, item.name)}
+                            disabled={disconnecting === item.id}
+                            className="text-xs font-semibold text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                          >
+                            {disconnecting === item.id ? "Disconnecting..." : "Disconnect"}
+                          </button>
+                        ) : (
+                          <Link
+                            href={APP_ROUTES.DASHBOARD.CONNECTIONS}
+                            className="text-xs font-bold text-[#163300] hover:underline transition-colors"
+                          >
+                            Connect →
+                          </Link>
+                        )
+                      ) : (
+                        <button
+                          onClick={() => toast.info(`${item.name} connector is coming soon.`)}
+                          className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          Configure
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", item.status === "connected" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500")}>{item.status}</span>
-                  {canManageChannels && (
-                    <button onClick={() => toast.info(item.status === "connected" ? `Disconnecting ${item.name}...` : `Connecting ${item.name}...`)} className={cn("text-xs font-medium transition-colors", item.status === "connected" ? "text-red-500 hover:text-red-600" : "text-[#163300] hover:underline font-bold")}>
-                      {item.status === "connected" ? "Disconnect" : "Connect →"}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </CardSection>
-          </Card>
-        ))}
-      </div>
+              </CardSection>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-// ── Security Section ───────────────────────────────────────────────────────────
+
+// ── Security Section ──────────────────────────────────────────────────────────
 function SecuritySection() {
-  const [keys, setKeys] = useState([
-    { id: "k1", name: "Production Key", prefix: "op_live_••••Xk9a", createdAt: "2026-08-01", lastUsed: "Today" },
-    { id: "k2", name: "Development Key", prefix: "op_test_••••Ry3b", createdAt: "2026-09-15", lastUsed: "3 days ago" },
-  ]);
-  const [newKeyName, setNewKeyName] = useState("");
+  const { openUserProfile } = useClerk();
+  const [keys, setKeys] = useState<ApiKey[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [keyName, setKeyName] = useState("");
   const [creating, setCreating] = useState(false);
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-  const sessions = [
-    { device: "Chrome on macOS", location: "Lagos, Nigeria", lastSeen: "Now", current: true },
-    { device: "Safari on iPhone", location: "Lagos, Nigeria", lastSeen: "2 hours ago", current: false },
-    { device: "Firefox on Windows", location: "Abuja, Nigeria", lastSeen: "Yesterday", current: false },
-  ];
-  const handleCreateKey = async () => {
-    if (!newKeyName.trim()) return;
+  const [copiedKey, setCopiedKey] = useState(false);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+
+  const fetchKeys = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await apiKeyService.list();
+      setKeys(data);
+    } catch {
+      toast.error("Failed to load API keys");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchKeys();
+  }, [fetchKeys]);
+
+  const handleCreateKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!keyName.trim()) return;
     setCreating(true);
-    await new Promise((r) => setTimeout(r, 800));
-    const fakeKey = `op_live_${Math.random().toString(36).substring(2, 18)}`;
-    setNewlyCreatedKey(fakeKey);
-    setKeys((prev) => [...prev, { id: `k${Date.now()}`, name: newKeyName, prefix: `op_live_••••${fakeKey.slice(-4)}`, createdAt: new Date().toISOString().split("T")[0], lastUsed: "Never" }]);
-    setNewKeyName(""); setCreating(false);
+    try {
+      const res = await apiKeyService.create(keyName.trim());
+      setNewlyCreatedKey(res.key);
+      setKeyName("");
+      toast.success("API key generated successfully");
+      fetchKeys();
+    } catch {
+      toast.error("Failed to generate API key");
+    } finally {
+      setCreating(false);
+    }
   };
-  const copyKey = () => {
-    if (newlyCreatedKey) { navigator.clipboard.writeText(newlyCreatedKey); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(true);
+    toast.success("API key copied to clipboard");
+    setTimeout(() => setCopiedKey(false), 2000);
   };
+
+  const handleRevoke = async (id: string) => {
+    setRevokingId(id);
+    try {
+      await apiKeyService.revoke(id);
+      setKeys((prev) => prev.filter((k) => k.id !== id));
+      toast.success("API key revoked");
+    } catch {
+      toast.error("Failed to revoke API key");
+    } finally {
+      setRevokingId(null);
+    }
+  };
+
   return (
     <div>
-      <SectionHeader title="Security" description="Manage API keys, active sessions, and two-factor authentication." />
-      <Card className="mb-4">
-        <CardSection title="Two-Factor Authentication" noBorder>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 border border-amber-100"><Smartphone className="h-5 w-5 text-amber-600" /></div>
+      <SectionHeader
+        title="Security & API Access"
+        description="Manage API credentials, authentication, and workspace access security."
+      />
+
+      {/* Account Authentication & 2FA */}
+      <Card className="mb-8">
+        <CardSection title="Authentication & 2FA">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e2f6d5]">
+                <Shield className="h-5 w-5 text-[#163300]" />
+              </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Authenticator App</p>
-                <p className="text-xs text-gray-400 mt-0.5">Add an extra layer of security to your account.</p>
+                <h4 className="text-sm font-semibold text-gray-900">Account Credentials & Two-Factor Auth</h4>
+                <p className="text-xs text-gray-500 mt-1 max-w-lg">
+                  Password changes, connected accounts, active sessions, and multi-factor authentication (2FA) are securely managed through your unified identity profile.
+                </p>
               </div>
             </div>
-            <button onClick={() => toast.info("2FA setup managed via Clerk")} className="inline-flex items-center gap-1.5 rounded-lg border border-[#9fe870]/40 px-3 py-1.5 text-xs font-semibold text-[#163300] hover:bg-[#e2f6d5]/50 transition-colors">
-              <Shield className="h-3.5 w-3.5" />Enable 2FA
+            <button
+              onClick={() => openUserProfile?.()}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gray-100 hover:bg-gray-200 px-4 py-2 text-xs font-semibold text-gray-800 transition-all"
+            >
+              <Lock className="h-3.5 w-3.5 text-gray-600" />
+              Manage Security in Profile
             </button>
           </div>
         </CardSection>
       </Card>
-      <Card className="mb-4">
-        <CardSection title="API Keys">
-          <div className="flex gap-3 mb-5">
-            <input value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleCreateKey()} placeholder="Key name (e.g. Production)" className="flex-1 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all" />
-            <button onClick={handleCreateKey} disabled={creating || !newKeyName.trim()} className="inline-flex items-center gap-1.5 rounded-lg bg-[#163300] px-4 py-2 text-sm font-bold text-[#9fe870] hover:bg-[#163300]/90 disabled:opacity-50 transition-all">
-              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}Generate
+
+      {/* API Keys */}
+      <Card>
+        <CardSection>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400">REST API Keys</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Keys used to authenticate external integrations and services directly with OmniPulse API.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setShowCreateModal(true);
+                setNewlyCreatedKey(null);
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#163300] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#1f4700] transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              Create New Key
             </button>
           </div>
-          {newlyCreatedKey && (
-            <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-              <div>
-                <p className="text-xs font-semibold text-emerald-700 mb-0.5">API key created — copy it now, it won't be shown again!</p>
-                <code className="text-xs font-mono text-emerald-800 break-all">{newlyCreatedKey}</code>
+        </CardSection>
+
+        {/* Newly created key disclosure alert */}
+        {newlyCreatedKey && (
+          <div className="mx-6 my-4 p-4 rounded-xl border border-amber-200 bg-amber-50">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="text-xs font-bold text-amber-900">Copy your secret API key now</h4>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  This key will never be displayed again. If you lose it, you will need to revoke it and generate a new one.
+                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <code className="flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-mono text-gray-800 select-all overflow-x-auto">
+                    {newlyCreatedKey}
+                  </code>
+                  <button
+                    onClick={() => handleCopy(newlyCreatedKey)}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-amber-200 hover:bg-amber-300 px-3 py-2 text-xs font-semibold text-amber-900 transition-colors"
+                  >
+                    {copiedKey ? <Check className="h-3.5 w-3.5 text-green-700" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copiedKey ? "Copied" : "Copy"}
+                  </button>
+                </div>
               </div>
-              <button onClick={copyKey} className="shrink-0 rounded-lg border border-emerald-200 bg-white p-2 hover:bg-emerald-100 transition-colors">
-                {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-emerald-600" />}
-              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal / Form to create a key */}
+        {showCreateModal && (
+          <div className="mx-6 my-4 p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <form onSubmit={handleCreateKey} className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-gray-900">New API Key Details</h4>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="e.g. Production Webhook Server, Zapier Sync"
+                  value={keyName}
+                  onChange={(e) => setKeyName(e.target.value)}
+                  className="flex-1 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#9fe870]"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={creating || !keyName.trim()}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#163300] px-4 py-2 text-xs font-bold text-white hover:bg-[#1f4700] disabled:opacity-50 transition-colors"
+                >
+                  {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <KeyRound className="h-3.5 w-3.5" />}
+                  Generate
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <CardSection noBorder>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            </div>
+          ) : keys.length === 0 ? (
+            <div className="text-center py-8">
+              <KeyRound className="mx-auto h-8 w-8 text-gray-300" />
+              <p className="mt-2 text-xs font-medium text-gray-500">No active API keys found</p>
+              <p className="text-xs text-gray-400 mt-0.5">Generate an API key to securely query OmniPulse from external servers.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {keys.map((k) => (
+                <div key={k.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-gray-900">{k.name}</span>
+                      <code className="text-[11px] font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                        {k.prefix}...
+                      </code>
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] text-gray-400">
+                      <span>Created: {new Date(k.created_at).toLocaleDateString()}</span>
+                      <span>•</span>
+                      <span>Last used: {k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : "Never"}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleRevoke(k.id)}
+                    disabled={revokingId === k.id}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {revokingId === k.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    Revoke
+                  </button>
+                </div>
+              ))}
             </div>
           )}
-          <div className="divide-y divide-gray-50">
-            {keys.map((k) => (
-              <div key={k.id} className="flex items-center justify-between py-3.5">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{k.name}</p>
-                  <p className="text-xs font-mono text-gray-400 mt-0.5">{k.prefix}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">Created {k.createdAt} · Last used {k.lastUsed}</p>
-                </div>
-                <button onClick={() => { setKeys((prev) => prev.filter((key) => key.id !== k.id)); toast.success(`Key "${k.name}" revoked`); }} className="rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors">Revoke</button>
-              </div>
-            ))}
-          </div>
-        </CardSection>
-      </Card>
-      <Card>
-        <CardSection title="Active Sessions" noBorder>
-          <div className="divide-y divide-gray-50">
-            {sessions.map((s, i) => (
-              <div key={i} className="flex items-center justify-between py-3.5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100"><Globe className="h-4 w-4 text-gray-500" /></div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                      {s.device}{s.current && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">Current</span>}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">{s.location} · {s.lastSeen}</p>
-                  </div>
-                </div>
-                {!s.current && <button onClick={() => toast.success("Session terminated")} className="flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-600 transition-colors"><LogOut className="h-3.5 w-3.5" />Revoke</button>}
-              </div>
-            ))}
-          </div>
         </CardSection>
       </Card>
     </div>
@@ -606,9 +930,8 @@ function DangerSection() {
   const handleDelete = async () => {
     if (!canDelete) return;
     setDeleting(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    toast.error("Workspace deletion is disabled in demo mode");
-    setDeleting(false); setConfirmInput("");
+    try { await apiClient.delete(ENDPOINTS.WORKSPACES.DELETE); useAppStore.getState().resetAuth(); toast.success("Workspace deleted"); window.location.href = "/"; }
+    catch { toast.error("Failed to delete workspace"); setDeleting(false); setConfirmInput(""); }
   };
   return (
     <div>
