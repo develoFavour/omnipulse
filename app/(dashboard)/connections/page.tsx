@@ -99,10 +99,10 @@ const PLATFORMS: PlatformCatalogItem[] = [
 		description:
 			"High-deliverability email marketing via Resend, Postmark, or SendGrid.",
 		icon: Mail,
-		brandColor: "#6366F1",
-		bgLight: "bg-indigo-50",
-		borderLight: "border-indigo-200",
-		textColor: "text-indigo-600",
+		brandColor: "#163300",
+		bgLight: "bg-[#e2f6d5]",
+		borderLight: "border-[#9fe870]/40",
+		textColor: "text-[#163300]",
 		available: false,
 	},
 	{
@@ -195,7 +195,7 @@ export default function ConnectionsCatalogPage() {
 			{/* Header */}
 			<div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200/80 pb-8">
 				<div>
-					<div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-indigo-600 mb-1.5">
+					<div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-[#163300] mb-1.5">
 						<Layers className="h-4 w-4" />
 						Integrations & Channels
 					</div>
@@ -211,7 +211,7 @@ export default function ConnectionsCatalogPage() {
 				<div className="flex items-center gap-3">
 					{loadingChannels && channels.length === 0 ? (
 						<span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-500 border border-gray-200">
-							<Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-600" />
+							<Loader2 className="h-3.5 w-3.5 animate-spin text-[#163300]" />
 							Syncing channels...
 						</span>
 					) : (
@@ -316,7 +316,7 @@ export default function ConnectionsCatalogPage() {
 										className={`w-full flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all shadow-sm ${
 											!connected && !canManageChannels
 												? "bg-gray-100 text-gray-400 cursor-not-allowed"
-												: "bg-gray-900 text-white hover:bg-gray-800 group-hover:bg-indigo-600"
+												: "bg-gray-900 text-white hover:bg-gray-800 group-hover:bg-[#163300]"
 										}`}
 									>
 										<span>
@@ -397,7 +397,7 @@ export default function ConnectionsCatalogPage() {
 									<div className="rounded-2xl border border-gray-100 bg-gray-50 p-6 space-y-4">
 										<div className="flex items-center justify-between">
 											<div className="flex items-center gap-2 text-sm font-bold text-gray-900">
-												<ShieldCheck className="h-4 w-4 text-indigo-600" />
+												<ShieldCheck className="h-4 w-4 text-[#163300]" />
 												Channel Configuration
 											</div>
 											{telegramChannel && (
@@ -440,7 +440,7 @@ export default function ConnectionsCatalogPage() {
 
 										{loadingDestinations ? (
 											<div className="flex items-center justify-center py-8 text-gray-500 text-sm gap-2">
-												<Loader2 className="h-5 w-5 animate-spin text-indigo-600" />{" "}
+												<Loader2 className="h-5 w-5 animate-spin text-[#163300]" />{" "}
 												Fetching destinations...
 											</div>
 										) : destinations.length === 0 ? (

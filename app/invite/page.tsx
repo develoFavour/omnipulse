@@ -87,8 +87,8 @@ function InviteContent() {
         );
       case "admin":
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 border border-indigo-200">
-            <Shield className="h-3.5 w-3.5 text-indigo-600" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e2f6d5] px-2.5 py-1 text-xs font-semibold text-[#163300] border border-[#9fe870]/60">
+            <Shield className="h-3.5 w-3.5 text-[#163300]" />
             Admin
           </span>
         );
@@ -105,7 +105,7 @@ function InviteContent() {
   if (loading || !isAuthLoaded) {
     return (
       <div className="flex min-h-[360px] flex-col items-center justify-center gap-3">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#163300]" />
         <p className="text-sm font-medium text-gray-500">Verifying invitation credentials...</p>
       </div>
     );
@@ -138,12 +138,12 @@ function InviteContent() {
     >
       {/* Top Header */}
       <div className="border-b border-gray-200 bg-white px-8 pt-8 pb-6 text-center">
-        <div className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600">
+        <div className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#e2f6d5] border border-[#9fe870]/60 text-[#163300]">
           <Users className="h-6 w-6" />
         </div>
 
         <div className="mb-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-0.5 text-xs font-semibold text-indigo-700 border border-indigo-200">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e2f6d5] px-3 py-0.5 text-xs font-semibold text-[#163300] border border-[#9fe870]/60">
             Workspace Invitation
           </span>
         </div>
@@ -188,9 +188,9 @@ function InviteContent() {
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 flex items-start gap-3">
-            <LogIn className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
-            <div className="text-xs text-indigo-900 leading-snug">
+          <div className="rounded-xl border border-[#9fe870]/60 bg-[#e2f6d5]/30 p-4 flex items-start gap-3">
+            <LogIn className="h-5 w-5 text-[#163300] shrink-0 mt-0.5" />
+            <div className="text-xs text-[#163300] leading-snug">
               You will be prompted to sign in or create an Omnipulse account to accept this invitation.
             </div>
           </div>
@@ -200,7 +200,7 @@ function InviteContent() {
         <button
           onClick={handleAccept}
           disabled={accepting}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#163300] hover:bg-[#0d2000] px-6 py-3.5 text-sm font-semibold text-[#9fe870] hover:text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#163300] focus:ring-offset-2 disabled:opacity-50"
         >
           {accepting ? (
             <>
@@ -234,7 +234,7 @@ export default function InvitePage() {
       <Suspense
         fallback={
           <div className="flex h-64 w-full items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#163300]" />
           </div>
         }
       >

@@ -60,7 +60,7 @@ export function DevicePreviewSimulator({
       {/* Platform Switcher Tabs */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-2">
-          <Smartphone className="h-3.5 w-3.5 text-indigo-600" />
+          <Smartphone className="h-3.5 w-3.5 text-[#163300]" />
           Live Omnichannel Simulator
         </span>
         <span className="text-[11px] font-mono text-gray-400">
@@ -318,7 +318,7 @@ export function DevicePreviewSimulator({
                   className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-950 flex items-center justify-center" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#163300] via-[#0d2000] to-slate-950 flex items-center justify-center" />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/60 pointer-events-none" />
 

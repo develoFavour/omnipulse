@@ -46,7 +46,7 @@ export function ScheduledPostCard({
         "group relative rounded-2xl border bg-white p-5 transition-all duration-200 shadow-xs hover:shadow-md",
         isUrgent
           ? "border-amber-300 ring-1 ring-amber-200/50 bg-gradient-to-b from-amber-50/20 to-white"
-          : "border-gray-200/90 hover:border-indigo-200"
+          : "border-gray-200/90 hover:border-[#9fe870]/60"
       )}
     >
       {/* Top Meta Bar */}
@@ -108,7 +108,7 @@ export function ScheduledPostCard({
 
       {/* Campaign Title & Message Preview */}
       <div className="mb-4">
-        <h3 className="text-base font-bold text-gray-900 tracking-tight group-hover:text-indigo-600 transition-colors">
+        <h3 className="text-base font-bold text-gray-900 tracking-tight group-hover:text-[#163300] transition-colors">
           {campaign.title}
         </h3>
 
@@ -120,7 +120,7 @@ export function ScheduledPostCard({
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="mt-1 text-[11px] font-bold text-indigo-600 hover:text-indigo-700 focus:outline-none"
+              className="mt-1 text-[11px] font-bold text-[#163300] hover:underline focus:outline-none"
             >
               {isExpanded ? "Show less" : "Read full message"}
             </button>
@@ -131,7 +131,7 @@ export function ScheduledPostCard({
       {/* Asset indicator if any */}
       {campaign.media_url && (
         <div className="mb-3.5 flex items-center gap-2 text-xs text-gray-500 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-          <ImageIcon className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+          <ImageIcon className="h-3.5 w-3.5 text-[#163300] shrink-0" />
           <span className="truncate max-w-[280px]">Attachment: {campaign.media_url}</span>
         </div>
       )}
@@ -177,7 +177,7 @@ export function ScheduledPostCard({
           variant="ghost"
           size="sm"
           onClick={() => onInspect(campaign)}
-          className="h-8 px-2.5 text-xs font-semibold text-gray-600 hover:text-indigo-600 hover:bg-indigo-50/60"
+          className="h-8 px-2.5 text-xs font-semibold text-gray-600 hover:text-[#163300] hover:bg-[#e2f6d5]/40"
         >
           <Eye className="h-3.5 w-3.5 mr-1" />
           Inspect Details
@@ -201,7 +201,7 @@ export function ScheduledPostCard({
             size="sm"
             onClick={() => onRequestDispatch(campaign)}
             disabled={isCancelling || isDispatching}
-            className="h-8 px-3 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+            className="h-8 px-3 text-xs font-bold bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white shadow-xs"
           >
             <Rocket className="h-3.5 w-3.5 mr-1" />
             Send Now

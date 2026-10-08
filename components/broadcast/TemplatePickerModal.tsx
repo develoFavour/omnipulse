@@ -59,7 +59,7 @@ export const STARTER_TEMPLATES: Omit<MessageTemplate, "id" | "tenant_id" | "crea
 
 export const TEMPLATE_CATEGORIES = [
   { id: "all", label: "All Templates", color: "bg-gray-100 text-gray-700" },
-  { id: "promotions", label: "Promotions", color: "bg-indigo-100 text-indigo-700" },
+  { id: "promotions", label: "Promotions", color: "bg-[#e2f6d5] text-[#163300]" },
   { id: "onboarding", label: "Onboarding", color: "bg-emerald-100 text-emerald-700" },
   { id: "re_engagement", label: "Re-engagement", color: "bg-amber-100 text-amber-700" },
   { id: "reminders", label: "Reminders", color: "bg-sky-100 text-sky-700" },
@@ -129,13 +129,13 @@ export function TemplatePickerModal({
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-100 text-white">
+                <div className="h-10 w-10 rounded-2xl bg-[#163300] flex items-center justify-center shadow-md shadow-[#163300]/10 text-[#9fe870]">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                     Template Library
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/40">
                       {filteredTemplates.length} available
                     </span>
                   </h2>
@@ -163,7 +163,7 @@ export function TemplatePickerModal({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search templates by title, keywords, or variable..."
-                  className="w-full pl-10 pr-4 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-gray-900 placeholder:text-gray-400"
+                  className="w-full pl-10 pr-4 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300] focus:bg-white transition-all text-gray-900 placeholder:text-gray-400"
                 />
               </div>
 
@@ -204,7 +204,7 @@ export function TemplatePickerModal({
                     <motion.div
                       key={template.id}
                       layout
-                      className="group relative flex flex-col justify-between p-4 rounded-2xl border border-gray-200 hover:border-indigo-400 bg-white hover:shadow-md transition-all duration-200"
+                      className="group relative flex flex-col justify-between p-4 rounded-2xl border border-gray-200 hover:border-[#9fe870]/70 bg-white hover:shadow-md transition-all duration-200"
                     >
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between gap-2">
@@ -221,7 +221,7 @@ export function TemplatePickerModal({
                           </span>
                         </div>
 
-                        <h3 className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                        <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#163300] transition-colors line-clamp-1">
                           {template.title}
                         </h3>
 
@@ -237,7 +237,7 @@ export function TemplatePickerModal({
                             template.variables.map((v) => (
                               <span
                                 key={v}
-                                className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100 truncate"
+                                className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/30 truncate"
                               >
                                 &#123;&#123;{v}&#125;&#125;
                               </span>
@@ -256,7 +256,7 @@ export function TemplatePickerModal({
                               media_url: template.media_url,
                             })
                           }
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white font-semibold text-xs transition-all shadow-2xs"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#e2f6d5] text-[#163300] hover:bg-[#163300] hover:text-[#9fe870] font-semibold text-xs transition-all shadow-2xs"
                         >
                           Use Template
                           <ArrowRight className="h-3 w-3" />
@@ -271,8 +271,8 @@ export function TemplatePickerModal({
             {/* Footer */}
             <div className="px-6 py-3.5 bg-gray-50/80 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
               <span className="flex items-center gap-1.5">
-                <Tag className="h-3.5 w-3.5 text-indigo-500" />
-                Variables like <code className="text-indigo-600 bg-indigo-50 px-1 rounded">&#123;&#123;first_name&#125;&#125;</code> auto-populate for each contact.
+                <Tag className="h-3.5 w-3.5 text-[#163300]" />
+                Variables like <code className="text-[#163300] bg-[#e2f6d5] px-1 rounded">&#123;&#123;first_name&#125;&#125;</code> auto-populate for each contact.
               </span>
               <button
                 type="button"

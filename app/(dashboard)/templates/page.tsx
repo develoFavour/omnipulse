@@ -221,7 +221,7 @@ export default function TemplatesPage() {
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
             <span>Campaigns</span>
             <span>/</span>
-            <span className="text-indigo-600 font-bold">Template Library</span>
+            <span className="text-[#163300] font-bold">Template Library</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight font-heading">
             Message Template Library
@@ -236,13 +236,13 @@ export default function TemplatesPage() {
             href={APP_ROUTES.DASHBOARD.BROADCAST}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-bold text-gray-700 transition-all shadow-xs"
           >
-            <Rocket className="h-4 w-4 text-indigo-600" />
+            <Rocket className="h-4 w-4 text-[#163300]" />
             Go to Broadcast Studio
           </Link>
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/20"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#163300] hover:bg-[#1f4700] text-[#9fe870] text-xs font-bold transition-all shadow-md shadow-[#163300]/10"
           >
             <Plus className="h-4 w-4" />
             Create Template
@@ -255,7 +255,7 @@ export default function TemplatesPage() {
         <div className="p-5 rounded-2xl border border-gray-200 bg-white shadow-xs">
           <div className="flex items-center justify-between text-gray-400 mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">Total Templates</span>
-            <FileText className="h-4 w-4 text-indigo-500" />
+            <FileText className="h-4 w-4 text-[#163300]" />
           </div>
           <div className="text-2xl font-black text-gray-900">{dbTemplates.length}</div>
           <p className="text-xs text-gray-500 mt-1">Ready for 1-click broadcast insertion</p>
@@ -293,7 +293,7 @@ export default function TemplatesPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search templates or variables..."
-              className="w-full pl-10 pr-4 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-gray-900 placeholder:text-gray-400"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300] focus:bg-white transition-all text-gray-900 placeholder:text-gray-400"
             />
           </div>
 
@@ -309,7 +309,7 @@ export default function TemplatesPage() {
                   className={cn(
                     "px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all",
                     isActive
-                      ? "bg-gray-900 text-white shadow-xs"
+                      ? "bg-[#163300] text-[#9fe870] shadow-xs"
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200/70"
                   )}
                 >
@@ -324,7 +324,7 @@ export default function TemplatesPage() {
       {/* Templates Grid */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mb-3" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#163300] mb-3" />
           <p className="text-sm font-medium text-gray-500">Loading template library...</p>
         </div>
       ) : filteredTemplates.length === 0 ? (
@@ -337,7 +337,7 @@ export default function TemplatesPage() {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-all shadow-xs"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#163300] text-[#9fe870] text-xs font-bold hover:bg-[#1f4700] transition-all shadow-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             Create Your First Template
@@ -349,7 +349,7 @@ export default function TemplatesPage() {
             <motion.div
               key={template.id}
               layout
-              className="group relative flex flex-col justify-between p-5 rounded-3xl border border-gray-200 bg-white hover:border-indigo-300 hover:shadow-lg transition-all duration-200"
+              className="group relative flex flex-col justify-between p-5 rounded-3xl border border-gray-200 bg-white hover:border-[#9fe870]/80 hover:shadow-lg transition-all duration-200"
             >
               <div className="space-y-3">
                 {/* Header Row: Category Badge & Badges */}
@@ -369,7 +369,7 @@ export default function TemplatesPage() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-base font-bold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                <h3 className="text-base font-bold text-gray-900 group-hover:text-[#163300] transition-colors line-clamp-1">
                   {template.title}
                 </h3>
 
@@ -386,7 +386,7 @@ export default function TemplatesPage() {
                     template.variables.map((v) => (
                       <span
                         key={v}
-                        className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100"
+                        className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/30"
                       >
                         &#123;&#123;{v}&#125;&#125;
                       </span>
@@ -412,7 +412,7 @@ export default function TemplatesPage() {
                       })
                     }
                     title="Preview with sample recipient data"
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-[#163300] hover:bg-[#e2f6d5] transition-colors"
                   >
                     <Eye className="h-4 w-4" />
                   </button>
@@ -430,7 +430,7 @@ export default function TemplatesPage() {
                     type="button"
                     onClick={() => handleOpenEdit(template)}
                     title="Edit template"
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
@@ -450,7 +450,7 @@ export default function TemplatesPage() {
                 <button
                   type="button"
                   onClick={() => handleUseTemplate(template)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white font-semibold text-xs transition-all shadow-2xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#e2f6d5] text-[#163300] hover:bg-[#163300] hover:text-[#9fe870] font-semibold text-xs transition-all shadow-2xs cursor-pointer"
                 >
                   Use Template
                   <ArrowRight className="h-3 w-3" />
@@ -482,7 +482,7 @@ export default function TemplatesPage() {
               {/* Modal Header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-100">
+                  <div className="h-10 w-10 rounded-2xl bg-[#163300] flex items-center justify-center text-[#9fe870] shadow-md shadow-[#163300]/10">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div>
@@ -516,7 +516,7 @@ export default function TemplatesPage() {
                     value={formTitle}
                     onChange={(e) => setFormTitle(e.target.value)}
                     placeholder="e.g. VIP Early Bird 20% Promo"
-                    className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white text-gray-900 transition-all placeholder:text-gray-400"
+                    className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300] focus:bg-white text-gray-900 transition-all placeholder:text-gray-400"
                   />
                 </div>
 
@@ -534,7 +534,7 @@ export default function TemplatesPage() {
                         className={cn(
                           "px-3 py-2 rounded-xl text-xs font-semibold text-center transition-all border",
                           formCategory === cat.id
-                            ? "bg-indigo-600 text-white border-transparent shadow-xs"
+                            ? "bg-[#163300] text-[#9fe870] border-transparent shadow-xs"
                             : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                         )}
                       >
@@ -557,7 +557,7 @@ export default function TemplatesPage() {
                       <button
                         type="button"
                         onClick={() => handleInsertVariable("first_name")}
-                        className="px-2 py-0.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-mono font-bold transition-colors border border-indigo-100"
+                        className="px-2 py-0.5 rounded-lg bg-[#e2f6d5] hover:bg-[#d4f0c4] text-[#163300] text-xs font-mono font-bold transition-colors border border-[#9fe870]/40"
                       >
                         +&#123;&#123;first_name&#125;&#125;
                       </button>
@@ -578,7 +578,7 @@ export default function TemplatesPage() {
                     value={formBody}
                     onChange={(e) => setFormBody(e.target.value)}
                     placeholder="Hello {{first_name}}, we're thrilled to introduce our new offering..."
-                    className="w-full p-3.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white text-gray-900 transition-all placeholder:text-gray-400 font-normal leading-relaxed resize-none shadow-inner"
+                    className="w-full p-3.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300] focus:bg-white text-gray-900 transition-all placeholder:text-gray-400 font-normal leading-relaxed resize-none shadow-inner"
                   />
                   <span className="text-[11px] text-gray-400 block mt-1">
                     Variables enclosed in <code>&#123;&#123;...&#125;&#125;</code> will be automatically replaced with contact data upon dispatch.
@@ -595,7 +595,7 @@ export default function TemplatesPage() {
                     value={formMediaUrl}
                     onChange={(e) => setFormMediaUrl(e.target.value)}
                     placeholder="https://res.cloudinary.com/.../banner.jpg"
-                    className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white text-gray-900 transition-all placeholder:text-gray-400"
+                    className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300] focus:bg-white text-gray-900 transition-all placeholder:text-gray-400"
                   />
                 </div>
 
@@ -611,7 +611,7 @@ export default function TemplatesPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-md shadow-indigo-600/20 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#163300] hover:bg-[#1f4700] text-[#9fe870] text-xs font-bold transition-all shadow-md shadow-[#163300]/10 disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <>
@@ -652,7 +652,7 @@ export default function TemplatesPage() {
             >
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <Smartphone className="h-4 w-4 text-indigo-600" />
+                  <Smartphone className="h-4 w-4 text-[#163300]" />
                   <h3 className="text-sm font-bold text-gray-900">Simulated Contact View</h3>
                 </div>
                 <button
@@ -665,9 +665,9 @@ export default function TemplatesPage() {
               </div>
 
               {/* Sample contact pill */}
-              <div className="bg-indigo-50/70 border border-indigo-100 p-2.5 rounded-xl flex items-center justify-between text-xs">
+              <div className="bg-[#e2f6d5]/60 border border-[#9fe870]/30 p-2.5 rounded-xl flex items-center justify-between text-xs">
                 <span className="text-gray-600 font-medium">Sample Recipient:</span>
-                <span className="font-bold text-indigo-700">Sarah (Apex Media)</span>
+                <span className="font-bold text-[#163300]">Sarah (Apex Media)</span>
               </div>
 
               {/* Mobile Message Bubble */}
@@ -705,7 +705,7 @@ export default function TemplatesPage() {
                       handleUseTemplate(previewTemplate);
                     }
                   }}
-                  className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#163300] text-[#9fe870] text-xs font-semibold hover:bg-[#1f4700] transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   Use This Template
                   <ArrowRight className="h-3.5 w-3.5" />

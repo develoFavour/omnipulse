@@ -56,7 +56,7 @@ export default function DashboardPage() {
     } else if (hours >= 12 && hours < 17) {
       return { greeting: "Good afternoon", Icon: Sun, color: "text-orange-500" };
     } else {
-      return { greeting: "Good evening", Icon: Sunset, color: "text-indigo-400" };
+      return { greeting: "Good evening", Icon: Sunset, color: "text-[#163300]" };
     }
   };
 

@@ -253,8 +253,8 @@ export default function TeamManagementPage() {
         );
       case "admin":
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 border border-indigo-200">
-            <Shield className="h-3.5 w-3.5 text-indigo-600" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e2f6d5] px-2.5 py-1 text-xs font-semibold text-[#163300] border border-[#9fe870]/40">
+            <Shield className="h-3.5 w-3.5 text-[#163300]" />
             Admin
           </span>
         );
@@ -294,7 +294,7 @@ export default function TeamManagementPage() {
 
   const getAvatarBg = (email: string) => {
     const colors = [
-      "bg-indigo-600",
+      "bg-[#163300]",
       "bg-blue-600",
       "bg-emerald-600",
       "bg-amber-600",
@@ -311,7 +311,7 @@ export default function TeamManagementPage() {
   if (loading) {
     return (
       <div className="flex h-96 w-full flex-col items-center justify-center gap-3">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#163300]" />
         <p className="text-sm font-medium text-gray-500">Loading workspace team...</p>
       </div>
     );
@@ -332,7 +332,7 @@ export default function TeamManagementPage() {
         <div className="mt-6 flex justify-center gap-3">
           <Link
             href={APP_ROUTES.DASHBOARD.BASE}
-            className="rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm transition-all"
+            className="rounded-xl bg-[#163300] px-5 py-2.5 text-xs font-bold text-[#9fe870] hover:bg-[#1f4700] shadow-sm transition-all"
           >
             Return to Dashboard
           </Link>
@@ -347,8 +347,8 @@ export default function TeamManagementPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 pb-6">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-50 rounded-lg border border-indigo-100">
-              <Users className="h-6 w-6 text-indigo-600" />
+            <div className="p-2 bg-[#e2f6d5] rounded-lg border border-[#9fe870]/30">
+              <Users className="h-6 w-6 text-[#163300]" />
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">
@@ -365,7 +365,7 @@ export default function TeamManagementPage() {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:ring-offset-2 disabled:opacity-50"
             title="Refresh team members"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
@@ -375,7 +375,7 @@ export default function TeamManagementPage() {
           {canInvite && (
             <button
               onClick={() => setIsInviteOpen(true)}
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2 text-sm font-semibold text-[#9fe870] shadow-sm hover:bg-[#1f4700] transition-colors"
             >
               <UserPlus className="h-4 w-4" />
               Invite Teammate
@@ -410,7 +410,7 @@ export default function TeamManagementPage() {
 
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200">
+            <div className="p-1.5 rounded-lg bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/30">
               <Shield className="h-4 w-4" />
             </div>
             <h3 className="font-semibold text-gray-900 text-sm">Workspace Admin</h3>
@@ -490,7 +490,7 @@ export default function TeamManagementPage() {
                           <div className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                             {getDisplayEmail(member, isCurrentUser)}
                             {isCurrentUser && (
-                              <span className="text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200 px-1.5 py-0.5 rounded font-medium">
+                              <span className="text-[10px] bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/40 px-1.5 py-0.5 rounded font-medium">
                                 You
                               </span>
                             )}
@@ -517,7 +517,7 @@ export default function TeamManagementPage() {
                               setEditingMember(member);
                               setSelectedRole(member.role);
                             }}
-                            className="text-xs font-semibold text-indigo-600 hover:text-indigo-900 hover:underline px-2 py-1"
+                            className="text-xs font-semibold text-[#163300] hover:text-[#1f4700] hover:underline px-2 py-1"
                           >
                             Change Role
                           </button>
@@ -640,7 +640,7 @@ export default function TeamManagementPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-indigo-600" />
+              <UserPlus className="h-5 w-5 text-[#163300]" />
               Invite Teammate
             </DialogTitle>
             <DialogDescription>
@@ -662,7 +662,7 @@ export default function TeamManagementPage() {
                   placeholder="colleague@company.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm focus:border-[#163300] focus:outline-none focus:ring-1 focus:ring-[#163300]/20"
                 />
               </div>
             </div>
@@ -677,7 +677,7 @@ export default function TeamManagementPage() {
                   onClick={() => setInviteRole("member")}
                   className={`flex flex-col p-3 rounded-xl border text-left transition-all ${
                     inviteRole === "member"
-                      ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-600/20"
+                      ? "border-[#163300] bg-[#e2f6d5]/50 ring-2 ring-[#9fe870]/40"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
@@ -696,13 +696,13 @@ export default function TeamManagementPage() {
                     onClick={() => setInviteRole("admin")}
                     className={`flex flex-col p-3 rounded-xl border text-left transition-all ${
                       inviteRole === "admin"
-                        ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-600/20"
+                        ? "border-[#163300] bg-[#e2f6d5]/50 ring-2 ring-[#9fe870]/40"
                         : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-semibold text-gray-900">Admin</span>
-                      <Shield className="h-4 w-4 text-indigo-600" />
+                      <Shield className="h-4 w-4 text-[#163300]" />
                     </div>
                     <span className="text-[11px] text-gray-500 leading-snug">
                       Manages channels, campaigns, and invites members.
@@ -733,7 +733,7 @@ export default function TeamManagementPage() {
               <button
                 type="submit"
                 disabled={isInviting}
-                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2 text-sm font-semibold text-[#9fe870] shadow-sm hover:bg-[#1f4700] disabled:opacity-50"
               >
                 {isInviting ? (
                   <>
@@ -792,13 +792,13 @@ export default function TeamManagementPage() {
                   onClick={() => setSelectedRole(r.id as RoleType)}
                   className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
                     isSelected
-                      ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-600/20"
+                      ? "border-[#163300] bg-[#e2f6d5]/50 ring-2 ring-[#9fe870]/40"
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   <div
                     className={`p-2 rounded-lg ${
-                      isSelected ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600"
+                      isSelected ? "bg-[#163300] text-[#9fe870]" : "bg-gray-100 text-gray-600"
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -824,7 +824,7 @@ export default function TeamManagementPage() {
               type="button"
               onClick={handleUpdateRole}
               disabled={isUpdatingRole}
-              className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2 text-sm font-semibold text-[#9fe870] shadow-sm hover:bg-[#1f4700] disabled:opacity-50"
             >
               {isUpdatingRole ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Save Changes

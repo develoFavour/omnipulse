@@ -140,7 +140,7 @@ export function ChannelPlacementSelector({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-2">
-          <Radio className="h-3.5 w-3.5 text-indigo-600" />
+          <Radio className="h-3.5 w-3.5 text-[#163300]" />
           Delivery Channels & Placements
           <span className="text-[10px] font-mono text-gray-400">
             ({selectedPlacements.length} selected)
@@ -170,7 +170,7 @@ export function ChannelPlacementSelector({
                   ? "opacity-60 bg-gray-50/70 border-gray-200 cursor-not-allowed"
                   : "cursor-pointer hover:shadow-sm",
                 isSelected && !item.disabled
-                  ? cn("bg-white shadow-sm ring-2 ring-indigo-600/10", item.accentBorder)
+                  ? cn("bg-white shadow-sm ring-2 ring-[#163300]/10", item.accentBorder)
                   : "bg-white border-gray-200 hover:border-gray-300"
               )}
             >
@@ -202,7 +202,7 @@ export function ChannelPlacementSelector({
                     className={cn(
                       "h-5 w-5 rounded-md border flex items-center justify-center transition-all duration-200",
                       isSelected && !item.disabled
-                        ? "border-indigo-600 bg-indigo-600 text-white"
+                        ? "border-[#163300] bg-[#163300] text-[#9fe870]"
                         : "border-gray-300 bg-white group-hover:border-gray-400"
                     )}
                   >
@@ -222,7 +222,7 @@ export function ChannelPlacementSelector({
                       e.stopPropagation();
                       onConnectTelegram();
                     }}
-                    className="w-full mb-3 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-colors border border-indigo-200"
+                    className="w-full mb-3 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-[#e2f6d5] hover:bg-[#d4f0c0] text-[#163300] text-xs font-bold transition-colors border border-[#9fe870]/60"
                   >
                     <PlusCircle className="h-3.5 w-3.5" />
                     Connect Telegram Bot

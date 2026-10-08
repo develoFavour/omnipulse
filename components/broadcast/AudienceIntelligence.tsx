@@ -115,8 +115,8 @@ export function AudienceIntelligence({
       {/* Section header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center">
-            <Users className="h-3.5 w-3.5 text-indigo-600" />
+          <div className="h-7 w-7 rounded-lg bg-[#e2f6d5] border border-[#9fe870]/60 flex items-center justify-center">
+            <Users className="h-3.5 w-3.5 text-[#163300]" />
           </div>
           <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700">
             Audience Intelligence
@@ -134,7 +134,7 @@ export function AudienceIntelligence({
       <div className="rounded-2xl border border-gray-200/90 bg-gray-50/70 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-indigo-600 shadow-xs">
+            <div className="h-9 w-9 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-[#163300] shadow-xs">
               <Users className="h-4 w-4" />
             </div>
             <div>
@@ -216,11 +216,11 @@ export function AudienceIntelligence({
 
       {/* ── Contact Targeting (Private DM Placements) ─────────────────── */}
       {hasPrivatePlacements && eligibleContacts.length > 0 && (
-        <div className="rounded-2xl border border-indigo-200/80 bg-indigo-50/20 p-4 space-y-3">
+        <div className="rounded-2xl border border-[#9fe870]/60 bg-[#e2f6d5]/15 p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4 text-indigo-600" />
-              <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-950">
+              <UserCheck className="h-4 w-4 text-[#163300]" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#163300]">
                 Contact Targeting
               </h4>
               {isFilteringContacts ? (
@@ -248,7 +248,7 @@ export function AudienceIntelligence({
               <button
                 type="button"
                 onClick={() => setShowContactPicker((v) => !v)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-[11px] font-bold hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#163300] text-[#9fe870] hover:text-white text-[11px] font-bold hover:bg-[#0d2000] transition-colors"
               >
                 <Filter className="h-3 w-3" />
                 {showContactPicker ? "Close Picker" : "Pick Specific Contacts"}
@@ -272,7 +272,7 @@ export function AudienceIntelligence({
                   value={contactSearch}
                   onChange={(e) => setContactSearch(e.target.value)}
                   placeholder="Search by name or number..."
-                  className="w-full bg-white border border-indigo-200 rounded-xl pl-9 pr-4 py-2 text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-2xs"
+                  className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#163300] focus:ring-1 focus:ring-[#163300] shadow-2xs"
                 />
               </div>
 
@@ -288,7 +288,7 @@ export function AudienceIntelligence({
                     className={cn(
                       "px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors",
                       selectedTagFilter === null
-                        ? "bg-indigo-600 text-white shadow-2xs"
+                        ? "bg-[#163300] text-[#9fe870] shadow-2xs"
                         : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
                     )}
                   >
@@ -324,7 +324,7 @@ export function AudienceIntelligence({
                 <button
                   type="button"
                   onClick={onSelectAllContacts}
-                  className="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 transition-colors"
+                  className="text-[11px] font-bold text-[#163300] hover:underline transition-colors"
                 >
                   Select All ({eligibleContacts.length})
                 </button>
@@ -367,7 +367,7 @@ export function AudienceIntelligence({
                         className={cn(
                           "flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-all duration-150 select-none",
                           isChecked
-                            ? "bg-white border-indigo-400 shadow-xs"
+                            ? "bg-white border-[#9fe870] shadow-xs"
                             : !isFilteringContacts
                             ? "bg-white/80 border-gray-200 hover:bg-white hover:border-gray-300 opacity-70"
                             : "bg-white/50 border-gray-200 hover:bg-white hover:border-gray-300"
@@ -379,7 +379,7 @@ export function AudienceIntelligence({
                             className={cn(
                               "h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-colors",
                               isChecked
-                                ? "border-indigo-600 bg-indigo-600 text-white"
+                                ? "border-[#163300] bg-[#163300] text-[#9fe870]"
                                 : !isFilteringContacts
                                 ? "border-gray-300 bg-gray-50"
                                 : "border-gray-300"
@@ -388,7 +388,7 @@ export function AudienceIntelligence({
                             {isChecked && <CheckCircle2 className="h-3 w-3" />}
                           </div>
                           {/* Avatar */}
-                          <div className="h-6 w-6 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center shrink-0">
+                          <div className="h-6 w-6 rounded-full bg-[#e2f6d5] border border-[#9fe870]/60 text-[#163300] font-bold text-[10px] flex items-center justify-center shrink-0">
                             {contact.first_name?.[0]?.toUpperCase() || "U"}
                           </div>
                           <div className="truncate">

@@ -172,14 +172,14 @@ export function ScheduledBroadcastsView() {
             disabled={isRefreshing || isLoading}
             className="flex items-center gap-2 text-xs font-bold text-gray-600 border-gray-200 hover:bg-gray-50"
           >
-            <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin text-indigo-600")} />
+            <RefreshCw className={cn("h-3.5 w-3.5", isRefreshing && "animate-spin text-[#163300]")} />
             {isRefreshing ? "Refreshing..." : "Refresh Queue"}
           </Button>
 
           <Link href={APP_ROUTES.DASHBOARD.BROADCAST}>
             <Button
               type="button"
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20"
+              className="flex items-center gap-2 bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white font-bold text-xs shadow-md shadow-[#163300]/20"
             >
               <PlusCircle className="h-4 w-4" />
               Schedule New Post
@@ -214,7 +214,7 @@ export function ScheduledBroadcastsView() {
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
               Next Up
             </span>
-            <div className="h-8 w-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-xl bg-[#e2f6d5] text-[#163300] flex items-center justify-center">
               <Clock className="h-4 w-4" />
             </div>
           </div>
@@ -279,7 +279,7 @@ export function ScheduledBroadcastsView() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by campaign title or content..."
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300] transition-all"
           />
         </div>
 
@@ -329,7 +329,7 @@ export function ScheduledBroadcastsView() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
+            className="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#163300]/20 cursor-pointer"
           >
             <option value="soonest">Sort: Soonest First</option>
             <option value="latest">Sort: Latest First</option>
@@ -386,7 +386,7 @@ export function ScheduledBroadcastsView() {
               </Button>
             ) : (
               <Link href={APP_ROUTES.DASHBOARD.BROADCAST}>
-                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md">
+                <Button className="bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white font-bold text-xs shadow-md shadow-[#163300]/20">
                   <Megaphone className="h-4 w-4 mr-1.5" />
                   Open Broadcast Studio
                 </Button>
@@ -481,7 +481,7 @@ export function ScheduledBroadcastsView() {
       >
         <AlertDialogContent className="bg-white border border-gray-200 shadow-xl rounded-2xl">
           <AlertDialogHeader>
-            <div className="flex items-center gap-2 text-indigo-600 mb-1">
+            <div className="flex items-center gap-2 text-[#163300] mb-1">
               <Rocket className="h-5 w-5" />
               <AlertDialogTitle className="text-base font-bold text-gray-900">
                 Dispatch Broadcast Immediately?
@@ -499,7 +499,7 @@ export function ScheduledBroadcastsView() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDispatch}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs"
+              className="bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white font-bold text-xs"
             >
               Dispatch Now
             </AlertDialogAction>

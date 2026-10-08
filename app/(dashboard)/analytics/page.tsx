@@ -124,11 +124,11 @@ export default function AnalyticsPage() {
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-1">
             <span>Dashboard</span>
             <span>/</span>
-            <span className="text-indigo-600 font-bold">Campaign Analytics</span>
+            <span className="text-[#163300] font-bold">Campaign Analytics</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight font-heading flex items-center gap-3">
             <span>Omnichannel Intelligence</span>
-            <span className="rounded-full bg-indigo-50 border border-indigo-200/60 px-2.5 py-0.5 text-xs font-bold text-indigo-700">
+            <span className="rounded-full bg-[#e2f6d5] border border-[#9fe870]/40 px-2.5 py-0.5 text-xs font-bold text-[#163300]">
               Agency Suite
             </span>
           </h1>
@@ -194,7 +194,7 @@ export default function AnalyticsPage() {
         <div className="rounded-2xl border border-gray-200/90 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between text-xs font-bold text-gray-400 uppercase tracking-wider">
             <span>Total Broadcasted</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#e2f6d5] text-[#163300]">
               <Send className="h-4 w-4" />
             </div>
           </div>

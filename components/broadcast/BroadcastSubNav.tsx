@@ -22,11 +22,11 @@ export function BroadcastSubNav({ scheduledCount }: BroadcastSubNavProps) {
         className={cn(
           "flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all",
           isStudioTab
-            ? "bg-white text-indigo-700 shadow-xs border border-gray-200/60"
+            ? "bg-white text-[#163300] shadow-xs border border-gray-200/60"
             : "text-gray-500 hover:text-gray-900"
         )}
       >
-        <Megaphone className={cn("h-3.5 w-3.5", isStudioTab ? "text-indigo-600" : "text-gray-400")} />
+        <Megaphone className={cn("h-3.5 w-3.5", isStudioTab ? "text-[#163300]" : "text-gray-400")} />
         Broadcast Studio
       </Link>
 

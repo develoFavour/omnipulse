@@ -52,7 +52,7 @@ export function ScheduledCampaignDetailModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl bg-white border border-gray-200/90 shadow-2xl rounded-3xl p-0 overflow-hidden">
         {/* Header Ribbon */}
-        <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-indigo-500/10 border-b border-amber-200/50 p-6 pb-5">
+        <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-[#9fe870]/20 border-b border-amber-200/50 p-6 pb-5">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
@@ -117,7 +117,7 @@ export function ScheduledCampaignDetailModal({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5 text-indigo-600" />
+                <FileText className="h-3.5 w-3.5 text-[#163300]" />
                 Message Content
               </span>
               <span className="text-xs text-gray-400 font-medium">
@@ -133,7 +133,7 @@ export function ScheduledCampaignDetailModal({
           {campaign.media_url && (
             <div className="space-y-2">
               <span className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
-                <ImageIcon className="h-3.5 w-3.5 text-indigo-600" />
+                <ImageIcon className="h-3.5 w-3.5 text-[#163300]" />
                 Attached Media
               </span>
               <div className="border border-gray-200 rounded-2xl p-3 bg-gray-50 flex items-center gap-3">
@@ -150,7 +150,7 @@ export function ScheduledCampaignDetailModal({
                     href={campaign.media_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700 inline-flex items-center gap-1 mt-1"
+                    className="text-xs font-bold text-[#163300] hover:underline inline-flex items-center gap-1 mt-1"
                   >
                     Open Media Asset <ExternalLink className="h-3 w-3" />
                   </a>
@@ -162,7 +162,7 @@ export function ScheduledCampaignDetailModal({
           {/* Target Audience & Placements */}
           <div className="space-y-3">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-indigo-600" />
+              <Users className="h-3.5 w-3.5 text-[#163300]" />
               Audience & Placements
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -240,7 +240,7 @@ export function ScheduledCampaignDetailModal({
               type="button"
               onClick={() => onDispatchNow(campaign.id)}
               disabled={isCancelling || isDispatching}
-              className="flex-1 sm:flex-initial bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-500/20"
+              className="flex-1 sm:flex-initial bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white font-bold text-xs shadow-md shadow-[#163300]/20"
             >
               <Rocket className="h-4 w-4 mr-1.5" />
               {isDispatching ? "Launching..." : "Dispatch Now"}

@@ -68,8 +68,8 @@ export default function ActivityPage() {
       className="max-w-7xl mx-auto pb-10"
     >
       <motion.div variants={fadeUp} className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight text-white">Activity</h1>
-        <p className="mt-2 text-zinc-500 text-base">Detailed logs of all your campaign deliveries.</p>
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 font-heading">Activity</h1>
+        <p className="mt-1 text-sm text-gray-500">Detailed logs of all your campaign deliveries.</p>
       </motion.div>
 
       {/* KPI Metric Cards */}
@@ -78,60 +78,60 @@ export default function ActivityPage() {
           title="Total Audience"
           value={isStatsLoading ? "—" : (stats?.total_audience?.toString() || "0")}
           icon={Users}
-          iconColor="text-indigo-400"
+          iconColor="text-[#163300]"
           delay={0.1}
         />
         <MetricCard
           title="Broadcasts Sent"
           value={isStatsLoading ? "—" : (stats?.broadcasts_sent?.toString() || "0")}
           icon={Megaphone}
-          iconColor="text-emerald-400"
+          iconColor="text-[#163300]"
           delay={0.15}
         />
         <MetricCard
           title="Delivery Rate"
           value={isStatsLoading ? "—" : `${(stats?.delivery_rate || 0).toFixed(1)}%`}
           icon={Activity}
-          iconColor="text-amber-400"
+          iconColor="text-[#163300]"
           delay={0.2}
         />
         <MetricCard
           title="Active Channels"
           value={isStatsLoading ? "—" : (stats?.active_channels?.toString() || "0")}
           icon={Zap}
-          iconColor="text-cyan-400"
+          iconColor="text-[#163300]"
           delay={0.25}
         />
       </div>
 
       {/* Deliveries & DLQ Table */}
       <motion.div variants={fadeUp}>
-        <Card className="border-white/[0.08] bg-white/[0.02] backdrop-blur-md">
+        <Card className="border-gray-100 bg-white shadow-sm rounded-2xl">
           <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
             <div>
-              <CardTitle className="text-xl text-zinc-100 flex items-center gap-2">
+              <CardTitle className="text-xl text-gray-900 font-bold flex items-center gap-2">
                 <span>Delivery History & Audit Logs</span>
                 {failedCount > 0 && (
-                  <span className="rounded-full bg-red-500/20 border border-red-500/30 px-2 py-0.5 text-xs font-bold text-red-400">
+                  <span className="rounded-full bg-rose-50 border border-rose-200 px-2.5 py-0.5 text-xs font-bold text-rose-700">
                     {failedCount} failed in DLQ
                   </span>
                 )}
               </CardTitle>
-              <CardDescription className="text-zinc-500 mt-1">
+              <CardDescription className="text-gray-500 mt-1">
                 Detailed telemetry and dead letter queue review for all outgoing broadcasts.
               </CardDescription>
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-gray-100/80 border border-gray-200/60">
               <button
                 type="button"
                 onClick={() => setStatusFilter("all")}
                 className={cn(
                   "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
                   statusFilter === "all"
-                    ? "bg-white/[0.1] text-zinc-100 shadow-xs"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "bg-white text-gray-900 shadow-xs"
+                    : "text-gray-500 hover:text-gray-900"
                 )}
               >
                 All ({deliveries.length})
@@ -142,8 +142,8 @@ export default function ActivityPage() {
                 className={cn(
                   "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer",
                   statusFilter === "delivered"
-                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                    : "text-zinc-400 hover:text-zinc-200"
+                    ? "bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/50"
+                    : "text-gray-500 hover:text-gray-900"
                 )}
               >
                 Delivered ({deliveredCount})
@@ -154,11 +154,11 @@ export default function ActivityPage() {
                 className={cn(
                   "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer",
                   statusFilter === "failed"
-                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                    : "text-zinc-400 hover:text-red-300"
+                    ? "bg-rose-50 text-rose-700 border border-rose-200"
+                    : "text-gray-500 hover:text-rose-600"
                 )}
               >
-                <AlertTriangle className="h-3 w-3 text-red-400" />
+                <AlertTriangle className="h-3 w-3 text-rose-600" />
                 <span>Failed / DLQ ({failedCount})</span>
               </button>
             </div>
@@ -167,30 +167,30 @@ export default function ActivityPage() {
             {isDeliveriesLoading ? (
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full bg-white/[0.05]" />
+                  <Skeleton key={i} className="h-12 w-full bg-gray-100" />
                 ))}
               </div>
             ) : (
               <Table>
                 <TableHeader>
-                  <TableRow className="border-white/[0.08] hover:bg-transparent">
-                    <TableHead className="text-zinc-400">Campaign</TableHead>
-                    <TableHead className="text-zinc-400">Contact</TableHead>
-                    <TableHead className="text-zinc-400">Platform</TableHead>
-                    <TableHead className="text-zinc-400">Status</TableHead>
-                    <TableHead className="text-zinc-400">Date</TableHead>
-                    <TableHead className="text-right text-zinc-400"></TableHead>
+                  <TableRow className="border-gray-100 hover:bg-transparent">
+                    <TableHead className="text-gray-500 font-semibold text-xs">Campaign</TableHead>
+                    <TableHead className="text-gray-500 font-semibold text-xs">Contact</TableHead>
+                    <TableHead className="text-gray-500 font-semibold text-xs">Platform</TableHead>
+                    <TableHead className="text-gray-500 font-semibold text-xs">Status</TableHead>
+                    <TableHead className="text-gray-500 font-semibold text-xs">Date</TableHead>
+                    <TableHead className="text-right text-gray-500 font-semibold text-xs"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredDeliveries.length === 0 ? (
-                    <TableRow className="border-white/[0.08] hover:bg-white/[0.02]">
-                      <TableCell colSpan={6} className="text-center py-10 text-zinc-500">
+                    <TableRow className="border-gray-100 hover:bg-gray-50/50">
+                      <TableCell colSpan={6} className="text-center py-10 text-gray-500">
                         {statusFilter === "failed" ? (
                           <div className="flex flex-col items-center justify-center">
-                            <CheckCircle2 className="h-7 w-7 text-emerald-400/80 mb-2" />
-                            <p className="font-semibold text-zinc-300">Clean Dead Letter Queue</p>
-                            <p className="text-xs text-zinc-500 mt-0.5">No failed delivery events found.</p>
+                            <CheckCircle2 className="h-7 w-7 text-emerald-600 mb-2" />
+                            <p className="font-semibold text-gray-800">Clean Dead Letter Queue</p>
+                            <p className="text-xs text-gray-500 mt-0.5">No failed delivery events found.</p>
                           </div>
                         ) : (
                           "No deliveries found matching current filters."
@@ -203,22 +203,22 @@ export default function ActivityPage() {
                       const StatusIcon = config.icon;
                       
                       return (
-                        <TableRow key={activity.id} className="border-white/[0.08] hover:bg-white/[0.04]">
-                          <TableCell className="font-medium text-zinc-200">
+                        <TableRow key={activity.id} className="border-gray-100 hover:bg-[#f8faf7]">
+                          <TableCell className="font-medium text-gray-900">
                             <div>
-                              <p className="font-semibold text-zinc-100">{activity.campaign_name}</p>
+                              <p className="font-semibold text-gray-900">{activity.campaign_name}</p>
                               {activity.status === "failed" && activity.error_message && (
-                                <p className="text-[11px] text-red-400 font-mono mt-0.5 line-clamp-1">
+                                <p className="text-[11px] text-rose-600 font-mono mt-0.5 line-clamp-1">
                                   {activity.error_message}
                                 </p>
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-zinc-300">
+                          <TableCell className="text-gray-600 text-sm">
                             {activity.contact_name}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2 text-zinc-300 capitalize">
+                            <div className="flex items-center gap-2 text-gray-700 capitalize text-sm">
                               {getPlatformIcon(activity.platform)}
                               {activity.platform}
                             </div>
@@ -229,19 +229,19 @@ export default function ActivityPage() {
                               config.bg
                             )}>
                               <StatusIcon className={cn("h-3 w-3", config.color)} />
-                              <span className={cn("text-xs font-medium", config.color)}>
+                              <span className={cn("text-xs font-semibold", config.color)}>
                                 {config.label}
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-zinc-400">
+                          <TableCell className="text-gray-400 font-mono text-xs">
                             {formatDateTime(activity.created_at)}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button 
                               variant="ghost" 
                               size="icon"
-                              className="h-8 w-8 text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.08]"
+                              className="h-8 w-8 text-gray-400 hover:text-gray-800 hover:bg-gray-100"
                               onClick={() => setSelectedActivity(activity)}
                             >
                               <MoreHorizontal className="h-4 w-4" />
@@ -260,10 +260,10 @@ export default function ActivityPage() {
 
       {/* Details Sheet */}
       <Sheet open={!!selectedActivity} onOpenChange={(open) => !open && setSelectedActivity(null)}>
-        <SheetContent className="bg-zinc-950 border-white/[0.08] text-zinc-200 w-[400px] sm:w-[540px]">
+        <SheetContent className="bg-white border-gray-200 text-gray-900 w-[400px] sm:w-[540px]">
           <SheetHeader>
-            <SheetTitle className="text-zinc-100">Delivery Details</SheetTitle>
-            <SheetDescription className="text-zinc-400">
+            <SheetTitle className="text-gray-900 font-bold">Delivery Details</SheetTitle>
+            <SheetDescription className="text-gray-500">
               Technical information for this delivery event.
             </SheetDescription>
           </SheetHeader>
@@ -271,13 +271,13 @@ export default function ActivityPage() {
           {selectedActivity && (
             <div className="mt-8 space-y-6">
               <div className="space-y-1">
-                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Status</span>
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</span>
                 <div className="flex items-center gap-2 mt-1">
                   <div className={cn(
                     "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
                     STATUS_CONFIG[selectedActivity.status]?.bg || STATUS_CONFIG.pending.bg
                   )}>
-                    <span className={cn("text-sm font-medium", STATUS_CONFIG[selectedActivity.status]?.color || STATUS_CONFIG.pending.color)}>
+                    <span className={cn("text-sm font-semibold", STATUS_CONFIG[selectedActivity.status]?.color || STATUS_CONFIG.pending.color)}>
                       {STATUS_CONFIG[selectedActivity.status]?.label || "Unknown"}
                     </span>
                   </div>
@@ -286,39 +286,39 @@ export default function ActivityPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Campaign</span>
-                  <p className="text-sm text-zinc-200 font-medium">{selectedActivity.campaign_name}</p>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Campaign</span>
+                  <p className="text-sm text-gray-900 font-medium">{selectedActivity.campaign_name}</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Contact</span>
-                  <p className="text-sm text-zinc-200 font-medium">{selectedActivity.contact_name}</p>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Contact</span>
+                  <p className="text-sm text-gray-900 font-medium">{selectedActivity.contact_name}</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Platform</span>
-                  <div className="flex items-center gap-2 text-sm text-zinc-200 capitalize font-medium">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Platform</span>
+                  <div className="flex items-center gap-2 text-sm text-gray-900 capitalize font-medium">
                     {getPlatformIcon(selectedActivity.platform)}
                     {selectedActivity.platform}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Time</span>
-                  <p className="text-sm text-zinc-200 font-medium">{formatDateTime(selectedActivity.created_at)}</p>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Time</span>
+                  <p className="text-sm text-gray-900 font-medium">{formatDateTime(selectedActivity.created_at)}</p>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Event ID</span>
-                <p className="text-xs font-mono text-zinc-400 bg-black/40 p-2 rounded-md border border-white/[0.05]">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Event ID</span>
+                <p className="text-xs font-mono text-gray-700 bg-gray-50 p-2.5 rounded-xl border border-gray-200">
                   {selectedActivity.id}
                 </p>
               </div>
 
               {selectedActivity.error_message && (
                 <div className="space-y-1">
-                  <span className="text-xs font-medium text-red-400 uppercase tracking-wider flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> Error Details
+                  <span className="text-xs font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> Error Details
                   </span>
-                  <div className="text-sm text-red-200 bg-red-950/30 p-3 rounded-md border border-red-500/20 whitespace-pre-wrap font-mono mt-1">
+                  <div className="text-sm text-rose-800 bg-rose-50 p-3 rounded-xl border border-rose-200 whitespace-pre-wrap font-mono mt-1">
                     {selectedActivity.error_message}
                   </div>
                 </div>

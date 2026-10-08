@@ -207,7 +207,7 @@ export function LiveMissionTracker({
       {/* Top Banner Card: Mission Command */}
       <div className="relative overflow-hidden rounded-3xl border border-gray-200/90 dark:border-white/10 bg-white/95 dark:bg-zinc-950/90 p-8 shadow-2xl backdrop-blur-xl">
         {/* Subtle Ambient Glow */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-500/10 via-teal-500/10 to-emerald-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-gradient-to-br from-[#9fe870]/20 via-emerald-500/10 to-[#163300]/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100 dark:border-white/5">
           <div className="space-y-1.5">
@@ -218,10 +218,10 @@ export function LiveMissionTracker({
                   Broadcast Mission Accomplished
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-xs font-bold text-indigo-700 dark:text-indigo-400">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e2f6d5] dark:bg-[#e2f6d5]/10 border border-[#9fe870]/60 text-xs font-bold text-[#163300] dark:text-[#9fe870]">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600" />
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#9fe870] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#163300]" />
                   </span>
                   Live Dispatch in Flight
                 </span>
@@ -292,7 +292,7 @@ export function LiveMissionTracker({
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-teal-500 to-emerald-500 shadow-sm relative overflow-hidden"
+              className="h-full rounded-full bg-gradient-to-r from-[#163300] via-emerald-600 to-[#9fe870] shadow-sm relative overflow-hidden"
             >
               {!isCompleted && (
                 <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)]" />
@@ -363,7 +363,7 @@ export function LiveMissionTracker({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100 dark:border-white/5">
           <div>
             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Send className="h-4 w-4 text-indigo-500" />
+              <Send className="h-4 w-4 text-[#163300]" />
               Live Delivery Audit Stream
             </h3>
             <p className="text-xs text-gray-500 dark:text-zinc-400">
@@ -436,7 +436,7 @@ export function LiveMissionTracker({
             <div className="py-12 text-center text-gray-400 dark:text-zinc-500 text-sm">
               {deliveries.length === 0 ? (
                 <div className="flex flex-col items-center gap-2.5">
-                  <RefreshCw className="h-6 w-6 animate-spin text-indigo-500" />
+                  <RefreshCw className="h-6 w-6 animate-spin text-[#163300]" />
                   <span className="font-medium text-gray-700 dark:text-zinc-300">
                     {elapsedSeconds < 15
                       ? "Dispatched tasks to NATS JetStream fabric..."
@@ -471,7 +471,7 @@ export function LiveMissionTracker({
                       <div className="p-2 rounded-xl bg-white dark:bg-zinc-800 border border-gray-200/60 dark:border-white/5 shrink-0">
                         {isTelegram && <FaTelegramPlane className="h-4 w-4 text-[#229ED9]" />}
                         {isWhatsApp && <FaWhatsapp className="h-4 w-4 text-[#25D366]" />}
-                        {!isTelegram && !isWhatsApp && <Radio className="h-4 w-4 text-indigo-500" />}
+                        {!isTelegram && !isWhatsApp && <Radio className="h-4 w-4 text-[#163300]" />}
                       </div>
 
                       <div className="truncate">
@@ -538,7 +538,7 @@ export function LiveMissionTracker({
 
           <button
             onClick={onReset}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all shadow-md shadow-indigo-600/25"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white font-bold text-sm transition-all shadow-md shadow-[#163300]/25"
           >
             Compose New Broadcast
             <ArrowRight className="h-4 w-4" />

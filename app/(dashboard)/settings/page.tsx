@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
@@ -54,7 +54,7 @@ function InputField({ label, id, value, onChange, placeholder, type = "text", di
       <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
       <input id={id} type={type} value={value} onChange={(e) => onChange?.(e.target.value)}
         placeholder={placeholder} disabled={disabled}
-        className={cn("w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-150", disabled && "cursor-not-allowed bg-gray-50 text-gray-400")} />
+        className={cn("w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all duration-150", disabled && "cursor-not-allowed bg-gray-50 text-gray-400")} />
       {hint && <p className="mt-1.5 text-xs text-gray-400">{hint}</p>}
     </div>
   );
@@ -62,7 +62,7 @@ function InputField({ label, id, value, onChange, placeholder, type = "text", di
 function SaveButton({ onClick, loading, disabled }: { onClick: () => void; loading?: boolean; disabled?: boolean }) {
   return (
     <button onClick={onClick} disabled={loading || disabled}
-      className={cn("inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 active:scale-95 transition-all duration-150 shadow-sm shadow-indigo-200", (loading || disabled) && "cursor-not-allowed opacity-60")}>
+      className={cn("inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2 text-sm font-bold text-[#9fe870] hover:bg-[#163300]/90 active:scale-95 transition-all duration-150 shadow-sm", (loading || disabled) && "cursor-not-allowed opacity-60")}>
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
       Save Changes
     </button>
@@ -71,7 +71,7 @@ function SaveButton({ onClick, loading, disabled }: { onClick: () => void; loadi
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <button role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-      className={cn("relative inline-flex h-5 w-9 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2", checked ? "bg-indigo-600" : "bg-gray-200")}>
+      className={cn("relative inline-flex h-5 w-9 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#163300] focus:ring-offset-2", checked ? "bg-[#163300]" : "bg-gray-200")}>
       <span className={cn("inline-block h-4 w-4 translate-y-0.5 rounded-full bg-white shadow-sm transition-transform duration-200", checked ? "translate-x-[18px]" : "translate-x-0.5")} />
     </button>
   );
@@ -99,7 +99,7 @@ function WorkspaceSection() {
         <Card>
           <CardSection noBorder>
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-xl font-bold text-white">{tenant?.company_name?.charAt(0)?.toUpperCase() ?? "W"}</div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#163300] text-xl font-bold text-[#9fe870]">{tenant?.company_name?.charAt(0)?.toUpperCase() ?? "W"}</div>
               <div>
                 <p className="text-base font-semibold text-gray-900">{tenant?.company_name ?? "—"}</p>
                 <p className="text-xs text-gray-400 mt-0.5">Only the workspace owner can modify this.</p>
@@ -117,7 +117,7 @@ function WorkspaceSection() {
         <CardSection title="Identity">
           <div className="flex items-center gap-5 mb-6">
             <div className="relative">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-2xl font-bold text-white shadow-md">{name.charAt(0)?.toUpperCase() ?? "W"}</div>
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#163300] text-2xl font-bold text-[#9fe870] shadow-md">{name.charAt(0)?.toUpperCase() ?? "W"}</div>
               <button className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"><Pencil className="h-3 w-3 text-gray-500" /></button>
             </div>
             <div>
@@ -142,14 +142,14 @@ function WorkspaceSection() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Timezone</label>
-              <select className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
+              <select className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all">
                 <option>UTC+01:00 – Lagos (WAT)</option><option>UTC+00:00 – London (GMT)</option>
                 <option>UTC-05:00 – New York (EST)</option><option>UTC+05:30 – Mumbai (IST)</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Language</label>
-              <select className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
+              <select className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all">
                 <option>English (US)</option><option>English (UK)</option><option>French</option>
               </select>
             </div>
@@ -216,11 +216,11 @@ function ProfileSection() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Current Password</label>
-              <input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} placeholder="••••••••" className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+              <input type="password" value={currentPw} onChange={(e) => setCurrentPw(e.target.value)} placeholder="••••••••" className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all" />
             </div>
             <div className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">New Password</label>
-              <input type={showNewPw ? "text" : "password"} value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="Min. 8 characters" className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 pr-10 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+              <input type={showNewPw ? "text" : "password"} value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="Min. 8 characters" className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 pr-10 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all" />
               <button onClick={() => setShowNewPw((v) => !v)} className="absolute right-3 top-9 text-gray-400 hover:text-gray-600">{showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
             </div>
             <InputField label="Confirm New Password" id="profile-confirm-pw" type="password" value={confirmPw} onChange={setConfirmPw} placeholder="Re-enter new password" />
@@ -228,7 +228,7 @@ function ProfileSection() {
         </CardSection>
         <CardSection noBorder>
           <div className="flex justify-end">
-            <button onClick={handlePasswordChange} className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 active:scale-95 transition-all duration-150 shadow-sm shadow-indigo-200">
+            <button onClick={handlePasswordChange} className="inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2 text-sm font-bold text-[#9fe870] hover:bg-[#163300]/90 active:scale-95 transition-all duration-150 shadow-sm">
               <Lock className="h-4 w-4" />Update Password
             </button>
           </div>
@@ -278,14 +278,14 @@ function TeamSection() {
         <Card className="mb-4">
           <CardSection title="Invite a Team Member">
             <div className="flex gap-3">
-              <input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleInvite()} placeholder="colleague@company.com" className="flex-1 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+              <input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleInvite()} placeholder="colleague@company.com" className="flex-1 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all" />
               {(isOwner || isAdmin) && (
-                <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as "admin" | "member")} className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
+                <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as "admin" | "member")} className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-[#163300] focus:outline-none">
                   {isOwner && <option value="admin">Admin</option>}
                   <option value="member">Member</option>
                 </select>
               )}
-              <button onClick={handleInvite} disabled={inviting || !inviteEmail} className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-all">
+              <button onClick={handleInvite} disabled={inviting || !inviteEmail} className="inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2.5 text-sm font-bold text-[#9fe870] hover:bg-[#163300]/90 disabled:opacity-50 transition-all">
                 {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}Invite
               </button>
             </div>
@@ -295,7 +295,7 @@ function TeamSection() {
       <Card>
         <CardSection title="Current Members" noBorder>
           {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-indigo-500" /></div>
+            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-[#163300]" /></div>
           ) : members.length === 0 ? (
             <p className="py-6 text-center text-sm text-gray-400">No members found.</p>
           ) : (
@@ -303,7 +303,7 @@ function TeamSection() {
               {members.map((m) => (
                 <div key={m.id} className="flex items-center justify-between py-3.5">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 text-sm font-bold text-white">{m.email.charAt(0).toUpperCase()}</div>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e2f6d5] text-sm font-bold text-[#163300]">{m.email.charAt(0).toUpperCase()}</div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">{m.email}</p>
                       <p className="text-xs text-gray-400">Joined {new Date(m.created_at).toLocaleDateString()}</p>
@@ -402,7 +402,7 @@ function BillingSection() {
                   <span className="text-xs text-gray-400">{item.value} / {item.limit}</span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${item.pct}%` }} />
+                  <div className="h-full rounded-full bg-[#163300] transition-all" style={{ width: `${item.pct}%` }} />
                 </div>
               </div>
             ))}
@@ -411,15 +411,15 @@ function BillingSection() {
       </Card>
       <div className="grid grid-cols-3 gap-4 mb-4">
         {plans.map((plan) => (
-          <div key={plan.name} className={cn("rounded-2xl border p-5 transition-all", plan.current ? "border-indigo-500 bg-indigo-50 shadow-sm shadow-indigo-100" : "border-gray-200 bg-white hover:border-indigo-200")}>
-            {plan.current && <span className="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white mb-3"><Check className="h-2.5 w-2.5" /> Current Plan</span>}
+          <div key={plan.name} className={cn("rounded-2xl border p-5 transition-all", plan.current ? "border-[#9fe870] bg-[#e2f6d5]/40 shadow-sm" : "border-gray-200 bg-white hover:border-[#9fe870]/40")}>
+            {plan.current && <span className="inline-flex items-center gap-1 rounded-full bg-[#163300] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#9fe870] mb-3"><Check className="h-2.5 w-2.5" /> Current Plan</span>}
             <p className="text-base font-bold text-gray-900">{plan.name}</p>
             <p className="text-2xl font-extrabold text-gray-900 mt-1">{plan.price}{plan.price !== "Custom" && <span className="text-sm font-medium text-gray-400">/mo</span>}</p>
             <p className="text-xs text-gray-500 mt-1 mb-4">{plan.description}</p>
             <ul className="space-y-1.5 mb-5">
-              {plan.features.map((f) => <li key={f} className="flex items-center gap-1.5 text-xs text-gray-600"><Check className="h-3 w-3 text-indigo-500 shrink-0" />{f}</li>)}
+              {plan.features.map((f) => <li key={f} className="flex items-center gap-1.5 text-xs text-gray-600"><Check className="h-3 w-3 text-[#163300] shrink-0" />{f}</li>)}
             </ul>
-            {!plan.current && <button onClick={() => toast.info(`Upgrade to ${plan.name} coming soon`)} className="w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors">{plan.price === "Custom" ? "Contact Sales" : "Upgrade"}</button>}
+            {!plan.current && <button onClick={() => toast.info(`Upgrade to ${plan.name} coming soon`)} className="w-full rounded-lg border border-[#9fe870]/40 bg-white px-3 py-2 text-xs font-semibold text-[#163300] hover:bg-[#e2f6d5]/50 transition-colors">{plan.price === "Custom" ? "Contact Sales" : "Upgrade"}</button>}
           </div>
         ))}
       </div>
@@ -433,7 +433,7 @@ function BillingSection() {
                 <p className="text-xs text-gray-400">Expires 12/2027</p>
               </div>
             </div>
-            <button className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors">Update card</button>
+            <button className="text-sm font-medium text-[#163300] hover:underline transition-colors">Update card</button>
           </div>
         </CardSection>
       </Card>
@@ -470,7 +470,7 @@ function IntegrationsSection() {
                 <div className="flex flex-col items-end gap-2 shrink-0">
                   <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider", item.status === "connected" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500")}>{item.status}</span>
                   {canManageChannels && (
-                    <button onClick={() => toast.info(item.status === "connected" ? `Disconnecting ${item.name}...` : `Connecting ${item.name}...`)} className={cn("text-xs font-medium transition-colors", item.status === "connected" ? "text-red-500 hover:text-red-600" : "text-indigo-600 hover:text-indigo-700")}>
+                    <button onClick={() => toast.info(item.status === "connected" ? `Disconnecting ${item.name}...` : `Connecting ${item.name}...`)} className={cn("text-xs font-medium transition-colors", item.status === "connected" ? "text-red-500 hover:text-red-600" : "text-[#163300] hover:underline font-bold")}>
                       {item.status === "connected" ? "Disconnect" : "Connect →"}
                     </button>
                   )}
@@ -524,7 +524,7 @@ function SecuritySection() {
                 <p className="text-xs text-gray-400 mt-0.5">Add an extra layer of security to your account.</p>
               </div>
             </div>
-            <button onClick={() => toast.info("2FA setup managed via Clerk")} className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors">
+            <button onClick={() => toast.info("2FA setup managed via Clerk")} className="inline-flex items-center gap-1.5 rounded-lg border border-[#9fe870]/40 px-3 py-1.5 text-xs font-semibold text-[#163300] hover:bg-[#e2f6d5]/50 transition-colors">
               <Shield className="h-3.5 w-3.5" />Enable 2FA
             </button>
           </div>
@@ -533,8 +533,8 @@ function SecuritySection() {
       <Card className="mb-4">
         <CardSection title="API Keys">
           <div className="flex gap-3 mb-5">
-            <input value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleCreateKey()} placeholder="Key name (e.g. Production)" className="flex-1 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
-            <button onClick={handleCreateKey} disabled={creating || !newKeyName.trim()} className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-all">
+            <input value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleCreateKey()} placeholder="Key name (e.g. Production)" className="flex-1 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all" />
+            <button onClick={handleCreateKey} disabled={creating || !newKeyName.trim()} className="inline-flex items-center gap-1.5 rounded-lg bg-[#163300] px-4 py-2 text-sm font-bold text-[#9fe870] hover:bg-[#163300]/90 disabled:opacity-50 transition-all">
               {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}Generate
             </button>
           </div>
@@ -682,11 +682,11 @@ export default function SettingsPage() {
               return (
                 <button key={item.id} id={`settings-nav-${item.id}`} onClick={() => setActiveSection(item.id)}
                   className={cn("w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-left transition-all duration-150",
-                    isActive ? isDanger ? "bg-red-50 text-red-600" : "bg-indigo-50 text-indigo-700"
+                    isActive ? isDanger ? "bg-red-50 text-red-600" : "bg-[#e2f6d5] text-[#163300] font-bold"
                     : isDanger ? "text-red-500 hover:bg-red-50 hover:text-red-600" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900")}>
-                  <item.icon className={cn("h-4 w-4 shrink-0", isActive ? isDanger ? "text-red-500" : "text-indigo-600" : isDanger ? "text-red-400" : "text-gray-400")} />
+                  <item.icon className={cn("h-4 w-4 shrink-0", isActive ? isDanger ? "text-red-500" : "text-[#163300]" : isDanger ? "text-red-400" : "text-gray-400")} />
                   {item.label}
-                  {isActive && <ChevronRight className={cn("ml-auto h-3.5 w-3.5", isDanger ? "text-red-400" : "text-indigo-400")} />}
+                  {isActive && <ChevronRight className={cn("ml-auto h-3.5 w-3.5", isDanger ? "text-red-400" : "text-[#163300]")} />}
                 </button>
               );
             })}

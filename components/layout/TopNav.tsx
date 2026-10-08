@@ -165,7 +165,7 @@ export function TopNav() {
                         disabled={isActive || isSwitchingWorkspace}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
                           isActive
-                            ? "bg-indigo-50/80 cursor-default"
+                            ? "bg-[#e2f6d5]/70 cursor-default"
                             : "hover:bg-gray-50 cursor-pointer"
                         }`}
                       >
@@ -173,7 +173,7 @@ export function TopNav() {
                         <div
                           className={`h-8 w-8 shrink-0 rounded-lg flex items-center justify-center text-xs font-bold shadow-xs ${
                             isActive
-                              ? "bg-indigo-600 text-white"
+                              ? "bg-[#163300] text-[#9fe870]"
                               : "bg-gray-100 text-gray-700 border border-gray-200"
                           }`}
                         >
@@ -182,7 +182,7 @@ export function TopNav() {
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <p className={`text-xs font-semibold truncate ${isActive ? "text-indigo-900" : "text-gray-800"}`}>
+                          <p className={`text-xs font-semibold truncate ${isActive ? "text-[#163300]" : "text-gray-800"}`}>
                             {ws.company_name}
                           </p>
                           <div className="flex items-center gap-1.5 mt-0.5">

@@ -16,7 +16,7 @@ export function TopCampaignsTable({ campaigns }: TopCampaignsTableProps) {
       <div className="flex items-center justify-between mb-5">
         <div>
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#e2f6d5] text-[#163300]">
               <Megaphone className="h-4 w-4" />
             </div>
             <h3 className="text-base font-bold text-gray-900">Top Campaign Performance</h3>
@@ -28,7 +28,7 @@ export function TopCampaignsTable({ campaigns }: TopCampaignsTableProps) {
 
         <Link
           href={APP_ROUTES.DASHBOARD.ACTIVITY}
-          className="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors flex items-center gap-1"
+          className="text-xs font-bold text-[#163300] hover:text-[#1f4700] transition-colors flex items-center gap-1"
         >
           <span>All telemetry events</span>
           <ExternalLink className="h-3 w-3" />
@@ -104,7 +104,7 @@ export function TopCampaignsTable({ campaigns }: TopCampaignsTableProps) {
                         camp.status === "completed"
                           ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                           : camp.status === "processing"
-                          ? "bg-indigo-50 text-indigo-700 border border-indigo-200 animate-pulse"
+                          ? "bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/40 animate-pulse"
                           : "bg-gray-100 text-gray-600"
                       )}
                     >

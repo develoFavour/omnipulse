@@ -312,15 +312,15 @@ export default function AudiencePage() {
       </div>
 
       {/* Inbound Auto-Sync Card */}
-      <div className="mb-8 rounded-3xl border border-indigo-100 bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/50 p-6 sm:p-7 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none"><Webhook className="w-36 h-36 text-indigo-900" /></div>
+      <div className="mb-8 rounded-3xl border border-[#9fe870]/30 bg-gradient-to-br from-[#e2f6d5]/40 via-white to-[#f4f5f2] p-6 sm:p-7 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none"><Webhook className="w-36 h-36 text-[#163300]" /></div>
         <div className="relative">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-200"><Bot className="h-5 w-5" /></div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#163300] text-[#9fe870] shadow-md shadow-[#163300]/10"><Bot className="h-5 w-5" /></div>
               <div>
                 <h2 className="text-lg font-extrabold text-gray-900 tracking-tight">Zero-Data-Entry Contact Capture</h2>
-                <p className="text-[11px] font-semibold text-indigo-600 uppercase tracking-wider">Automated Inbound Webhook Flywheel</p>
+                <p className="text-[11px] font-semibold text-[#163300] uppercase tracking-wider">Automated Inbound Webhook Flywheel</p>
               </div>
             </div>
             {activeTelegramChannel && (
@@ -346,20 +346,20 @@ export default function AudiencePage() {
             )}
             {canManageChannels && (
               <>
-                <button onClick={handleSimulateWebhook} disabled={isSimulating || !tenant} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-3.5 py-2 text-xs font-bold text-white transition-all shadow-sm disabled:opacity-50">
+                <button onClick={handleSimulateWebhook} disabled={isSimulating || !tenant} className="flex items-center gap-1.5 rounded-lg bg-[#163300] hover:bg-[#163300]/90 px-3.5 py-2 text-xs font-bold text-[#9fe870] transition-all shadow-sm disabled:opacity-50">
                   <Webhook className="h-3.5 w-3.5" />{isSimulating ? "Simulating..." : "Simulate Inbound Contact"}
                 </button>
-                <button onClick={() => setShowWebhookDetails(!showWebhookDetails)} className="text-xs font-semibold text-gray-500 hover:text-indigo-600 transition-colors ml-auto py-1">
+                <button onClick={() => setShowWebhookDetails(!showWebhookDetails)} className="text-xs font-semibold text-gray-500 hover:text-[#163300] transition-colors ml-auto py-1">
                   {showWebhookDetails ? "Hide Webhook URL" : "Show Advanced Webhook URL"}
                 </button>
               </>
             )}
           </div>
           {canManageChannels && showWebhookDetails && (
-            <div className="mt-3 pt-3 border-t border-indigo-100 flex items-center gap-2">
+            <div className="mt-3 pt-3 border-t border-[#9fe870]/30 flex items-center gap-2">
               <div className="flex-1 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-1.5 shadow-inner">
-                <code className="text-xs text-indigo-600 font-mono font-bold select-all truncate mr-2">{webhookUrl}</code>
-                <button onClick={() => { navigator.clipboard.writeText(webhookUrl); toast.success("Webhook URL copied"); }} className="text-gray-400 hover:text-indigo-600 shrink-0">
+                <code className="text-xs text-[#163300] font-mono font-bold select-all truncate mr-2">{webhookUrl}</code>
+                <button onClick={() => { navigator.clipboard.writeText(webhookUrl); toast.success("Webhook URL copied"); }} className="text-gray-400 hover:text-[#163300] shrink-0">
                   <Copy className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -372,16 +372,16 @@ export default function AudiencePage() {
       <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <Tags className="h-4 w-4 text-indigo-600" />
+            <Tags className="h-4 w-4 text-[#163300]" />
             <h3 className="text-sm font-bold text-gray-900">Audience Segmentation Tags</h3>
-            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-600 border border-indigo-100">{safeTags.length} tags</span>
+            <span className="rounded-full bg-[#e2f6d5] px-2 py-0.5 text-[10px] font-bold text-[#163300] border border-[#9fe870]/50">{safeTags.length} tags</span>
           </div>
           <button onClick={() => setShowCreateTagModal(true)} className="flex items-center gap-1.5 rounded-lg bg-gray-900 hover:bg-gray-800 px-3 py-1.5 text-xs font-bold text-white transition-colors shadow-xs">
             <Plus className="h-3.5 w-3.5" />Create Tag
           </button>
         </div>
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <button onClick={() => setSelectedTagId(null)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${selectedTagId === null ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
+          <button onClick={() => setSelectedTagId(null)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${selectedTagId === null ? "bg-[#163300] text-[#9fe870]" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}>
             <Filter className="h-3 w-3" />All {total > 0 ? `(${total})` : ""}
           </button>
           {safeTags.map((tag) => {
@@ -401,7 +401,7 @@ export default function AudiencePage() {
                 </button>
                 {canDeleteAudience && (
                   <div className="opacity-0 group-hover:opacity-100 flex items-center transition-opacity ml-0.5">
-                    <button onClick={(e) => { e.stopPropagation(); setEditingTag({ id: tag.id, name: tag.name, color: tag.color }); }} className="p-1 text-gray-400 hover:text-indigo-600 transition-colors" title="Edit tag"><Pencil className="h-3 w-3" /></button>
+                    <button onClick={(e) => { e.stopPropagation(); setEditingTag({ id: tag.id, name: tag.name, color: tag.color }); }} className="p-1 text-gray-400 hover:text-[#163300] transition-colors" title="Edit tag"><Pencil className="h-3 w-3" /></button>
                     <button onClick={async (e) => { e.stopPropagation(); if (confirm(`Delete tag "${tag.name}"?`)) { await deleteTag(tag.id); if (selectedTagId === tag.id) setSelectedTagId(null); toast.success("Tag deleted."); } }} className="p-1 text-gray-400 hover:text-red-500 transition-colors" title="Delete tag"><Trash2 className="h-3 w-3" /></button>
                   </div>
                 )}
@@ -421,7 +421,7 @@ export default function AudiencePage() {
             placeholder="Search by name, routing ID, or tag..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-xs"
+            className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-1 focus:ring-[#163300] shadow-xs"
           />
           {searchQuery && (
             <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -430,7 +430,7 @@ export default function AudiencePage() {
           )}
         </div>
         <select value={channelFilter} onChange={(e) => setChannelFilter(e.target.value)}
-          className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-xs">
+          className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-700 focus:border-[#163300] focus:outline-none focus:ring-1 focus:ring-[#163300] shadow-xs">
           <option value="all">All Channels</option>
           {allChannels.map((ch) => <option key={ch} value={ch} className="capitalize">{ch}</option>)}
         </select>
@@ -439,7 +439,7 @@ export default function AudiencePage() {
           <select
             value={pageSize}
             onChange={(e) => setPageSize(Number(e.target.value))}
-            className="rounded-xl border border-gray-200 bg-white px-2.5 py-2.5 text-xs font-semibold text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-xs"
+            className="rounded-xl border border-gray-200 bg-white px-2.5 py-2.5 text-xs font-semibold text-gray-700 focus:border-[#163300] focus:outline-none focus:ring-1 focus:ring-[#163300] shadow-xs"
           >
             <option value={25}>25</option>
             <option value={50}>50</option>
@@ -472,8 +472,8 @@ export default function AudiencePage() {
             <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-bold tracking-wider">
               <tr>
                 <th className="pl-6 pr-2 py-4 w-10">
-                  <button onClick={toggleSelectAll} className="text-gray-400 hover:text-indigo-600 transition-colors">
-                    {allSelected ? <CheckSquare className="h-4 w-4 text-indigo-600" /> : partiallySelected ? <CheckSquare className="h-4 w-4 text-indigo-400 opacity-60" /> : <Square className="h-4 w-4" />}
+                  <button onClick={toggleSelectAll} className="text-gray-400 hover:text-[#163300] transition-colors">
+                    {allSelected ? <CheckSquare className="h-4 w-4 text-[#163300]" /> : partiallySelected ? <CheckSquare className="h-4 w-4 text-[#163300]/60" /> : <Square className="h-4 w-4" />}
                   </button>
                 </th>
                 <th className="px-4 py-4 cursor-pointer hover:text-gray-700" onClick={() => handleSort("channel")}>
@@ -495,7 +495,7 @@ export default function AudiencePage() {
             <tbody className="divide-y divide-gray-100 bg-white">
               {isLoading ? (
                 <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-500 font-medium">
-                  <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2 text-indigo-500" />
+                  <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2 text-[#163300]" />
                   Loading contacts...
                 </td></tr>
               ) : safeContacts.length === 0 ? (
@@ -516,10 +516,10 @@ export default function AudiencePage() {
                   const overflowCount = contactTags.length - visibleTags.length;
 
                   return (
-                    <tr key={contact.id} className={`group/row hover:bg-gray-50/80 transition-colors ${isRowSelected ? "bg-indigo-50/40" : ""}`}>
+                    <tr key={contact.id} className={`group/row hover:bg-gray-50/80 transition-colors ${isRowSelected ? "bg-[#e2f6d5]/30" : ""}`}>
                       <td className="pl-6 pr-2 py-3.5">
-                        <button onClick={() => toggleSelect(contact.id)} className="text-gray-300 hover:text-indigo-600 transition-colors">
-                          {isRowSelected ? <CheckSquare className="h-4 w-4 text-indigo-600" /> : <Square className="h-4 w-4" />}
+                        <button onClick={() => toggleSelect(contact.id)} className="text-gray-300 hover:text-[#163300] transition-colors">
+                          {isRowSelected ? <CheckSquare className="h-4 w-4 text-[#163300]" /> : <Square className="h-4 w-4" />}
                         </button>
                       </td>
                       <td className="px-4 py-3.5">
@@ -553,7 +553,7 @@ export default function AudiencePage() {
                           {overflowCount > 0 && (
                             <button
                               onClick={() => setManagingContactId(contact.id)}
-                              className="inline-flex items-center rounded-full bg-gray-100 hover:bg-indigo-50 hover:text-indigo-600 border border-gray-200 px-2 py-0.5 text-[11px] font-bold text-gray-600 transition-colors shrink-0"
+                              className="inline-flex items-center rounded-full bg-gray-100 hover:bg-[#e2f6d5] hover:text-[#163300] border border-gray-200 px-2 py-0.5 text-[11px] font-bold text-gray-600 transition-colors shrink-0"
                               title={`${overflowCount} more tag${overflowCount > 1 ? "s" : ""}: ${contactTags.slice(2).map((t) => t.name).join(", ")}. Click to manage.`}
                             >
                               +{overflowCount}
@@ -562,7 +562,7 @@ export default function AudiencePage() {
 
                           <button
                             onClick={() => setManagingContactId(contact.id)}
-                            className={`inline-flex items-center gap-1 rounded-full border border-dashed border-gray-200 hover:border-indigo-400 hover:bg-indigo-50/50 px-2 py-0.5 text-[11px] font-medium text-gray-400 hover:text-indigo-600 transition-all shrink-0 ${
+                            className={`inline-flex items-center gap-1 rounded-full border border-dashed border-gray-200 hover:border-[#9fe870] hover:bg-[#e2f6d5]/50 px-2 py-0.5 text-[11px] font-medium text-gray-400 hover:text-[#163300] transition-all shrink-0 ${
                               contactTags.length === 0 ? "opacity-70 group-hover/row:opacity-100" : "opacity-0 group-hover/row:opacity-100"
                             }`}
                             title="Manage tags for this contact"
@@ -626,7 +626,7 @@ export default function AudiencePage() {
                       disabled={isLoading}
                       className={`min-w-8 h-8 rounded-lg text-xs font-bold transition-colors ${
                         currentPage === page
-                          ? "bg-indigo-600 text-white shadow-xs"
+                          ? "bg-[#163300] text-[#9fe870] shadow-xs"
                           : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-100"
                       }`}
                     >
@@ -670,7 +670,7 @@ export default function AudiencePage() {
             <div className="h-4 w-px bg-gray-600" />
             <div className="relative" ref={bulkDropdownRef}>
               <button onClick={() => setShowBulkTagDropdown((v) => !v)} disabled={isBulkTagging || safeTags.length === 0}
-                className="flex items-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 text-xs font-bold text-white transition-all disabled:opacity-50">
+                className="flex items-center gap-1.5 rounded-xl bg-[#163300] hover:bg-[#163300]/90 px-3.5 py-2 text-xs font-bold text-[#9fe870] transition-all disabled:opacity-50">
                 {isBulkTagging ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <TagIcon className="h-3.5 w-3.5" />}
                 Bulk Tag<ChevronDown className="h-3 w-3" />
               </button>
@@ -681,7 +681,7 @@ export default function AudiencePage() {
                     <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 py-1.5">Apply Tag</div>
                     <div className="space-y-0.5 max-h-40 overflow-y-auto mb-2">
                       {safeTags.map((tag) => (
-                        <button key={tag.id} onClick={() => handleBulkTag(tag.id, "assign")} className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-indigo-50 text-gray-700 font-medium transition-colors">
+                        <button key={tag.id} onClick={() => handleBulkTag(tag.id, "assign")} className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[#e2f6d5] text-gray-700 font-medium transition-colors">
                           <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: tag.color }} />{tag.name}
                         </button>
                       ))}
@@ -723,7 +723,7 @@ export default function AudiencePage() {
             >
               <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-9 w-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                  <div className="h-9 w-9 rounded-xl bg-[#e2f6d5] border border-[#9fe870]/50 flex items-center justify-center text-[#163300]">
                     <TagIcon className="h-4 w-4" />
                   </div>
                   <div>
@@ -793,7 +793,7 @@ export default function AudiencePage() {
                       setManagingContactId(null);
                       setShowCreateTagModal(true);
                     }}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                    className="text-xs font-bold text-[#163300] hover:underline flex items-center gap-1"
                   >
                     <Plus className="h-3 w-3" /> New Tag
                   </button>
@@ -811,7 +811,7 @@ export default function AudiencePage() {
                           disabled={tagActionLoading === tag.id}
                           className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${
                             isAssigned
-                              ? "bg-indigo-50 border-indigo-200 text-indigo-900"
+                              ? "bg-[#e2f6d5] border-[#9fe870]/60 text-[#163300]"
                               : "bg-white hover:bg-gray-50 border-gray-100 text-gray-700 hover:border-gray-200"
                           }`}
                         >
@@ -823,11 +823,11 @@ export default function AudiencePage() {
                             {tagActionLoading === tag.id ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />
                             ) : isAssigned ? (
-                              <span className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-md border border-indigo-100">
+                              <span className="flex items-center gap-1 text-[11px] font-bold text-[#163300] bg-white px-2 py-0.5 rounded-md border border-[#9fe870]/40">
                                 <Check className="h-3 w-3" /> Assigned
                               </span>
                             ) : (
-                              <span className="flex items-center gap-1 text-[11px] font-bold text-gray-500 hover:text-indigo-600">
+                              <span className="flex items-center gap-1 text-[11px] font-bold text-gray-500 hover:text-[#163300]">
                                 <Plus className="h-3 w-3" /> Add
                               </span>
                             )}
@@ -860,7 +860,7 @@ export default function AudiencePage() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} transition={{ type: "spring", stiffness: 400, damping: 30 }} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-gray-100">
               <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-5">
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center"><TagIcon className="h-4 w-4 text-indigo-600" /></div>
+                  <div className="h-8 w-8 rounded-lg bg-[#e2f6d5] flex items-center justify-center"><TagIcon className="h-4 w-4 text-[#163300]" /></div>
                   <h3 className="text-base font-bold text-gray-900">Create Audience Tag</h3>
                 </div>
                 <button onClick={() => setShowCreateTagModal(false)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100"><X className="h-4 w-4" /></button>
@@ -869,13 +869,13 @@ export default function AudiencePage() {
                 <div className="mb-4">
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Tag Name</label>
                   <input type="text" required autoFocus placeholder="e.g. VIP, Product Launch, Beta Tester" value={newTagName} onChange={(e) => setNewTagName(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
+                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-[#163300] focus:outline-none focus:ring-1 focus:ring-[#163300]" />
                 </div>
                 <div className="mb-6">
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Tag Color</label>
                   <div className="flex items-center gap-2 flex-wrap mb-3">
                     {TAG_COLOR_PRESETS.map((c) => (
-                      <button key={c} type="button" onClick={() => setNewTagColor(c)} className={`h-7 w-7 rounded-full transition-transform ${newTagColor === c ? "ring-2 ring-offset-2 ring-indigo-600 scale-110" : "hover:scale-105"}`} style={{ backgroundColor: c }} />
+                      <button key={c} type="button" onClick={() => setNewTagColor(c)} className={`h-7 w-7 rounded-full transition-transform ${newTagColor === c ? "ring-2 ring-offset-2 ring-[#163300] scale-110" : "hover:scale-105"}`} style={{ backgroundColor: c }} />
                     ))}
                   </div>
                   <div className="flex items-center gap-2">
@@ -887,7 +887,7 @@ export default function AudiencePage() {
                 </div>
                 <div className="flex items-center justify-end gap-2">
                   <button type="button" onClick={() => setShowCreateTagModal(false)} className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
-                  <button type="submit" disabled={isCreatingTag || !newTagName.trim()} className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 shadow-sm disabled:opacity-50">
+                  <button type="submit" disabled={isCreatingTag || !newTagName.trim()} className="rounded-xl bg-[#163300] px-4 py-2 text-xs font-bold text-[#9fe870] hover:bg-[#163300]/90 shadow-sm disabled:opacity-50">
                     {isCreatingTag ? "Creating..." : "Save Tag"}
                   </button>
                 </div>
@@ -913,13 +913,13 @@ export default function AudiencePage() {
                 <div className="mb-4">
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Tag Name</label>
                   <input type="text" required autoFocus value={editingTag.name} onChange={(e) => setEditingTag((t) => t ? { ...t, name: e.target.value } : null)}
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600" />
+                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-[#163300] focus:outline-none focus:ring-1 focus:ring-[#163300]" />
                 </div>
                 <div className="mb-6">
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Tag Color</label>
                   <div className="flex items-center gap-2 flex-wrap mb-3">
                     {TAG_COLOR_PRESETS.map((c) => (
-                      <button key={c} type="button" onClick={() => setEditingTag((t) => t ? { ...t, color: c } : null)} className={`h-7 w-7 rounded-full transition-transform ${editingTag.color === c ? "ring-2 ring-offset-2 ring-indigo-600 scale-110" : "hover:scale-105"}`} style={{ backgroundColor: c }} />
+                      <button key={c} type="button" onClick={() => setEditingTag((t) => t ? { ...t, color: c } : null)} className={`h-7 w-7 rounded-full transition-transform ${editingTag.color === c ? "ring-2 ring-offset-2 ring-[#163300] scale-110" : "hover:scale-105"}`} style={{ backgroundColor: c }} />
                     ))}
                   </div>
                   <div className="flex items-center gap-2">
@@ -931,7 +931,7 @@ export default function AudiencePage() {
                 </div>
                 <div className="flex items-center justify-end gap-2">
                   <button type="button" onClick={() => setEditingTag(null)} className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
-                  <button type="submit" disabled={isSavingTag || !editingTag.name.trim()} className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 shadow-sm disabled:opacity-50">
+                  <button type="submit" disabled={isSavingTag || !editingTag.name.trim()} className="rounded-xl bg-[#163300] px-4 py-2 text-xs font-bold text-[#9fe870] hover:bg-[#163300]/90 shadow-sm disabled:opacity-50">
                     {isSavingTag ? "Saving..." : "Update Tag"}
                   </button>
                 </div>

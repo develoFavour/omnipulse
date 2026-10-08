@@ -109,16 +109,16 @@ export function ChannelDistributionChart({ data, delay = 0 }: ChannelDistributio
                       className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-sm"
                       style={{ backgroundColor: item.color }}
                     >
-                      {item.name.substring(0,2).toUpperCase()}
+                      {item.name.substring(0, 2).toUpperCase()}
                     </div>
                     <span className="text-xs font-bold text-gray-900">{item.name}</span>
                   </div>
                   <span className="text-xs font-semibold text-gray-600">{percentage}%</span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-                  <div 
-                    className="h-full rounded-full transition-all duration-1000 ease-out" 
-                    style={{ width: `${percentage}%`, backgroundColor: item.color }} 
+                  <div
+                    className="h-full rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${percentage}%`, backgroundColor: item.color }}
                   />
                 </div>
               </div>
@@ -126,14 +126,14 @@ export function ChannelDistributionChart({ data, delay = 0 }: ChannelDistributio
           })}
         </div>
       </div>
-      
-      <div className="mt-8 flex items-center gap-2 text-xs font-semibold text-gray-500">
+
+      {/* <div className="mt-8 flex items-center gap-2 text-xs font-semibold text-gray-500">
         <span className="text-gray-900">Active</span>
         <div className="w-8 h-4 rounded-full bg-[#9fe870] flex items-center p-0.5 shadow-inner">
           <div className="w-3 h-3 rounded-full bg-white shadow-sm" />
         </div>
         <span>Inactive</span>
-      </div>
+      </div> */}
     </motion.div>
   );
 }

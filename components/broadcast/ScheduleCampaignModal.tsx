@@ -111,11 +111,11 @@ export function ScheduleCampaignModal({
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
                   Audience
                 </p>
-                <p className="text-sm font-bold text-indigo-700">{targetCount} recipients</p>
+                <p className="text-sm font-bold text-[#163300]">{targetCount} recipients</p>
               </div>
             </div>
             <div className="flex items-center gap-1.5 pt-1 border-t border-gray-200/80">
-              <div className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />
+              <div className="h-1.5 w-1.5 rounded-full bg-[#163300] animate-pulse" />
               <span className="text-xs font-medium text-gray-500">{channelsSummary}</span>
             </div>
           </div>

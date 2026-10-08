@@ -76,14 +76,14 @@ export function HourlyHeatmap({ hourlyData }: HourlyHeatmapProps) {
               </div>
 
               {/* Bar track */}
-              <div className="h-24 w-full bg-gray-50 rounded-lg flex items-end justify-center p-1 border border-gray-100 group-hover:border-indigo-300 transition-colors">
+              <div className="h-24 w-full bg-gray-50 rounded-lg flex items-end justify-center p-1 border border-gray-100 group-hover:border-[#9fe870]/60 transition-colors">
                 <div
                   className={cn(
                     "w-full rounded-md transition-all duration-300",
                     isPeak
                       ? "bg-amber-500 shadow-xs shadow-amber-500/30"
                       : item.total > 0
-                      ? "bg-indigo-500 hover:bg-indigo-600"
+                      ? "bg-[#163300] hover:bg-[#1f4700]"
                       : "bg-gray-200/50"
                   )}
                   style={{ height: `${heightPercent}%` }}
@@ -109,7 +109,7 @@ export function HourlyHeatmap({ hourlyData }: HourlyHeatmapProps) {
             <span className="h-2 w-2 rounded-full bg-amber-500" /> Peak Hour
           </span>
           <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-indigo-500" /> Active Hours
+            <span className="h-2 w-2 rounded-full bg-[#163300]" /> Active Hours
           </span>
         </div>
       </div>

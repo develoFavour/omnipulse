@@ -503,7 +503,7 @@ export function BroadcastStudio() {
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
             <span>Campaigns</span>
             <span>/</span>
-            <span className="text-indigo-600 font-bold">Broadcast Studio</span>
+            <span className="text-[#163300] font-bold">Broadcast Studio</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight font-heading">
             Omnichannel Broadcast Studio
@@ -544,9 +544,9 @@ export function BroadcastStudio() {
             className={cn(
               "flex items-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md",
               isDispatching || isCreating
-                ? "bg-indigo-400 text-white cursor-wait"
+                ? "bg-[#163300]/70 text-white cursor-wait"
                 : targetCount > 0 || isWhatsAppStory
-                ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-600/20"
+                ? "bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white shadow-[#163300]/20"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
             )}
           >
@@ -612,7 +612,7 @@ export function BroadcastStudio() {
       <div className="mb-6 rounded-2xl border border-gray-200/90 bg-white p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
-            <Radio className="h-3.5 w-3.5 text-indigo-600" />
+            <Radio className="h-3.5 w-3.5 text-[#163300]" />
             Active Channels:
           </span>
 
@@ -633,7 +633,7 @@ export function BroadcastStudio() {
               <button
                 type="button"
                 onClick={() => setIsTelegramModalOpen(true)}
-                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 underline ml-1 cursor-pointer"
+                className="text-xs font-bold text-[#163300] hover:underline ml-1 cursor-pointer"
               >
                 + Connect Bot
               </button>
@@ -697,7 +697,7 @@ export function BroadcastStudio() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Q3 Strategic Growth Update & Feature Announcement"
-                className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none transition-all shadow-inner"
+                className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#163300] focus:ring-1 focus:ring-[#163300] outline-none transition-all shadow-inner"
               />
             </div>
 
@@ -734,10 +734,10 @@ export function BroadcastStudio() {
                   <button
                     type="button"
                     onClick={() => setIsTemplateModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all border border-indigo-200/80 shadow-2xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#e2f6d5] hover:bg-[#d4f0c0] text-[#163300] text-xs font-bold transition-all border border-[#9fe870]/60 shadow-2xs"
                     title="Open Message Template Library"
                   >
-                    <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                    <Sparkles className="h-3.5 w-3.5 text-[#163300]" />
                     Browse Templates
                   </button>
 
@@ -770,7 +770,7 @@ export function BroadcastStudio() {
                 onChange={(e) => setMessageBody(e.target.value)}
                 rows={6}
                 placeholder="Hey {first_name}! We are excited to announce our newest agency update..."
-                className="w-full bg-gray-50/50 border border-gray-200 rounded-xl p-4 text-sm text-gray-900 font-medium placeholder:text-gray-400 focus:bg-white focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none transition-all resize-none shadow-inner leading-relaxed"
+                className="w-full bg-gray-50/50 border border-gray-200 rounded-xl p-4 text-sm text-gray-900 font-medium placeholder:text-gray-400 focus:bg-white focus:border-[#163300] focus:ring-1 focus:ring-[#163300] outline-none transition-all resize-none shadow-inner leading-relaxed"
               />
 
               <div className="flex items-center justify-between mt-1.5 px-1">
