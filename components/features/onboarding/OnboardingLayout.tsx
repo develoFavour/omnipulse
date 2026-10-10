@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 import { ParticleGrid } from "@/components/landing/ParticleGrid";
@@ -72,8 +73,15 @@ export function OnboardingLayout({
         <motion.div className="w-full max-w-xl pt-8 pb-6" variants={fadeUp}>
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="h-8 w-8 rounded-full bg-[#163300] flex items-center justify-center text-[#9fe870] font-black text-sm transition-transform group-hover:scale-105">
-                MR
+              <div className="flex h-7 items-center justify-center transition-transform group-hover:scale-105">
+                <Image
+                  src="/logos/messagerail-icon.svg"
+                  alt="MessageRail"
+                  width={50}
+                  height={28}
+                  className="h-6 w-auto object-contain"
+                  priority
+                />
               </div>
               <span className="text-xl font-black tracking-tight text-[#0e0f0c] font-heading">
                 MessageRail<span className="text-[#9fe870]">.</span>

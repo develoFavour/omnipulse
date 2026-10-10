@@ -2,6 +2,7 @@
 
 import { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { ParticleGrid } from "@/components/landing/ParticleGrid";
 import { TRUST_BADGES } from "@/components/landing/data";
@@ -29,17 +30,24 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* ── Top Navigation Bar ── */}
-      <header className="relative z-10 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="h-8 w-8 rounded-full bg-[#163300] flex items-center justify-center text-[#9fe870] font-black text-sm transition-transform group-hover:scale-105">
-            MR
+      <header className="relative z-10 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-4 sm:py-6 flex items-center justify-between gap-2">
+        <Link href="/" className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+          <div className="flex h-7 items-center justify-center transition-transform group-hover:scale-105">
+            <Image
+              src="/logos/messagerail-icon.svg"
+              alt="MessageRail"
+              width={50}
+              height={28}
+              className="h-5 sm:h-6 w-auto object-contain"
+              priority
+            />
           </div>
-          <span className="text-xl font-black tracking-tight text-[#0e0f0c] font-heading">
+          <span className="text-lg sm:text-xl font-black tracking-tight text-[#0e0f0c] font-heading">
             MessageRail<span className="text-[#9fe870]">.</span>
           </span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           <div className="hidden sm:inline-flex items-center gap-2 rounded-full bg-[#e2f6d5] border border-[#9fe870]/70 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#163300]">
             <span className="h-1.5 w-1.5 rounded-full bg-[#163300] animate-pulse" />
             <span>Multi-Channel Operations</span>
@@ -47,10 +55,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#163300] hover:text-[#054d28] hover:underline underline-offset-4 px-3 py-1.5 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#163300] hover:text-[#054d28] hover:underline underline-offset-4 px-2 sm:px-3 py-1.5 transition-colors whitespace-nowrap"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to website</span>
+            <span className="hidden xs:inline">Back to website</span>
+            <span className="xs:hidden">Back</span>
           </Link>
         </div>
       </header>

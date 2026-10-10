@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopNav } from "@/components/layout/TopNav";
@@ -14,9 +14,17 @@ export default function DashboardLayout({
 }) {
   const { isLoaded, isSignedIn } = useAuth();
   const fetchChannels = useAppStore((state) => state.fetchChannels);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const handleMobileMenuClick = useCallback(() => {
+    setMobileSidebarOpen((prev) => !prev);
+  }, []);
+
+  const handleMobileClose = useCallback(() => {
+    setMobileSidebarOpen(false);
+  }, []);
 
   // Eagerly pre-warm channel connections at the dashboard root
-  // so any page (Broadcast, Audience, etc.) has active channel state immediately on mount
   useEffect(() => {
     if (isLoaded && isSignedIn) {
       fetchChannels().catch(() => {});
@@ -36,11 +44,11 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen flex-col bg-[#f4f5f2]">
-      <TopNav />
+      <TopNav onMobileMenuClick={handleMobileMenuClick} />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
+        <Sidebar isMobileOpen={mobileSidebarOpen} onMobileClose={handleMobileClose} />
         <main className="flex-1 overflow-y-auto">
-          <div className="px-8 py-8">
+          <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             {children}
           </div>
         </main>

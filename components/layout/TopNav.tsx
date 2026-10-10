@@ -7,16 +7,22 @@ import {
   CheckCircle2, Circle, Send,
   CheckCheck, AlertTriangle, Radio, UserMinus, Users,
   Building2, Plus, Loader2, Crown, Shield, User as UserIcon,
-  Check, ChevronsUpDown
+  Check, ChevronsUpDown, Menu
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useDashboard } from "@/lib/api/hooks/useDashboard";
 import { useNotifications } from "@/lib/api/hooks/useNotifications";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import Link from "next/link";
+import Image from "next/image";
 import { toast } from "sonner";
 
-export function TopNav() {
+interface TopNavProps {
+  /** Callback to toggle the mobile sidebar drawer */
+  onMobileMenuClick?: () => void;
+}
+
+export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
   const tenant = useAppStore((state) => state.tenant);
   const workspaces = useAppStore((state) => state.workspaces);
   const loadWorkspaces = useAppStore((state) => state.loadWorkspaces);
@@ -85,23 +91,39 @@ export function TopNav() {
   const recentDeliveries = stats?.recent_activities || [];
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-6">
+    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-3 sm:px-4 lg:px-6">
       {/* Left section */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2 sm:gap-4 lg:gap-6">
+        {/* Mobile hamburger */}
+        <button
+          onClick={onMobileMenuClick}
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0"
+          aria-label="Open navigation menu"
+        >
+          <Menu className="h-5 w-5 text-gray-600" />
+        </button>
+
         {/* Logo */}
-        <Link href={APP_ROUTES.DASHBOARD.BASE} className="flex items-center gap-2 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#163300] text-[#9fe870] font-bold shadow-sm transition-transform group-hover:scale-105">
-            MR
+        <Link href={APP_ROUTES.DASHBOARD.BASE} className="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+          <div className="flex h-7 items-center justify-center transition-transform group-hover:scale-105">
+            <Image
+              src="/logos/messagerail-icon.svg"
+              alt="MessageRail"
+              width={50}
+              height={28}
+              className="h-5 sm:h-6 w-auto object-contain"
+              priority
+            />
           </div>
-          <span className="text-xl font-bold tracking-tight text-gray-900 font-heading">
+          <span className="text-base sm:text-xl font-bold tracking-tight text-gray-900 font-heading">
             MessageRail.
           </span>
         </Link>
 
-        <div className="h-6 w-px bg-gray-200" />
+        <div className="hidden lg:block h-6 w-px bg-gray-200" />
 
-        {/* Workspace Switcher */}
-        <div className="relative" ref={usageRef}>
+        {/* Workspace Switcher – hidden on mobile */}
+        <div className="relative hidden lg:block" ref={usageRef}>
           <button
             onClick={() => setShowUsage(!showUsage)}
             className="flex items-center gap-2 rounded-full bg-gray-50 px-3 py-1.5 border border-gray-100 hover:bg-gray-100 cursor-pointer transition-colors text-left"
@@ -327,7 +349,7 @@ export function TopNav() {
       </div>
 
       {/* Right section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-1 sm:gap-3">
         {/* Real DB Onboarding Tracker Dropdown */}
         <div className="relative hidden md:block" ref={onboardingRef}>
           <button
@@ -685,13 +707,21 @@ export function TopNav() {
 
         <div className="h-6 w-px bg-gray-200" />
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Link
             href={APP_ROUTES.DASHBOARD.BROADCAST}
-            className="flex items-center gap-2 rounded-lg bg-[#163300] px-3.5 py-2 text-xs font-bold text-[#9fe870] hover:bg-[#163300]/90 transition-all shadow-sm"
+            className="hidden sm:flex items-center gap-2 rounded-lg bg-[#163300] px-3.5 py-2 text-xs font-bold text-[#9fe870] hover:bg-[#163300]/90 transition-all shadow-sm"
           >
             <Send className="h-3.5 w-3.5" />
             <span>Broadcast</span>
+          </Link>
+          {/* Mobile: icon-only broadcast */}
+          <Link
+            href={APP_ROUTES.DASHBOARD.BROADCAST}
+            className="sm:hidden flex items-center justify-center rounded-lg bg-[#163300] p-2 text-[#9fe870] hover:bg-[#163300]/90 transition-all shadow-sm"
+            aria-label="Broadcast"
+          >
+            <Send className="h-4 w-4" />
           </Link>
           <div className="pl-1">
             <UserButton 

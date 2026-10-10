@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, ShieldCheck } from "lucide-react";
 
@@ -51,9 +52,15 @@ export function LandingFooter() {
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-[#e8ebe6]">
           {/* Brand Info */}
           <div className="md:col-span-5 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-[#163300] flex items-center justify-center text-[#9fe870] font-black text-sm">
-                MR
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-7 items-center justify-center">
+                <Image
+                  src="/logos/messagerail-icon.svg"
+                  alt="MessageRail"
+                  width={50}
+                  height={28}
+                  className="h-6 w-auto object-contain"
+                />
               </div>
               <span className="text-xl font-black text-[#0e0f0c] font-heading">
                 MessageRail<span className="text-[#9fe870]">.</span>

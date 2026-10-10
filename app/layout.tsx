@@ -24,6 +24,10 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
 	title: "MessageRail | Multi-Channel Campaign Operations",
 	description: "Plan, route, and deliver compliant multi-channel campaigns across your team. Multi-channel campaign operations for modern teams.",
+	icons: {
+		icon: "/logos/messagerail-emblem.svg",
+		apple: "/logos/messagerail-emblem.svg",
+	},
 };
 
 export default function RootLayout({
