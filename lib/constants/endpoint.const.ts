@@ -24,6 +24,7 @@ export const ENDPOINTS = {
 	CONTACTS: {
 		BASE: `${API_VERSION}/contacts`,
 		BY_ID: (id: string) => `${API_VERSION}/contacts/${id}`,
+		EXPORT: `${API_VERSION}/contacts/export`,
 	},
 
 	// Campaigns
@@ -40,6 +41,7 @@ export const ENDPOINTS = {
 	DASHBOARD: {
 		STATS: `${API_VERSION}/dashboard/stats`,
 		DELIVERIES: `${API_VERSION}/deliveries`,
+		DELIVERIES_EXPORT: `${API_VERSION}/deliveries/export`,
 	},
 
 	// Telegram destinations

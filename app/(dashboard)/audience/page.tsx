@@ -13,10 +13,12 @@ import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
 import { useTags } from "@/lib/api/hooks/useTags";
 import { useAppStore } from "@/lib/store";
 import { useState, useMemo, useRef, useEffect } from "react";
+import { contactService } from "@/lib/services/contact.service";
 import { webhookService } from "@/lib/services/webhook.service";
 import { channelService } from "@/lib/services/channel.service";
 import { getPlatformIcon } from "@/lib/utils/platform.utils";
 import { exportToCsv } from "@/lib/utils/csv.utils";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { usePermissions } from "@/lib/hooks/usePermissions";
 
@@ -281,43 +283,60 @@ export default function AudiencePage() {
     setCurrentPage(1);
   };
 
-  const handleExportAudience = () => {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportAudience = async () => {
     if (!canExportData) {
       toast.error("Exporting audience data is restricted to Administrators and Owners.");
       return;
     }
-    if (safeContacts.length === 0) {
+    if (total === 0 && safeContacts.length === 0) {
       toast.error("No audience contacts available to export.");
       return;
     }
+
+    setIsExporting(true);
     try {
-      const headers = [
-        "Contact ID",
-        "First Name",
-        "Last Name",
-        "Platform Channel",
-        "Routing Value / Address",
-        "Acquisition Source",
-        "Status",
-        "Assigned Tags",
-        "Date Added"
-      ];
-      const rows = safeContacts.map((c) => [
-        c.id,
-        c.first_name,
-        c.last_name || "",
-        c.channel,
-        c.routing_value,
-        c.source,
-        c.status,
-        c.tags ? c.tags.map((t) => t.name).join("; ") : "",
-        c.created_at
-      ]);
-      const nowStr = new Date().toISOString().split("T")[0];
-      exportToCsv(`messagerail-audience-${nowStr}`, headers, rows);
-      toast.success(`Exported ${safeContacts.length} contacts to CSV.`);
+      // First attempt true server-side streaming export (pulls full database contacts matching filters)
+      await contactService.exportContacts({
+        channel: channelFilter === "all" ? undefined : channelFilter,
+        tagId: selectedTagId || undefined,
+        search: debouncedSearchQuery || undefined,
+      });
+      toast.success("Audience directory CSV downloaded successfully!");
     } catch {
-      toast.error("Failed to generate audience CSV export.");
+      // Graceful fallback to client-side export
+      try {
+        const headers = [
+          "Contact ID",
+          "First Name",
+          "Last Name",
+          "Platform Channel",
+          "Routing Value / Address",
+          "Acquisition Source",
+          "Status",
+          "Assigned Tags",
+          "Date Added"
+        ];
+        const rows = safeContacts.map((c) => [
+          c.id,
+          c.first_name,
+          c.last_name || "",
+          c.channel,
+          c.routing_value,
+          c.source,
+          c.status,
+          c.tags ? c.tags.map((t) => t.name).join("; ") : "",
+          c.created_at
+        ]);
+        const nowStr = new Date().toISOString().split("T")[0];
+        exportToCsv(`messagerail-audience-${nowStr}`, headers, rows);
+        toast.success(`Exported ${safeContacts.length} contacts to CSV.`);
+      } catch {
+        toast.error("Failed to generate audience CSV export.");
+      }
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -348,12 +367,12 @@ export default function AudiencePage() {
           )}
           <button 
             onClick={handleExportAudience} 
-            disabled={safeContacts.length === 0}
+            disabled={isExporting || (total === 0 && safeContacts.length === 0)}
             className="flex items-center gap-2 rounded-xl bg-[#e2f6d5] hover:bg-[#d4f2c2] border border-[#9fe870]/60 px-4 py-2.5 text-xs font-bold text-[#163300] transition-all shadow-xs disabled:opacity-50 cursor-pointer"
             title={canExportData ? "Export contacts to CSV" : "Export restricted to Admins and Owners"}
           >
-            <Download className="h-4 w-4" />
-            Export CSV
+            <Download className={cn("h-4 w-4", isExporting && "animate-bounce")} />
+            {isExporting ? "Exporting..." : "Export CSV"}
           </button>
           <button onClick={() => refetch()} className="rounded-xl border border-gray-200 bg-white p-2.5 text-gray-600 hover:bg-gray-50 transition-colors shadow-xs" title="Refresh">
             <RefreshCw className="h-4 w-4" />

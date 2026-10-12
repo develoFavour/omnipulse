@@ -1,4 +1,4 @@
-﻿import { apiClient } from "@/lib/api/axios-instance";
+import { apiClient } from "@/lib/api/axios-instance";
 import { ENDPOINTS } from "@/lib/constants/endpoint.const";
 import type { ApiResponse } from "@/lib/api/response";
 import { Tag } from "./tag.service";
@@ -89,6 +89,33 @@ class ContactService {
     }
 
     return { data: [], total: 0, page: 1, pageSize: 50, totalPages: 0 };
+  }
+
+  async exportContacts(params?: { channel?: string; tagId?: string; search?: string }): Promise<void> {
+    const searchParams = new URLSearchParams();
+    if (params?.channel && params.channel !== "all") {
+      searchParams.set("channel", params.channel);
+    }
+    if (params?.tagId) searchParams.set("tagId", params.tagId);
+    if (params?.search?.trim()) searchParams.set("search", params.search.trim());
+
+    const qs = searchParams.toString();
+    const url = qs ? `${ENDPOINTS.CONTACTS.EXPORT}?${qs}` : ENDPOINTS.CONTACTS.EXPORT;
+
+    const response = await apiClient.get(url, {
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], { type: "text/csv;charset=utf-8;" });
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    const nowStr = new Date().toISOString().split("T")[0];
+    link.setAttribute("download", `messagerail-audience-${nowStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
   }
 }
 

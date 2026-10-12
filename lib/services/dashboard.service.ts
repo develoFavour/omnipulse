@@ -92,6 +92,31 @@ class DashboardService {
     );
     return response.data as unknown as DashboardDeliveryActivity[];
   }
+
+  async exportDeliveries(params?: { status?: string; platform?: string; search?: string }): Promise<void> {
+    const searchParams = new URLSearchParams();
+    if (params?.status && params.status !== "all") searchParams.set("status", params.status);
+    if (params?.platform && params.platform !== "all") searchParams.set("platform", params.platform);
+    if (params?.search?.trim()) searchParams.set("search", params.search.trim());
+
+    const qs = searchParams.toString();
+    const url = qs ? `${ENDPOINTS.DASHBOARD.DELIVERIES_EXPORT}?${qs}` : ENDPOINTS.DASHBOARD.DELIVERIES_EXPORT;
+
+    const response = await apiClient.get(url, {
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], { type: "text/csv;charset=utf-8;" });
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    const nowStr = new Date().toISOString().split("T")[0];
+    link.setAttribute("download", `messagerail-activity-audit-${nowStr}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+  }
 }
 
 export const dashboardService = new DashboardService();

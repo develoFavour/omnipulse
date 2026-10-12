@@ -26,6 +26,7 @@ import { toast } from "sonner";
 
 import { useDashboard, DashboardDeliveryActivity } from "@/lib/api/hooks/useDashboard";
 import { useDeliveries } from "@/lib/api/hooks/useDeliveries";
+import { dashboardService } from "@/lib/services/dashboard.service";
 import { MetricCard } from "@/components/features/dashboard/MetricCard";
 import { ActivityDetailsSheet } from "@/components/features/activity/ActivityDetailsSheet";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -134,8 +135,8 @@ export default function ActivityPage() {
     setCurrentPage(1);
   };
 
-  // Export CSV handler
-  const handleExportCSV = () => {
+  // Export CSV handler (Server streaming with client fallback)
+  const handleExportCSV = async () => {
     if (filteredDeliveries.length === 0) {
       toast.error("No deliveries available to export.");
       return;
@@ -143,33 +144,44 @@ export default function ActivityPage() {
 
     setIsExporting(true);
     try {
-      const headers = [
-        "Delivery ID",
-        "Campaign Title",
-        "Contact Name",
-        "Destination Address",
-        "Platform",
-        "Status",
-        "Error Trace",
-        "Timestamp (ISO)"
-      ];
-
-      const rows = filteredDeliveries.map((item) => [
-        item.id,
-        item.campaign_name || "Untitled Campaign",
-        item.contact_name || "Unknown",
-        item.routing_value || "—",
-        item.platform || "—",
-        item.status || "—",
-        item.error_message || "",
-        item.created_at || ""
-      ]);
-
-      const nowStr = new Date().toISOString().split("T")[0];
-      exportToCsv(`messagerail-activity-audit-${nowStr}`, headers, rows);
-      toast.success(`Exported ${filteredDeliveries.length} delivery records to CSV.`);
+      // First attempt true server-side streaming export (pulls full database dataset matching filters)
+      await dashboardService.exportDeliveries({
+        status: statusFilter,
+        platform: platformFilter,
+        search: searchQuery,
+      });
+      toast.success("Delivery audit CSV downloaded successfully!");
     } catch {
-      toast.error("Failed to generate delivery CSV export.");
+      // Graceful fallback to client-side export if backend route is unavailable
+      try {
+        const headers = [
+          "Delivery ID",
+          "Campaign Title",
+          "Contact Name",
+          "Destination Address",
+          "Platform",
+          "Status",
+          "Error Trace",
+          "Timestamp (ISO)"
+        ];
+
+        const rows = filteredDeliveries.map((item) => [
+          item.id,
+          item.campaign_name || "Untitled Campaign",
+          item.contact_name || "Unknown",
+          item.routing_value || "—",
+          item.platform || "—",
+          item.status || "—",
+          item.error_message || "",
+          item.created_at || ""
+        ]);
+
+        const nowStr = new Date().toISOString().split("T")[0];
+        exportToCsv(`messagerail-activity-audit-${nowStr}`, headers, rows);
+        toast.success(`Exported ${filteredDeliveries.length} delivery records to CSV.`);
+      } catch {
+        toast.error("Failed to generate delivery CSV export.");
+      }
     } finally {
       setIsExporting(false);
     }
@@ -229,8 +241,8 @@ export default function ActivityPage() {
             className="h-9 px-3.5 text-xs font-semibold text-[#163300] bg-[#e2f6d5]/70 hover:bg-[#e2f6d5] border-[#9fe870]/60 cursor-pointer shadow-2xs gap-1.5 transition-all"
             title="Download CSV"
           >
-            <Download className="h-3.5 w-3.5" />
-            <span>Export CSV</span>
+            <Download className={cn("h-3.5 w-3.5", isExporting && "animate-bounce")} />
+            <span>{isExporting ? "Exporting..." : "Export CSV"}</span>
           </Button>
         </div>
       </motion.div>
