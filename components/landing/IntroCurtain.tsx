@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 const EASE_EXPO = [0.16, 1, 0.3, 1] as const;
 const EASE_IN = [0.4, 0, 1, 1] as const;
@@ -23,12 +24,19 @@ export function IntroCurtain({ introComplete, introPhase }: IntroCurtainProps) {
           <div className="absolute inset-0 bg-[radial-gradient(#9fe870_1px,transparent_1px)] [background-size:40px_40px] opacity-[0.04]" />
           <div className="relative z-10 text-center">
             <motion.div
-              className="h-16 w-16 rounded-full bg-[#163300] border-2 border-[#9fe870]/40 flex items-center justify-center text-[#9fe870] font-black text-xl mx-auto"
+              className="flex items-center justify-center mx-auto"
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, ease: EASE_EXPO }}
             >
-              MR
+              <Image
+                src="/logos/messagerail-emblem.svg"
+                alt="MessageRail"
+                width={72}
+                height={72}
+                className="w-16 h-16"
+                priority
+              />
             </motion.div>
             <motion.div
               className="mt-4 text-2xl font-black text-white tracking-tight font-heading"

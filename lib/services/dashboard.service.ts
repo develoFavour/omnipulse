@@ -1,4 +1,4 @@
-﻿import { apiClient } from "@/lib/api/axios-instance";
+import { apiClient } from "@/lib/api/axios-instance";
 import { ENDPOINTS } from "@/lib/constants/endpoint.const";
 import type { ApiResponse } from "@/lib/api/response";
 
@@ -11,8 +11,11 @@ export interface ChannelStat {
 
 export interface DashboardDeliveryActivity {
   id: string;
+  campaign_id?: string;
   campaign_name: string;
   contact_name: string;
+  routing_value?: string;
+  target_type?: string;
   platform: string;
   status: string;
   error_message?: string;

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Shield, Lock, Eye, RefreshCw, FileText } from "lucide-react";
 
 export const metadata = {
@@ -14,9 +15,15 @@ export default function PrivacyPage() {
       {/* ── Navigation Header ── */}
       <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-[#e8ebe6]">
         <div className="max-w-[1100px] mx-auto h-16 px-4 sm:px-6 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="h-8 w-8 rounded-full bg-[#163300] flex items-center justify-center text-[#9fe870] font-black text-sm transition-transform group-hover:scale-105">
-              MR
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="flex h-7 items-center justify-center transition-transform group-hover:scale-105">
+              <Image
+                src="/logos/messagerail-icon.svg"
+                alt="MessageRail"
+                width={50}
+                height={28}
+                className="h-6 w-auto object-contain"
+              />
             </div>
             <span className="text-xl font-black tracking-tight text-[#0e0f0c] font-heading">
               MessageRail<span className="text-[#9fe870]">.</span>
