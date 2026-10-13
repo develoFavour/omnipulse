@@ -15,11 +15,15 @@ import { mediaService } from "@/lib/services/media.service";
 import { workspaceSettingsService, type WorkspaceSettings } from "@/lib/services/workspace-settings.service";
 import { apiKeyService, type ApiKey } from "@/lib/services/api-key.service";
 import { channelService, type ChannelResponse } from "@/lib/services/channel.service";
+import { billingService, type Subscription, type PlanTier, type BillingCycle } from "@/lib/services/billing.service";
+import { dashboardService, type PlanUsageInfo } from "@/lib/services/dashboard.service";
+import { useCurrency } from "@/lib/hooks/useCurrency";
 import { cn } from "@/lib/utils";
 import {
   Building2, User, Users, Bell, CreditCard, Plug, Shield, Trash2,
   Check, X, Eye, EyeOff, Copy, Plus, ChevronRight, AlertTriangle,
   Loader2, KeyRound, Smartphone, Globe, MailCheck, Lock, Pencil, Save, LogOut,
+  Sparkles, ExternalLink, Zap, CheckCircle2, ShieldCheck, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { TenantMember } from "@/lib/services/team.service";
@@ -465,64 +469,516 @@ function NotificationsSection() {
 // ── Billing Section ────────────────────────────────────────────────────────────
 function BillingSection() {
   const { canManageBilling } = usePermissions();
+  const { currency, setCurrency, symbol, isNGN } = useCurrency();
+  const [cycle, setCycle] = useState<BillingCycle>("monthly");
+  const [sub, setSub] = useState<Subscription | null>(null);
+  const [usage, setUsage] = useState<PlanUsageInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState<PlanTier | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  // Check URL query parameters upon returning from checkout session
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const status = params.get("billing_status");
+      if (status === "success") {
+        toast.success("Payment confirmed! Your workspace tier is now active.");
+        window.history.replaceState({}, "", window.location.pathname);
+      } else if (status === "canceled") {
+        toast.info("Checkout process was canceled.");
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, []);
+
+  const loadBillingData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [billingRes, statsRes] = await Promise.all([
+        billingService.getSubscription().catch(() => null),
+        dashboardService.getStats().catch(() => null),
+      ]);
+      if (billingRes?.subscription) {
+        setSub(billingRes.subscription);
+      }
+      if (statsRes?.plan_usage) {
+        setUsage(statsRes.plan_usage);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadBillingData();
+  }, [loadBillingData]);
+
   if (!canManageBilling) {
     return (
       <div>
-        <SectionHeader title="Billing & Plan" description="View your workspace subscription." />
-        <Card><CardSection noBorder><p className="text-sm text-gray-500">Only the workspace owner can access billing settings.</p></CardSection></Card>
+        <SectionHeader title="Billing & Monetization" description="View your workspace subscription." />
+        <Card>
+          <CardSection noBorder>
+            <p className="text-sm text-gray-500">Only the workspace owner can access billing settings.</p>
+          </CardSection>
+        </Card>
       </div>
     );
   }
-  const plans = [
-    { name: "Starter", price: "$0", description: "For solo operators", features: ["1 workspace", "2 channels", "500 contacts", "1,000 msgs/mo"], current: false },
-    { name: "Growth", price: "$49", description: "For scaling agencies", features: ["3 workspaces", "5 channels", "10,000 contacts", "50,000 msgs/mo"], current: true },
-    { name: "Enterprise", price: "Custom", description: "For large agencies", features: ["Unlimited workspaces", "Unlimited channels", "Unlimited contacts", "Priority support"], current: false },
+
+  const currentTier: PlanTier = sub?.plan_tier || "starter";
+  const currentProvider = sub?.provider || "free";
+
+  const handleCheckout = async (tier: PlanTier) => {
+    if (tier === "starter") {
+      toast.info("You are already on the Free Starter plan.");
+      return;
+    }
+    setCheckoutLoading(tier);
+    try {
+      const res = await billingService.createCheckout({
+        plan_tier: tier,
+        billing_cycle: cycle,
+        currency,
+      });
+      if (res?.checkout_url) {
+        toast.loading(`Redirecting to secure ${currency === "NGN" ? "Paystack" : "Stripe"} checkout...`);
+        window.location.href = res.checkout_url;
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || err?.message || "Failed to start checkout");
+      setCheckoutLoading(null);
+    }
+  };
+
+  const handlePortal = async () => {
+    setPortalLoading(true);
+    try {
+      const res = await billingService.createPortal();
+      if (res?.portal_url) {
+        window.location.href = res.portal_url;
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || err?.message || "Portal session unavailable");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const planCards = [
+    {
+      tier: "starter" as PlanTier,
+      name: "Starter",
+      badge: "Free Forever",
+      priceDisplay: `${symbol}0`,
+      periodDisplay: "forever",
+      description: "Essential broadcasting tools to launch and validate your messaging channel.",
+      features: [
+        "500 Audience Contacts",
+        "1,000 Messages / Broadcasts monthly",
+        "2 Connected Channels (WhatsApp & Telegram)",
+        "Standard Delivery Dispatch Queue",
+        "Single Workspace",
+        "Basic Delivery Analytics",
+      ],
+      current: currentTier === "starter",
+    },
+    {
+      tier: "growth" as PlanTier,
+      name: "Growth",
+      badge: "Early Believer — Best Value",
+      priceDisplay: isNGN
+        ? cycle === "monthly" ? "₦6,500" : "₦65,000"
+        : cycle === "monthly" ? "$14" : "$140",
+      effectiveMonthly: isNGN
+        ? cycle === "yearly" ? "₦5,417/mo" : null
+        : cycle === "yearly" ? "$11.67/mo" : null,
+      periodDisplay: cycle === "monthly" ? "/month" : "/year",
+      savingsTag: cycle === "yearly" ? (isNGN ? "Save ₦13,000 (2 months free)" : "Save $28 (2 months free)") : null,
+      description: "Affordable powerhouse built for agencies and businesses demanding reliable broadcast volume.",
+      features: [
+        "5,000 Audience Contacts",
+        "25,000 Messages / Broadcasts monthly",
+        "Unlimited Connected Channels",
+        "3 Workspaces Included",
+        "Streaming CSV Audience & Delivery Exports",
+        "Automated Inbound Webhook Processing",
+        "Priority Email & Telegram Support",
+      ],
+      popular: true,
+      current: currentTier === "growth",
+    },
+    {
+      tier: "agency" as PlanTier,
+      name: "Agency",
+      badge: "High-Volume Scale",
+      priceDisplay: isNGN
+        ? cycle === "monthly" ? "₦17,500" : "₦175,000"
+        : cycle === "monthly" ? "$34" : "$340",
+      effectiveMonthly: isNGN
+        ? cycle === "yearly" ? "₦14,583/mo" : null
+        : cycle === "yearly" ? "$28.33/mo" : null,
+      periodDisplay: cycle === "monthly" ? "/month" : "/year",
+      savingsTag: cycle === "yearly" ? (isNGN ? "Save ₦35,000 (2 months free)" : "Save $68 (2 months free)") : null,
+      description: "Uncapped scale with dedicated dispatch workers and multi-seat team management.",
+      features: [
+        "25,000 Audience Contacts",
+        "100,000 Messages / Broadcasts monthly",
+        "Unlimited Workspaces & Channels",
+        "Granular Team Roles (Owner, Admin, Member)",
+        "Priority Delivery Pipeline (Zero Queue Lag)",
+        "Dedicated WhatsApp Multi-Device Session Routing",
+        "Direct Engineering Slack/Telegram Bridge",
+      ],
+      current: currentTier === "agency",
+    },
   ];
+
+  // Resource usage metrics
+  const msgsSent = usage?.messages_sent_this_month ?? 0;
+  const msgsLimit = sub?.monthly_message_limit ?? (currentTier === "starter" ? 1000 : 25000);
+  const contactsStored = usage?.contacts_stored ?? 0;
+  const contactsLimit = sub?.contacts_limit ?? (currentTier === "starter" ? 500 : 5000);
+  const channelsConn = usage?.channels_connected ?? 0;
+  const channelsLimit = sub?.channels_limit ?? (currentTier === "starter" ? 2 : 999);
+
+  const msgsPct = Math.min(100, Math.round((msgsSent / Math.max(msgsLimit, 1)) * 100));
+  const contactsPct = Math.min(100, Math.round((contactsStored / Math.max(contactsLimit, 1)) * 100));
+  const channelsPct = channelsLimit === -1 || channelsLimit > 100
+    ? 20
+    : Math.min(100, Math.round((channelsConn / Math.max(channelsLimit, 1)) * 100));
+
   return (
-    <div>
-      <SectionHeader title="Billing & Plan" description="Manage your subscription plan and payment method." />
-      <Card className="mb-4">
-        <CardSection title="Current Usage">
-          <div className="grid grid-cols-3 gap-6">
-            {[{ label: "Messages Sent", value: "18,432", limit: "50,000", pct: 37 }, { label: "Contacts", value: "4,201", limit: "10,000", pct: 42 }, { label: "Active Channels", value: "3", limit: "5", pct: 60 }].map((item) => (
-              <div key={item.label}>
-                <div className="flex justify-between mb-1.5">
-                  <span className="text-xs font-medium text-gray-600">{item.label}</span>
-                  <span className="text-xs text-gray-400">{item.value} / {item.limit}</span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-                  <div className="h-full rounded-full bg-[#163300] transition-all" style={{ width: `${item.pct}%` }} />
-                </div>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <SectionHeader
+          title="Billing & Monetization"
+          description="Transparent, impulse-buy pricing designed to earn trust and fuel your growth."
+        />
+
+        {/* Currency & Frequency Controls */}
+        <div className="flex flex-wrap items-center gap-3 self-start sm:self-center">
+          {/* Currency Toggle */}
+          <div className="flex items-center rounded-xl bg-gray-100 p-1 border border-gray-200 shadow-inner">
+            <button
+              type="button"
+              onClick={() => setCurrency("USD")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200",
+                !isNGN
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              )}
+            >
+              <Globe className="h-3.5 w-3.5 text-emerald-600" />
+              USD ($)
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrency("NGN")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200",
+                isNGN
+                  ? "bg-white text-[#163300] shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              )}
+            >
+              <span className="text-sm leading-none">🇳🇬</span>
+              NGN (₦)
+            </button>
+          </div>
+
+          {/* Billing Cycle Toggle */}
+          <div className="flex items-center rounded-xl bg-gray-100 p-1 border border-gray-200 shadow-inner">
+            <button
+              type="button"
+              onClick={() => setCycle("monthly")}
+              className={cn(
+                "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200",
+                cycle === "monthly"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              )}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setCycle("yearly")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-200",
+                cycle === "yearly"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              )}
+            >
+              <span>Annual</span>
+              <span className="rounded-full bg-[#163300] px-1.5 py-0.2 text-[10px] font-bold text-[#9fe870]">
+                2 mo. free
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Active Subscription & Real-time Quota Meter Card */}
+      <Card>
+        <CardSection title="Workspace Plan & Resource Quotas">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-gray-100">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#163300] text-[#9fe870] shadow-md">
+                <Sparkles className="h-6 w-6" />
               </div>
-            ))}
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-base font-bold text-gray-900 capitalize">
+                    {currentTier} Tier
+                  </h4>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider",
+                      sub?.status === "active"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-gray-100 text-gray-600"
+                    )}
+                  >
+                    <CheckCircle2 className="h-3 w-3" />
+                    {sub?.status || "Active"}
+                  </span>
+                  <span className="rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-medium text-gray-500 uppercase">
+                    via {currentProvider}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {sub?.current_period_end
+                    ? `Renews on ${new Date(sub.current_period_end).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                    : "No renewal required (Standard free tier limits apply)"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={loadBillingData}
+                disabled={loading}
+                title="Refresh billing quotas"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <RefreshCw className={cn("h-3.5 w-3.5 text-gray-500", loading && "animate-spin")} />
+                Refresh
+              </button>
+
+              {currentProvider === "stripe" && sub?.customer_id && (
+                <button
+                  onClick={handlePortal}
+                  disabled={portalLoading}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#163300]/20 bg-[#e2f6d5]/50 px-3.5 py-2 text-xs font-bold text-[#163300] hover:bg-[#e2f6d5] transition-colors"
+                >
+                  {portalLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  )}
+                  Manage Card & Invoices
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Usage Meters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-5">
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-xs font-semibold text-gray-700">Broadcasts Sent</span>
+                <span className="text-xs font-bold text-gray-900">
+                  {msgsSent.toLocaleString()} / {msgsLimit === -1 ? "Unlimited" : msgsLimit.toLocaleString()}
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[#163300] transition-all duration-500"
+                  style={{ width: `${msgsPct}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-gray-400 mt-1">{msgsPct}% of monthly quota consumed</p>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-xs font-semibold text-gray-700">Audience Contacts</span>
+                <span className="text-xs font-bold text-gray-900">
+                  {contactsStored.toLocaleString()} / {contactsLimit === -1 ? "Unlimited" : contactsLimit.toLocaleString()}
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[#163300] transition-all duration-500"
+                  style={{ width: `${contactsPct}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-gray-400 mt-1">{contactsPct}% audience capacity reached</p>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-xs font-semibold text-gray-700">Connected Channels</span>
+                <span className="text-xs font-bold text-gray-900">
+                  {channelsConn} / {channelsLimit === -1 || channelsLimit > 100 ? "Unlimited" : channelsLimit}
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[#163300] transition-all duration-500"
+                  style={{ width: `${channelsPct}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-gray-400 mt-1">
+                {channelsLimit === -1 || channelsLimit > 100 ? "Uncapped channels enabled" : `${channelsLimit - channelsConn} slot(s) remaining`}
+              </p>
+            </div>
           </div>
         </CardSection>
       </Card>
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        {plans.map((plan) => (
-          <div key={plan.name} className={cn("rounded-2xl border p-5 transition-all", plan.current ? "border-[#9fe870] bg-[#e2f6d5]/40 shadow-sm" : "border-gray-200 bg-white hover:border-[#9fe870]/40")}>
-            {plan.current && <span className="inline-flex items-center gap-1 rounded-full bg-[#163300] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#9fe870] mb-3"><Check className="h-2.5 w-2.5" /> Current Plan</span>}
-            <p className="text-base font-bold text-gray-900">{plan.name}</p>
-            <p className="text-2xl font-extrabold text-gray-900 mt-1">{plan.price}{plan.price !== "Custom" && <span className="text-sm font-medium text-gray-400">/mo</span>}</p>
-            <p className="text-xs text-gray-500 mt-1 mb-4">{plan.description}</p>
-            <ul className="space-y-1.5 mb-5">
-              {plan.features.map((f) => <li key={f} className="flex items-center gap-1.5 text-xs text-gray-600"><Check className="h-3 w-3 text-[#163300] shrink-0" />{f}</li>)}
-            </ul>
-            {!plan.current && <button onClick={() => toast.info(`Upgrade to ${plan.name} coming soon`)} className="w-full rounded-lg border border-[#9fe870]/40 bg-white px-3 py-2 text-xs font-semibold text-[#163300] hover:bg-[#e2f6d5]/50 transition-colors">{plan.price === "Custom" ? "Contact Sales" : "Upgrade"}</button>}
-          </div>
-        ))}
-      </div>
-      <Card>
-        <CardSection title="Payment Method">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-16 items-center justify-center rounded-lg border border-gray-200 bg-gray-50"><CreditCard className="h-5 w-5 text-gray-400" /></div>
+
+      {/* Plan Selection Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {planCards.map((plan) => {
+          const isCurrent = plan.current;
+          const isButtonLoading = checkoutLoading === plan.tier;
+
+          return (
+            <div
+              key={plan.tier}
+              className={cn(
+                "relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-200",
+                plan.popular
+                  ? "border-[#163300] bg-gradient-to-b from-white to-[#f4fbe9]/40 shadow-md ring-2 ring-[#9fe870]/40"
+                  : isCurrent
+                  ? "border-[#9fe870] bg-[#f9fef6] shadow-sm"
+                  : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
+              )}
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#163300] px-3.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider text-[#9fe870] shadow-sm">
+                  Most Popular
+                </div>
+              )}
+
               <div>
-                <p className="text-sm font-medium text-gray-900">**** **** **** 4242</p>
-                <p className="text-xs text-gray-400">Expires 12/2027</p>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                    {plan.badge}
+                  </span>
+                  {isCurrent && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#163300] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#9fe870]">
+                      <Check className="h-2.5 w-2.5" /> Active Plan
+                    </span>
+                  )}
+                </div>
+
+                <h3 className="text-xl font-extrabold text-gray-900">{plan.name}</h3>
+
+                <div className="mt-2.5 mb-1 flex items-baseline gap-1.5">
+                  <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    {plan.priceDisplay}
+                  </span>
+                  <span className="text-sm font-semibold text-gray-400">
+                    {plan.periodDisplay}
+                  </span>
+                </div>
+
+                {plan.effectiveMonthly && (
+                  <p className="text-xs font-semibold text-emerald-700">
+                    Effectively {plan.effectiveMonthly} ({plan.savingsTag})
+                  </p>
+                )}
+
+                <p className="text-xs text-gray-500 mt-2 mb-5 leading-relaxed">
+                  {plan.description}
+                </p>
+
+                <div className="border-t border-gray-100 pt-4 mb-6">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-3">
+                    Included Capabilities
+                  </p>
+                  <ul className="space-y-2.5">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2.5 text-xs text-gray-700">
+                        <Check className="h-4 w-4 text-[#163300] shrink-0 mt-0.5" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div>
+                {isCurrent ? (
+                  <button
+                    disabled
+                    className="w-full rounded-xl bg-gray-100 py-2.5 text-xs font-bold text-gray-500 cursor-default"
+                  >
+                    Current Active Tier
+                  </button>
+                ) : plan.tier === "starter" ? (
+                  <button
+                    disabled
+                    className="w-full rounded-xl border border-gray-200 bg-white py-2.5 text-xs font-semibold text-gray-400 cursor-not-allowed"
+                  >
+                    Included Default
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleCheckout(plan.tier)}
+                    disabled={isButtonLoading}
+                    className={cn(
+                      "w-full inline-flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all duration-150 active:scale-98 shadow-sm",
+                      plan.popular
+                        ? "bg-[#163300] text-[#9fe870] hover:bg-[#163300]/90"
+                        : "border border-gray-300 bg-white text-gray-900 hover:border-gray-400 hover:bg-gray-50",
+                      isButtonLoading && "cursor-not-allowed opacity-70"
+                    )}
+                  >
+                    {isButtonLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Initializing Checkout...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="h-3.5 w-3.5 fill-current" />
+                        Upgrade to {plan.name}
+                        <span className="text-[10px] font-normal opacity-80">
+                          ({isNGN ? "Paystack" : "Stripe"})
+                        </span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
-            <button className="text-sm font-medium text-[#163300] hover:underline transition-colors">Update card</button>
+          );
+        })}
+      </div>
+
+      {/* Trust & Guarantee Banner */}
+      <Card>
+        <CardSection noBorder>
+          <div className="flex flex-col sm:flex-row items-center gap-4 py-1">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-100">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <div className="space-y-1 text-center sm:text-left">
+              <h4 className="text-sm font-bold text-gray-900">
+                Transparent Early Adopter Guarantee & Localized Pricing
+              </h4>
+              <p className="text-xs text-gray-500 leading-relaxed max-w-3xl">
+                We believe in earning your trust first. No hidden fees or surprise overages. 
+                Nigerian accounts are billed in Naira (₦) via CBN-regulated <strong>Paystack</strong> (Cards, Bank Transfer, USSD). 
+                Global workspaces are securely processed through <strong>Stripe</strong>. Cancel or upgrade anytime in one click.
+              </p>
+            </div>
           </div>
         </CardSection>
       </Card>

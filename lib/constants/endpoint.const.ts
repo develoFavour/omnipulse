@@ -135,5 +135,12 @@ export const ENDPOINTS = {
 		CREATE: `${API_VERSION}/api-keys`,
 		REVOKE: (id: string) => `${API_VERSION}/api-keys/${id}`,
 	},
+
+	// Billing & Subscriptions
+	BILLING: {
+		SUBSCRIPTION: `${API_VERSION}/billing/subscription`,
+		CHECKOUT: `${API_VERSION}/billing/checkout`,
+		PORTAL: `${API_VERSION}/billing/portal`,
+	},
 } as const;
 
