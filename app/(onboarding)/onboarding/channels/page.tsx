@@ -23,34 +23,35 @@ import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
 import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
 import { useAppStore } from "@/lib/store";
+import { SiInstagram, SiTelegram, SiWhatsapp, SiX } from "react-icons/si";
 
 const CHANNELS = [
 	{
 		id: "whatsapp",
-		title: "WhatsApp QR Pairing",
-		description: "Instant 10-second device linking via WhatsApp Multi-Device",
-		logoSrc: "/logos/whatsapp.svg",
+		title: "WhatsApp Business QR Pairing",
+		description: "Link a WhatsApp Business account via Multi-Device",
+		logo: SiWhatsapp,
 		colorClass: "bg-[#25D366]",
 	},
 	{
 		id: "telegram",
 		title: "Telegram BotFather",
 		description: "High-speed token dispatch & channel broadcasting",
-		logoSrc: "/logos/telegram.svg",
+		logo: SiTelegram,
 		colorClass: "bg-[#229ED9]",
 	},
 	{
 		id: "instagram",
 		title: "Instagram DM",
 		description: "Direct community broadcasting & story triggers",
-		logoSrc: "/logos/instagram.svg",
+		logo: SiInstagram,
 		colorClass: "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]",
 	},
 	{
 		id: "x",
 		title: "X (Twitter)",
 		description: "Public timeline announcements and engagement",
-		logoSrc: "/logos/x.svg",
+		logo: SiX,
 		colorClass: "bg-[#0e0f0c]",
 	},
 ];
@@ -211,7 +212,7 @@ function ChannelsSetupInner() {
 						key={channel.id}
 						title={channel.title}
 						description={channel.description}
-						logoSrc={channel.logoSrc}
+						logo={channel.logo}
 						colorClass={channel.colorClass}
 						isConnected={isChannelConnected(channel.id)}
 						onToggle={() => {
@@ -353,11 +354,16 @@ function ChannelsSetupInner() {
 													? "WhatsApp via QR"
 													: "Channel"}
 											</h3>
+													{activeChannelModal === "whatsapp" && (
+														<span className="mt-2 inline-flex rounded-full bg-[#25D366]/10 border border-[#25D366]/30 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#168c45]">
+															WhatsApp Business accounts only
+														</span>
+													)}
 											<p className="text-xs font-medium text-[#454745] mt-1">
 												{activeChannelModal === "telegram"
 													? "Integrate your Telegram bot token to enable instantaneous subscriber broadcasts."
 													: activeChannelModal === "whatsapp"
-													? "Scan the QR code with WhatsApp on your phone to link your broadcasting device in seconds."
+														? "Scan with the WhatsApp Business app on your phone. Personal WhatsApp accounts are not supported."
 													: "Follow the steps below."}
 											</p>
 										</div>

@@ -1,13 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import { Check, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { IconType } from "react-icons";
 
 interface ChannelConnectCardProps {
   title: string;
   description: string;
-  logoSrc: string;
+  logo: IconType;
   isConnected: boolean;
   onToggle: () => void;
   colorClass: string;
@@ -16,7 +16,7 @@ interface ChannelConnectCardProps {
 export function ChannelConnectCard({
   title,
   description,
-  logoSrc,
+  logo: Logo,
   isConnected,
   onToggle,
   colorClass,
@@ -39,13 +39,7 @@ export function ChannelConnectCard({
             colorClass
           )}
         >
-          <Image
-            src={logoSrc}
-            alt={title}
-            width={28}
-            height={28}
-            className="object-contain"
-          />
+          <Logo aria-label={title} className="h-7 w-7 text-white" />
         </div>
         <div className="pt-0.5">
           <div className="flex items-center gap-2">

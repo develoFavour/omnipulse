@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
 	Send,
 	MessageCircle,
-	Camera,
 	Mail,
 	Smartphone,
 	CheckCircle2,
@@ -41,6 +40,7 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { SiInstagram, SiTelegram, SiWhatsapp } from "react-icons/si";
 
 interface PlatformCatalogItem {
 	id: string;
@@ -62,7 +62,7 @@ const PLATFORMS: PlatformCatalogItem[] = [
 		category: "Instant Messaging",
 		description:
 			"Connect bots to send DMs, group broadcasts, and channel announcements.",
-		icon: Send,
+		icon: SiTelegram,
 		brandColor: "#229ED9",
 		bgLight: "bg-[#229ED9]/10",
 		borderLight: "border-[#229ED9]/20",
@@ -75,7 +75,7 @@ const PLATFORMS: PlatformCatalogItem[] = [
 		category: "Official Meta API",
 		description:
 			"Direct customer messaging, 1-click Meta OAuth, and WhatsApp Channel broadcasts.",
-		icon: MessageCircle,
+		icon: SiWhatsapp,
 		brandColor: "#25D366",
 		bgLight: "bg-[#25D366]/10",
 		borderLight: "border-[#25D366]/20",
@@ -88,7 +88,7 @@ const PLATFORMS: PlatformCatalogItem[] = [
 		category: "Social Commerce",
 		description:
 			"Engage followers via automated DMs and story response triggers.",
-		icon: Camera,
+		icon: SiInstagram,
 		brandColor: "#E1306C",
 		bgLight: "bg-pink-50",
 		borderLight: "border-pink-200",
@@ -329,9 +329,15 @@ export default function ConnectionsCatalogPage() {
 								</div>
 								<h3 className="text-xl font-bold text-gray-900 mb-2 font-heading">
 									{platform.name}
+									{platform.id === "whatsapp" && (
+										<span className="ml-2 inline-flex align-middle rounded-full bg-[#25D366]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#168c45] border border-[#25D366]/25">
+											WA Business
+										</span>
+									)}
 								</h3>
 								<p className="text-sm font-medium text-gray-500 mb-6 leading-relaxed">
 									{platform.description}
+									{platform.id === "whatsapp" && " WhatsApp Business accounts only; personal WhatsApp accounts are not supported."}
 								</p>
 							</div>
 

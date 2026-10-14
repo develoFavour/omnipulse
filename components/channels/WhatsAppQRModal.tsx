@@ -63,10 +63,10 @@ export function WhatsAppQRModal({
 						</div>
 						<div>
 							<h2 className="text-lg font-semibold text-white">
-								Connect WhatsApp
+								Connect WhatsApp Business
 							</h2>
 							<p className="text-sm text-white/50">
-								Link your phone to send broadcasts
+								WhatsApp Business accounts only
 							</p>
 						</div>
 					</div>
@@ -175,13 +175,16 @@ export function WhatsAppQRModal({
 							{/* Instructions */}
 							<div className="w-full space-y-3">
 								<p className="text-white/40 text-xs uppercase tracking-wider font-medium text-center">
-									How to scan
+									How to scan with WhatsApp Business
+								</p>
+								<p className="text-center text-xs text-[#25D366]">
+									Personal WhatsApp accounts are not supported.
 								</p>
 								<div className="space-y-2.5">
 									{[
 										{
 											step: "1",
-											text: "Open WhatsApp on your phone",
+											text: "Open WhatsApp Business on your phone",
 										},
 										{
 											step: "2",
