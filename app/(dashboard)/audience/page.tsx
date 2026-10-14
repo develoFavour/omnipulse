@@ -21,6 +21,9 @@ import { exportToCsv } from "@/lib/utils/csv.utils";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { usePermissions } from "@/lib/hooks/usePermissions";
+import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
+import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
+import { PlanQuotaBanner, QuotaPill } from "@/components/features/billing/PlanQuotaBanner";
 
 const TAG_COLOR_PRESETS = [
   "#6366f1", "#10b981", "#f59e0b", "#ef4444",
@@ -32,6 +35,15 @@ type SortDir = "asc" | "desc";
 
 export default function AudiencePage() {
   const { canSyncContacts, canDeleteAudience, canManageChannels, canExportData } = usePermissions();
+  const {
+    tier,
+    contacts: contactsQuota,
+    canStreamCsv,
+    upgradeModalOpen,
+    setUpgradeModalOpen,
+    modalConfig,
+    openUpgradeModal,
+  } = usePlanUsage();
   const { channels } = useTenantChannels();
   const { tags, createTag, deleteTag, tagContact, untagContact, bulkTagContacts, updateTag } = useTags();
   const tenant = useAppStore((state) => state.tenant);
@@ -153,7 +165,16 @@ export default function AudiencePage() {
         });
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to sync Telegram contacts");
+      const errMsg = error.response?.data?.error || error.message || "Failed to sync Telegram contacts";
+      if (error.response?.status === 402 || errMsg.toLowerCase().includes("quota") || errMsg.toLowerCase().includes("capacity limit")) {
+        openUpgradeModal({
+          featureName: "Higher Audience Quotas",
+          title: "Audience Contact Limit Reached",
+          description: errMsg,
+          recommendedTier: "growth",
+        });
+      }
+      toast.error(errMsg);
     } finally {
       setIsSyncingTG(false);
     }
@@ -304,7 +325,15 @@ export default function AudiencePage() {
         search: debouncedSearchQuery || undefined,
       });
       toast.success("Audience directory CSV downloaded successfully!");
-    } catch {
+    } catch (err: any) {
+      if (err.response?.status === 402 || err.response?.data?.error?.includes("Growth or Agency")) {
+        openUpgradeModal({
+          featureName: "Streaming CSV Exports",
+          title: "Unlock Unlimited Streaming CSV Exports",
+          description: "Full server-side CSV streaming is enabled on Growth and Agency tiers. Falling back to browser-buffered export.",
+          recommendedTier: "growth",
+        });
+      }
       // Graceful fallback to client-side export
       try {
         const headers = [
@@ -374,11 +403,38 @@ export default function AudiencePage() {
             <Download className={cn("h-4 w-4", isExporting && "animate-bounce")} />
             {isExporting ? "Exporting..." : "Export CSV"}
           </button>
+          <QuotaPill
+            current={contactsQuota.current}
+            limit={contactsQuota.limit}
+            unit="contacts"
+            isUnlimited={contactsQuota.isUnlimited}
+            onUpgrade={() =>
+              openUpgradeModal({
+                featureName: "5,000 Audience Contacts",
+                recommendedTier: "growth",
+              })
+            }
+          />
           <button onClick={() => refetch()} className="rounded-xl border border-gray-200 bg-white p-2.5 text-gray-600 hover:bg-gray-50 transition-colors shadow-xs" title="Refresh">
             <RefreshCw className="h-4 w-4" />
           </button>
         </div>
       </div>
+
+      {/* Plan Quota Alert Banner */}
+      <PlanQuotaBanner
+        metric={contactsQuota}
+        label="Audience Contacts"
+        unit="contacts"
+        tier={tier}
+        onUpgrade={() =>
+          openUpgradeModal({
+            featureName: "5,000 Audience Contacts",
+            recommendedTier: "growth",
+          })
+        }
+        className="mb-8"
+      />
 
       {/* Inbound Auto-Sync Card */}
       <div className="mb-8 rounded-3xl border border-[#9fe870]/30 bg-gradient-to-br from-[#e2f6d5]/40 via-white to-[#f4f5f2] p-6 sm:p-7 shadow-sm relative overflow-hidden">
@@ -1009,6 +1065,13 @@ export default function AudiencePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Plan Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        {...modalConfig}
+      />
 
     </motion.div>
   );

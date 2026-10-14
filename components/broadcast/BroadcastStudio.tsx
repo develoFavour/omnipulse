@@ -46,6 +46,9 @@ import { WhatsAppStoryModal } from "./WhatsAppStoryModal";
 import { LiveMissionTracker } from "./LiveMissionTracker";
 import { ScheduleCampaignModal } from "./ScheduleCampaignModal";
 import { TemplatePickerModal, STARTER_TEMPLATES } from "./TemplatePickerModal";
+import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
+import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
+import { PlanQuotaBanner, QuotaPill } from "@/components/features/billing/PlanQuotaBanner";
 
 export function BroadcastStudio() {
   const searchParams = useSearchParams();
@@ -62,6 +65,14 @@ export function BroadcastStudio() {
   const { channels, loading: loadingChannels, refetch: refetchChannels } = useTenantChannels();
   const { connectTelegram, loading: isConnectingTelegram } = useChannelConnection();
   const { createCampaign, dispatchCampaign, scheduleCampaign, isCreating, isDispatching, isScheduling } = useCampaigns();
+  const {
+    tier,
+    messages: messagesQuota,
+    upgradeModalOpen,
+    setUpgradeModalOpen,
+    modalConfig,
+    openUpgradeModal,
+  } = usePlanUsage();
 
   // Campaign State
   const [title, setTitle] = useState("");
@@ -328,6 +339,19 @@ export function BroadcastStudio() {
       return;
     }
 
+    if (messagesQuota.isAtLimit) {
+      openUpgradeModal({
+        featureName: "Monthly Broadcast Quota",
+        title: "Monthly Broadcast Limit Reached",
+        description: `You have reached your limit of ${messagesQuota.limit.toLocaleString()} monthly broadcasts allowed on the ${tier} tier. Upgrade to dispatch immediately.`,
+        recommendedTier: "growth",
+      });
+      toast.error("Monthly broadcast quota exhausted", {
+        description: `Your ${tier} plan limit of ${messagesQuota.limit.toLocaleString()} broadcasts has been reached.`,
+      });
+      return;
+    }
+
     if (!messageBody.trim()) {
       toast.error("Message content is empty", {
         description: "Please compose your message before dispatching.",
@@ -379,6 +403,14 @@ export function BroadcastStudio() {
       }
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || "Failed to dispatch broadcast";
+      if (err.response?.status === 402 || msg.toLowerCase().includes("monthly broadcast limit") || msg.toLowerCase().includes("quota")) {
+        openUpgradeModal({
+          featureName: "Monthly Broadcast Quota",
+          title: "Monthly Broadcast Limit Exceeded",
+          description: msg,
+          recommendedTier: "growth",
+        });
+      }
       toast.error(msg);
     }
   };
@@ -447,6 +479,14 @@ export function BroadcastStudio() {
       });
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || "Failed to schedule campaign";
+      if (err.response?.status === 402 || msg.toLowerCase().includes("monthly broadcast limit") || msg.toLowerCase().includes("quota")) {
+        openUpgradeModal({
+          featureName: "Monthly Broadcast Quota",
+          title: "Monthly Broadcast Limit Exceeded",
+          description: msg,
+          recommendedTier: "growth",
+        });
+      }
       toast.error(msg);
     }
   };
@@ -536,6 +576,20 @@ export function BroadcastStudio() {
             Schedule
           </button>
 
+          {/* Quota Pill */}
+          <QuotaPill
+            current={messagesQuota.current}
+            limit={messagesQuota.limit}
+            unit="dispatches/mo"
+            isUnlimited={messagesQuota.isUnlimited}
+            onUpgrade={() =>
+              openUpgradeModal({
+                featureName: "25,000 Monthly Broadcasts",
+                recommendedTier: "growth",
+              })
+            }
+          />
+
           {/* Primary Launch Button */}
           <button
             type="button"
@@ -564,6 +618,21 @@ export function BroadcastStudio() {
           </button>
         </div>
       </div>
+
+      {/* Broadcast Quota Alert Banner */}
+      <PlanQuotaBanner
+        metric={messagesQuota}
+        label="Monthly Broadcasts"
+        unit="messages"
+        tier={tier}
+        onUpgrade={() =>
+          openUpgradeModal({
+            featureName: "25,000 Monthly Broadcasts",
+            recommendedTier: "growth",
+          })
+        }
+        className="mb-8"
+      />
 
       {/* Scheduled Confirmation Banner */}
       <AnimatePresence>
@@ -905,6 +974,13 @@ export function BroadcastStudio() {
         isOpen={isTemplateModalOpen}
         onClose={() => setIsTemplateModalOpen(false)}
         onSelectTemplate={handleSelectTemplate}
+      />
+
+      {/* Plan Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        {...modalConfig}
       />
     </div>
   );

@@ -22,6 +22,8 @@ import {
 import { cn } from "@/lib/utils";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { usePermissions, RoleType } from "@/lib/hooks/usePermissions";
+import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
+import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
 
 interface NavItem {
   name: string;
@@ -57,6 +59,16 @@ interface SidebarProps {
 export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const { role } = usePermissions();
+  const {
+    tier,
+    isAgency,
+    messages,
+    contacts,
+    upgradeModalOpen,
+    setUpgradeModalOpen,
+    modalConfig,
+    openUpgradeModal,
+  } = usePlanUsage();
 
   const visibleNav = navigation.filter(
     (item) => !item.roles || item.roles.includes(role)
@@ -155,8 +167,67 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
           </nav>
         </div>
 
+        {/* Plan Quota Widget */}
+        <div className="mt-auto pt-6 pb-2">
+          <div className="rounded-2xl border border-gray-200/90 bg-gradient-to-b from-gray-50/80 to-white p-3.5 shadow-2xs relative overflow-hidden group">
+            <div className="flex items-center justify-between mb-2">
+              <span className="flex items-center gap-1.5 text-[11px] font-bold text-gray-900 uppercase tracking-wider">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                {tier} Plan
+              </span>
+              {!isAgency && (
+                <button
+                  type="button"
+                  onClick={() => openUpgradeModal({ recommendedTier: "growth" })}
+                  className="text-[10px] font-extrabold text-[#163300] bg-[#9fe870] hover:bg-[#8ee05b] px-2 py-0.5 rounded-full transition-all cursor-pointer shadow-2xs"
+                >
+                  Upgrade
+                </button>
+              )}
+            </div>
+
+            {/* Monthly Broadcast Progress */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[10px] text-gray-500 font-medium">
+                <span>Broadcasts / mo</span>
+                <span className="font-semibold text-gray-700">
+                  {messages.current} / {messages.isUnlimited ? "∞" : messages.limit}
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-300",
+                    messages.isAtLimit ? "bg-red-500" : messages.isNearLimit ? "bg-amber-500" : "bg-[#163300]"
+                  )}
+                  style={{ width: `${Math.min(100, messages.percent)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Audience Contacts Progress */}
+            <div className="mt-2.5 space-y-1">
+              <div className="flex items-center justify-between text-[10px] text-gray-500 font-medium">
+                <span>Audience Contacts</span>
+                <span className="font-semibold text-gray-700">
+                  {contacts.current} / {contacts.isUnlimited ? "∞" : contacts.limit}
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-300",
+                    contacts.isAtLimit ? "bg-red-500" : contacts.isNearLimit ? "bg-amber-500" : "bg-[#163300]"
+                  )}
+                  style={{ width: `${Math.min(100, contacts.percent)}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* What's New Widget */}
-        <div className="mt-auto pt-8">
+        <div className="pt-2">
           <div className="rounded-xl border border-[#9fe870]/30 bg-gradient-to-b from-[#e2f6d5]/40 to-white p-4 shadow-sm relative overflow-hidden group">
             <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-[#9fe870]/20 blur-2xl opacity-50 transition-opacity group-hover:opacity-100" />
             <div className="flex items-center gap-2 mb-3">
@@ -236,6 +307,13 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
       <aside className="hidden lg:flex h-full w-64 flex-col bg-white border-r border-gray-200 shrink-0">
         {navContent}
       </aside>
+
+      {/* Plan Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        {...modalConfig}
+      />
     </>
   );
 }

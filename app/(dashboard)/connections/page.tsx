@@ -26,6 +26,9 @@ import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
 import { useWhatsAppOAuth } from "@/lib/api/hooks/useWhatsAppOAuth";
 import { TelegramConnectionForm } from "@/components/features/onboarding/TelegramConnectionForm";
 import { WhatsAppQRModal } from "@/components/channels/WhatsAppQRModal";
+import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
+import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
+import { PlanQuotaBanner, QuotaPill } from "@/components/features/billing/PlanQuotaBanner";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -135,6 +138,14 @@ export default function ConnectionsCatalogPage() {
 	const { connectTelegram, loading: isConnectingTelegram } =
 		useChannelConnection();
 	const {
+		tier,
+		channels: channelsQuota,
+		upgradeModalOpen,
+		setUpgradeModalOpen,
+		modalConfig,
+		openUpgradeModal,
+	} = usePlanUsage();
+	const {
 		connectWithMeta,
 		disconnect: disconnectWhatsApp,
 		isLoading: isMetaConnecting,
@@ -179,10 +190,23 @@ export default function ConnectionsCatalogPage() {
 	};
 
 	const handleTelegramSubmit = async (token: string) => {
-		await connectTelegram(token);
-		toast.success("Telegram Bot connected!");
-		refetchChannels();
-		refetchDestinations();
+		try {
+			await connectTelegram(token);
+			toast.success("Telegram Bot connected!");
+			refetchChannels();
+			refetchDestinations();
+		} catch (err: any) {
+			const errMsg = err?.response?.data?.error || err?.message || "Failed to connect Telegram Bot";
+			if (err?.response?.status === 402 || errMsg.toLowerCase().includes("channel limit") || errMsg.toLowerCase().includes("quota")) {
+				openUpgradeModal({
+					featureName: "Unlimited Channels",
+					title: "Channel Limit Reached",
+					description: errMsg,
+					recommendedTier: "growth",
+				});
+			}
+			toast.error(errMsg);
+		}
 	};
 
 	return (
@@ -209,6 +233,18 @@ export default function ConnectionsCatalogPage() {
 				</div>
 
 				<div className="flex items-center gap-3">
+					<QuotaPill
+						current={channelsQuota.current}
+						limit={channelsQuota.limit}
+						unit="channels"
+						isUnlimited={channelsQuota.isUnlimited}
+						onUpgrade={() =>
+							openUpgradeModal({
+								featureName: "Unlimited Channels",
+								recommendedTier: "growth",
+							})
+						}
+					/>
 					{loadingChannels && channels.length === 0 ? (
 						<span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-xs font-semibold text-gray-500 border border-gray-200">
 							<Loader2 className="h-3.5 w-3.5 animate-spin text-[#163300]" />
@@ -223,6 +259,21 @@ export default function ConnectionsCatalogPage() {
 					)}
 				</div>
 			</div>
+
+			{/* Channel Quota Banner */}
+			<PlanQuotaBanner
+				metric={channelsQuota}
+				label="Connected Channels"
+				unit="channels"
+				tier={tier}
+				onUpgrade={() =>
+					openUpgradeModal({
+						featureName: "Unlimited Channels",
+						recommendedTier: "growth",
+					})
+				}
+				className="mb-8"
+			/>
 
 			{/* Member Read-Only Notice */}
 			{!canManageChannels && (
@@ -304,6 +355,15 @@ export default function ConnectionsCatalogPage() {
 										onClick={() => {
 											if (!connected && !canManageChannels) {
 												toast.info("Channel setup requires administrator privileges");
+												return;
+											}
+											if (!connected && channelsQuota.isAtLimit) {
+												openUpgradeModal({
+													featureName: "Unlimited Channels",
+													title: "Channel Connection Limit Reached",
+													description: `Your ${tier} plan is limited to ${channelsQuota.limit} active channel connections. Upgrade to Growth or Agency to connect unlimited channels.`,
+													recommendedTier: "growth",
+												});
 												return;
 											}
 											if (platform.id === "whatsapp" && !connected) {
@@ -667,6 +727,13 @@ export default function ConnectionsCatalogPage() {
 					refetchChannels();
 					setIsWhatsAppQRModalOpen(false);
 				}}
+			/>
+
+			{/* Plan Upgrade Modal */}
+			<UpgradeModal
+				open={upgradeModalOpen}
+				onOpenChange={setUpgradeModalOpen}
+				{...modalConfig}
 			/>
 		</motion.div>
 	);
