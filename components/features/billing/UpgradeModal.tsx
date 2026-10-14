@@ -38,10 +38,13 @@ export function UpgradeModal({
   const handleUpgrade = async (tier: PlanTier) => {
     setLoadingTier(tier);
     try {
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://omnipulseng.vercel.app";
       const res = await billingService.createCheckout({
         plan_tier: tier,
         billing_cycle: cycle,
         currency,
+        success_url: `${origin}/settings?section=billing&billing_status=success`,
+        cancel_url: `${origin}/settings?section=billing&billing_status=canceled`,
       });
       if (res?.checkout_url) {
         toast.loading(`Redirecting to ${isNGN ? "Paystack" : "Stripe"} checkout...`);

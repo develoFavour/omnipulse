@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         destination: "/invite",
         permanent: false,
       },
+      {
+        source: "/connections/settings",
+        destination: "/settings",
+        permanent: false,
+      },
     ];
   },
 };

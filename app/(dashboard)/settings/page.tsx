@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { useAppStore } from "@/lib/store";
 import { usePermissions } from "@/lib/hooks/usePermissions";
@@ -1434,29 +1435,34 @@ const sectionComponents: Record<Section, React.ComponentType> = {
   danger: DangerSection,
 };
 
-export default function SettingsPage() {
-  const [activeSection, setActiveSection] = useState<Section>("workspace");
+function SettingsContent() {
+  const searchParams = useSearchParams();
+  const billingStatus = searchParams.get("billing_status");
+  const sectionParam = searchParams.get("section") as Section | null;
+
+  const [activeSection, setActiveSection] = useState<Section>(
+    billingStatus || sectionParam === "billing" ? "billing" : "workspace"
+  );
   const { isOwner, isAdmin } = usePermissions();
+
+  useEffect(() => {
+    if (billingStatus || sectionParam === "billing") {
+      setActiveSection("billing");
+    }
+  }, [billingStatus, sectionParam]);
+
   const visibleNav = navItems.filter((item) => {
     if (item.ownerOnly) return isOwner;
     if (item.adminAndOwner) return isOwner || isAdmin;
     return true;
   });
-  useEffect(() => {
-    const visible = visibleNav.map((i) => i.id);
-    if (!visible.includes(activeSection)) { setActiveSection(visible[0] ?? "profile"); }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOwner, isAdmin]);
   const ActiveSection = sectionComponents[activeSection];
+
   return (
-    <div className="min-h-full">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-1 text-sm text-gray-500">Manage your workspace, profile, team, billing, and security preferences.</p>
-      </div>
-      <div className="flex gap-8 items-start">
-        <aside className="w-56 shrink-0 sticky top-4">
-          <nav className="space-y-0.5">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-8 md:flex-row">
+        <aside className="w-full shrink-0 md:w-56">
+          <nav className="space-y-1">
             {visibleNav.map((item) => {
               const isActive = item.id === activeSection;
               const isDanger = item.id === "danger";
@@ -1473,10 +1479,16 @@ export default function SettingsPage() {
             })}
           </nav>
         </aside>
-        <div className="flex-1 min-w-0">
-          <ActiveSection />
-        </div>
+        <div className="flex-1 min-w-0"><ActiveSection /></div>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-gray-500 font-medium">Loading settings...</div>}>
+      <SettingsContent />
+    </Suspense>
   );
 }
