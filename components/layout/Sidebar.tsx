@@ -35,7 +35,7 @@ interface NavItem {
 
 const navigation: NavItem[] = [
   { name: "Dashboard", href: APP_ROUTES.DASHBOARD.BASE, icon: LayoutDashboard },
-  { name: "Team Inbox", href: APP_ROUTES.DASHBOARD.INBOX, icon: MessageSquare },
+  { name: "Inbox", href: APP_ROUTES.DASHBOARD.INBOX, icon: MessageSquare },
   { name: "Broadcast Studio", href: APP_ROUTES.DASHBOARD.BROADCAST, icon: Megaphone },
   { name: "Scheduled Queue", href: APP_ROUTES.DASHBOARD.SCHEDULED, icon: CalendarClock },
   { name: "Message Templates", href: APP_ROUTES.DASHBOARD.TEMPLATES, icon: FileText },
@@ -86,8 +86,8 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
               item.href === APP_ROUTES.DASHBOARD.SCHEDULED
                 ? pathname.startsWith(APP_ROUTES.DASHBOARD.SCHEDULED)
                 : item.href === APP_ROUTES.DASHBOARD.BROADCAST
-                ? pathname === APP_ROUTES.DASHBOARD.BROADCAST
-                : pathname === item.href ||
+                  ? pathname === APP_ROUTES.DASHBOARD.BROADCAST
+                  : pathname === item.href ||
                   (item.href !== APP_ROUTES.DASHBOARD.BASE && pathname.startsWith(item.href));
             return (
               <Link

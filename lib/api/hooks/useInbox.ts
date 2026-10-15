@@ -193,6 +193,9 @@ export function useInboxWebSocket(
           conversation_id: string;
           message?: InboxMessage;
           conversation?: Conversation;
+          // STATUS_UPDATE fields
+          message_id?: string;
+          status?: string;
         };
 
         if (payload.type === "NEW_MESSAGE") {
@@ -221,10 +224,34 @@ export function useInboxWebSocket(
           // 2. Always revalidate the conversation list so the last_message_text / unread_count updates
           globalMutate(convListKey);
         }
+
+        if (payload.type === "STATUS_UPDATE" && payload.message_id && payload.status) {
+          // Surgically update the status of the specific message in the SWR cache
+          // so the tick icon flips (sent → delivered → read) without any round-trip
+          const msgKey = `inbox_messages_${payload.conversation_id}`;
+          globalMutate(
+            msgKey,
+            (prev: InboxMessage[] | undefined) => {
+              if (!prev) return prev;
+              let changed = false;
+              const next = prev.map((m) => {
+                if (m.id === payload.message_id && m.status !== payload.status) {
+                  changed = true;
+                  return { ...m, status: payload.status! };
+                }
+                return m;
+              });
+              return changed ? next : prev;
+            },
+            { revalidate: false }
+          );
+          console.log(`[INBOX-WS] ✅ Status update: msg ${payload.message_id} → ${payload.status}`);
+        }
       } catch (err) {
         console.warn("[INBOX-WS] Failed to parse event", err);
       }
     };
+
 
     ws.onerror = (err) => {
       console.warn("[INBOX-WS] WebSocket error", err);
