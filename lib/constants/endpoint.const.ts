@@ -107,6 +107,8 @@ export const ENDPOINTS = {
 		REPLY: (id: string) => `${API_VERSION}/inbox/conversations/${id}/reply`,
 		UPDATE: (id: string) => `${API_VERSION}/inbox/conversations/${id}`,
 		MARK_READ: (id: string) => `${API_VERSION}/inbox/conversations/${id}/read`,
+		EDIT_MESSAGE: (msgID: string) => `${API_VERSION}/inbox/messages/${msgID}`,
+		DELETE_MESSAGE: (msgID: string) => `${API_VERSION}/inbox/messages/${msgID}`,
 	},
 
 	// Team Management & RBAC

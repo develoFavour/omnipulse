@@ -45,6 +45,8 @@ export interface InboxMessage {
   platform_message_id?: string;
   status: string;
   error_message?: string;
+  is_deleted: boolean;
+  edited_at?: string;
   created_at: string;
 }
 
@@ -143,6 +145,18 @@ class InboxService {
 
   async markAsRead(conversationId: string): Promise<void> {
     await apiClient.post(ENDPOINTS.INBOX.MARK_READ(conversationId));
+  }
+
+  async editMessage(messageId: string, body: string): Promise<InboxMessage> {
+    const response = await apiClient.patch<InboxMessage>(
+      ENDPOINTS.INBOX.EDIT_MESSAGE(messageId),
+      { body }
+    );
+    return response.data as unknown as InboxMessage;
+  }
+
+  async deleteMessage(messageId: string): Promise<void> {
+    await apiClient.delete(ENDPOINTS.INBOX.DELETE_MESSAGE(messageId));
   }
 }
 

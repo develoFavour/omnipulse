@@ -257,19 +257,91 @@ function ConversationItem({
 
 // ─── Message Bubble ──────────────────────────────────────────────────────────
 
-function MessageBubble({ message }: { message: InboxMessage }) {
+function MessageBubble({
+  message,
+  onEdit,
+  onDelete,
+}: {
+  message: InboxMessage;
+  onEdit: (id: string, body: string) => void;
+  onDelete: (id: string) => void;
+}) {
   const isOutbound = message.direction === "outbound";
+  const [editing, setEditing] = useState(false);
+  const [editBody, setEditBody] = useState(message.body);
+  const editRef = useRef<HTMLTextAreaElement>(null);
+
+  // Keep edit body in sync if the message is externally updated
+  useEffect(() => {
+    if (!editing) setEditBody(message.body);
+  }, [message.body, editing]);
+
+  const handleEditSubmit = () => {
+    const trimmed = editBody.trim();
+    if (!trimmed || trimmed === message.body) {
+      setEditing(false);
+      return;
+    }
+    onEdit(message.id, trimmed);
+    setEditing(false);
+  };
+
+  // Soft-deleted messages show as a placeholder
+  if (message.is_deleted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={cn("flex w-full", isOutbound ? "justify-end" : "justify-start")}
+      >
+        <div
+          className={cn(
+            "max-w-[75%] rounded-2xl px-4 py-2 italic text-[13px]",
+            isOutbound
+              ? "bg-gray-200/60 text-gray-400"
+              : "bg-gray-100 text-gray-400 border border-gray-200"
+          )}
+        >
+          🚫 This message was deleted
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className={cn("flex w-full", isOutbound ? "justify-end" : "justify-start")}
+      className={cn("flex w-full group/bubble", isOutbound ? "justify-end" : "justify-start")}
     >
+      {/* Context menu — only visible on hover, only for outbound */}
+      {isOutbound && !editing && (
+        <div className="flex items-end gap-1 mr-1 opacity-0 group-hover/bubble:opacity-100 transition-opacity">
+          <button
+            onClick={() => {
+              setEditBody(message.body);
+              setEditing(true);
+              setTimeout(() => editRef.current?.focus(), 50);
+            }}
+            title="Edit message"
+            className="p-1 rounded-full bg-white/80 hover:bg-white text-gray-500 hover:text-[#163300] shadow border border-gray-200 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+          </button>
+          <button
+            onClick={() => onDelete(message.id)}
+            title="Delete message"
+            className="p-1 rounded-full bg-white/80 hover:bg-white text-gray-500 hover:text-red-500 shadow border border-gray-200 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></svg>
+          </button>
+        </div>
+      )}
+
       <div
         className={cn(
-          "max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm relative group",
+          "max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm relative",
           isOutbound
             ? "bg-[#163300] text-white rounded-br-md"
             : "bg-white text-gray-900 border border-gray-100 rounded-bl-md"
@@ -286,7 +358,25 @@ function MessageBubble({ message }: { message: InboxMessage }) {
           </div>
         )}
 
-        {message.body && (
+        {editing ? (
+          <div className="flex flex-col gap-2">
+            <textarea
+              ref={editRef}
+              value={editBody}
+              onChange={(e) => setEditBody(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleEditSubmit(); }
+                if (e.key === "Escape") setEditing(false);
+              }}
+              className="w-full bg-white/10 text-white text-[13.5px] rounded-lg px-2 py-1 resize-none outline-none border border-white/30 focus:border-white/60"
+              rows={2}
+            />
+            <div className="flex gap-1.5 justify-end">
+              <button onClick={() => setEditing(false)} className="text-[11px] px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white/70">Cancel</button>
+              <button onClick={handleEditSubmit} className="text-[11px] px-2 py-0.5 rounded bg-white text-[#163300] font-semibold hover:bg-gray-100">Save</button>
+            </div>
+          </div>
+        ) : (
           <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words">
             {message.body}
           </p>
@@ -298,6 +388,11 @@ function MessageBubble({ message }: { message: InboxMessage }) {
             isOutbound ? "justify-end" : "justify-start"
           )}
         >
+          {message.edited_at && (
+            <span className={cn("text-[9px] italic", isOutbound ? "text-white/40" : "text-gray-400")}>
+              edited
+            </span>
+          )}
           <span
             className={cn(
               "text-[10px]",
@@ -513,7 +608,7 @@ export default function InboxPage() {
   const { conversations, total, isLoading, refetch: refetchConversations } = useInboxConversations(inboxFilter);
   const { messages, isLoading: isMessagesLoading, isSending, sendReply, markAsRead, refetch: refetchMessages } =
     useInboxMessages(activeConversationId);
-  const { updateStatus } = useInboxActions();
+  const { updateStatus, editMessage: editMsg, deleteMessage: deleteMsg } = useInboxActions();
 
   // 🔌 Real-time WebSocket — instantly pushes new messages without polling delays
   useInboxWebSocket(inboxFilter, activeConversationId);
@@ -773,7 +868,11 @@ export default function InboxPage() {
                             <div className="flex-1 h-px bg-gray-200" />
                           </div>
                         )}
-                        <MessageBubble message={msg} />
+                        <MessageBubble
+                          message={msg}
+                          onEdit={(id, body) => editMsg(activeConversationId!, id, body)}
+                          onDelete={(id) => deleteMsg(activeConversationId!, id)}
+                        />
                       </div>
                     );
                   })}

@@ -136,7 +136,53 @@ export function useInboxActions() {
     []
   );
 
-  return { updateStatus, assignConversation, isUpdating };
+  const editMessage = useCallback(
+    async (conversationId: string, messageId: string, newBody: string) => {
+      // Optimistically update cache first for instant UI feedback
+      const msgKey = `inbox_messages_${conversationId}`;
+      globalMutate(
+        msgKey,
+        (prev: InboxMessage[] | undefined) =>
+          prev?.map((m) =>
+            m.id === messageId ? { ...m, body: newBody, edited_at: new Date().toISOString() } : m
+          ),
+        { revalidate: false }
+      );
+      try {
+        await inboxService.editMessage(messageId, newBody);
+      } catch (err) {
+        // Roll back optimistic update on failure
+        globalMutate(msgKey);
+        throw err;
+      }
+    },
+    []
+  );
+
+  const deleteMessage = useCallback(
+    async (conversationId: string, messageId: string) => {
+      // Optimistically mark as deleted in cache
+      const msgKey = `inbox_messages_${conversationId}`;
+      globalMutate(
+        msgKey,
+        (prev: InboxMessage[] | undefined) =>
+          prev?.map((m) =>
+            m.id === messageId ? { ...m, is_deleted: true, body: "" } : m
+          ),
+        { revalidate: false }
+      );
+      try {
+        await inboxService.deleteMessage(messageId);
+      } catch (err) {
+        // Roll back optimistic update on failure
+        globalMutate(msgKey);
+        throw err;
+      }
+    },
+    []
+  );
+
+  return { updateStatus, assignConversation, editMessage, deleteMessage, isUpdating };
 }
 
 // ─── Real-Time WebSocket Hook ─────────────────────────────────────────────────
@@ -196,6 +242,9 @@ export function useInboxWebSocket(
           // STATUS_UPDATE fields
           message_id?: string;
           status?: string;
+          // MESSAGE_EDITED fields
+          new_body?: string;
+          timestamp?: string;
         };
 
         if (payload.type === "NEW_MESSAGE") {
@@ -246,6 +295,36 @@ export function useInboxWebSocket(
             { revalidate: false }
           );
           console.log(`[INBOX-WS] ✅ Status update: msg ${payload.message_id} → ${payload.status}`);
+        }
+
+        if (payload.type === "MESSAGE_EDITED" && payload.message_id && payload.new_body !== undefined) {
+          const msgKey = `inbox_messages_${payload.conversation_id}`;
+          globalMutate(
+            msgKey,
+            (prev: InboxMessage[] | undefined) =>
+              prev?.map((m) =>
+                m.id === payload.message_id
+                  ? { ...m, body: payload.new_body!, edited_at: payload.timestamp }
+                  : m
+              ),
+            { revalidate: false }
+          );
+          console.log(`[INBOX-WS] ✏️ Message edited: ${payload.message_id}`);
+        }
+
+        if (payload.type === "MESSAGE_DELETED" && payload.message_id) {
+          const msgKey = `inbox_messages_${payload.conversation_id}`;
+          globalMutate(
+            msgKey,
+            (prev: InboxMessage[] | undefined) =>
+              prev?.map((m) =>
+                m.id === payload.message_id
+                  ? { ...m, is_deleted: true, body: "" }
+                  : m
+              ),
+            { revalidate: false }
+          );
+          console.log(`[INBOX-WS] 🗑️ Message deleted: ${payload.message_id}`);
         }
       } catch (err) {
         console.warn("[INBOX-WS] Failed to parse event", err);
