@@ -3,10 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Currency } from "@/lib/services/billing.service";
 
-const STORAGE_KEY = "omnipulse_currency_preference";
+const STORAGE_KEY = "messagerail_currency_preference";
 
 export function useCurrency() {
-  const [currency, setCurrencyState] = useState<Currency>("USD");
+  const [currency, setCurrencyState] = useState<Currency>("NGN");
   const [isDetected, setIsDetected] = useState(false);
 
   useEffect(() => {

@@ -89,7 +89,8 @@ export function UpgradeModal({
 
           {/* Currency & Frequency Toggle Bar */}
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-emerald-800/60">
-            {/* Currency */}
+            {/* Currency Toggle (Stripe/Paystack) commented out for default Paystack rail */}
+            {/*
             <div className="flex items-center rounded-lg bg-black/20 p-0.5 border border-white/10">
               <button
                 type="button"
@@ -117,6 +118,12 @@ export function UpgradeModal({
                 <span>🇳🇬</span>
                 NGN (₦)
               </button>
+            </div>
+            */}
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-200 bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-700/50">
+                <span>🇳🇬</span> Billed via Paystack
+              </span>
             </div>
 
             {/* Cycle */}
@@ -211,7 +218,7 @@ export function UpgradeModal({
               ) : (
                 <Zap className="h-3.5 w-3.5 fill-current" />
               )}
-              Upgrade to Growth ({isNGN ? "Paystack" : "Stripe"})
+              Upgrade to Growth (Paystack)
             </button>
           </div>
 
@@ -272,7 +279,7 @@ export function UpgradeModal({
               ) : (
                 <Zap className="h-3.5 w-3.5 fill-current text-[#163300]" />
               )}
-              Upgrade to Agency ({isNGN ? "Paystack" : "Stripe"})
+              Upgrade to Agency (Paystack)
             </button>
           </div>
         </div>
@@ -281,7 +288,7 @@ export function UpgradeModal({
         <div className="px-6 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Secure Checkout via {isNGN ? "Paystack (Cards, Bank Transfer, USSD)" : "Stripe (All Cards & Digital Wallets)"}</span>
+            <span>Secure Checkout via Paystack (Cards, Bank Transfer, USSD)</span>
           </div>
           <span>Cancel anytime</span>
         </div>

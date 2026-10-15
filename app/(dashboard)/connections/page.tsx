@@ -318,8 +318,9 @@ export default function ConnectionsCatalogPage() {
 											Not Configured
 										</span>
 									) : (
-										<span className="inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1 text-xs font-bold text-gray-400 border border-gray-200">
-											Coming Soon
+										<span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200/60">
+											<span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+											In Development
 										</span>
 									)}
 								</div>
@@ -395,9 +396,9 @@ export default function ConnectionsCatalogPage() {
 								) : (
 									<button
 										disabled
-										className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-5 py-3 text-sm font-bold text-gray-400 cursor-not-allowed"
+										className="w-full flex items-center justify-center gap-2 rounded-xl bg-gray-50 border border-gray-200/70 px-5 py-3 text-sm font-semibold text-gray-400 cursor-not-allowed"
 									>
-										Coming Soon
+										In Development
 									</button>
 								)}
 							</div>

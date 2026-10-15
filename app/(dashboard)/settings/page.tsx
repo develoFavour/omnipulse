@@ -660,7 +660,8 @@ function BillingSection() {
 
         {/* Currency & Frequency Controls */}
         <div className="flex flex-wrap items-center gap-3 self-start sm:self-center">
-          {/* Currency Toggle */}
+          {/* Currency Toggle (Stripe/Paystack) commented out for default Paystack rail */}
+          {/*
           <div className="flex items-center rounded-xl bg-gray-100 p-1 border border-gray-200 shadow-inner">
             <button
               type="button"
@@ -688,6 +689,12 @@ function BillingSection() {
               <span className="text-sm leading-none">🇳🇬</span>
               NGN (₦)
             </button>
+          </div>
+          */}
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200">
+              <span>🇳🇬</span> Billed via Paystack
+            </span>
           </div>
 
           {/* Billing Cycle Toggle */}
@@ -951,7 +958,7 @@ function BillingSection() {
                         <Zap className="h-3.5 w-3.5 fill-current" />
                         Upgrade to {plan.name}
                         <span className="text-[10px] font-normal opacity-80">
-                          ({isNGN ? "Paystack" : "Stripe"})
+                          (Paystack)
                         </span>
                       </>
                     )}
@@ -976,8 +983,8 @@ function BillingSection() {
               </h4>
               <p className="text-xs text-gray-500 leading-relaxed max-w-3xl">
                 We believe in earning your trust first. No hidden fees or surprise overages. 
-                Nigerian accounts are billed in Naira (₦) via CBN-regulated <strong>Paystack</strong> (Cards, Bank Transfer, USSD). 
-                Global workspaces are securely processed through <strong>Stripe</strong>. Cancel or upgrade anytime in one click.
+                All subscriptions are billed securely via CBN-regulated <strong>Paystack</strong> (Cards, Bank Transfer, USSD). 
+                Cancel or upgrade anytime in one click.
               </p>
             </div>
           </div>
@@ -1121,7 +1128,7 @@ function IntegrationsSection() {
                         )
                       ) : (
                         <button
-                          onClick={() => toast.info(`${item.name} connector is coming soon.`)}
+                          onClick={() => toast.info(`${item.name} connector is in development.`)}
                           className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors"
                         >
                           Configure
