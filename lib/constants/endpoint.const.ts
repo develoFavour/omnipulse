@@ -99,6 +99,16 @@ export const ENDPOINTS = {
 		REPORT: (days: number = 30) => `${API_VERSION}/analytics?days=${days}`,
 	},
 
+	// Unified Team Inbox
+	INBOX: {
+		CONVERSATIONS: `${API_VERSION}/inbox/conversations`,
+		CONVERSATION: (id: string) => `${API_VERSION}/inbox/conversations/${id}`,
+		MESSAGES: (id: string) => `${API_VERSION}/inbox/conversations/${id}/messages`,
+		REPLY: (id: string) => `${API_VERSION}/inbox/conversations/${id}/reply`,
+		UPDATE: (id: string) => `${API_VERSION}/inbox/conversations/${id}`,
+		MARK_READ: (id: string) => `${API_VERSION}/inbox/conversations/${id}/read`,
+	},
+
 	// Team Management & RBAC
 	TEAM: {
 		MEMBERS: `${API_VERSION}/team/members`,
