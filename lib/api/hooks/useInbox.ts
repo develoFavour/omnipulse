@@ -66,9 +66,21 @@ export function useInboxMessages(conversationId: string | null) {
           body,
           mediaUrl
         );
-        // Optimistic: append the new message immediately
+        // Deduplicate before appending to avoid doubling with live WebSocket events
         await mutate(
-          (prev) => (prev ? [...prev, newMsg] : [newMsg]),
+          (prev) => {
+            if (!prev) return [newMsg];
+            if (
+              prev.some(
+                (m) =>
+                  m.id === newMsg.id ||
+                  (m.direction === newMsg.direction && m.body === newMsg.body)
+              )
+            ) {
+              return prev;
+            }
+            return [...prev, newMsg];
+          },
           { revalidate: false }
         );
         return newMsg;
@@ -190,10 +202,18 @@ export function useInboxWebSocket(
             msgKey,
             (prev: InboxMessage[] | undefined) => {
               if (!prev) return prev;
-              // Deduplicate by ID (outbound messages may already be in cache via optimistic update)
-              const exists = prev.some((m) => m.id === payload.message?.id);
-              if (exists || !payload.message) return prev;
-              return [...prev, payload.message];
+              const incoming = payload.message;
+              if (!incoming) return prev;
+              // Deduplicate by ID or (same direction, same body, sent within 5 seconds)
+              const exists = prev.some(
+                (m) =>
+                  m.id === incoming.id ||
+                  (m.direction === incoming.direction &&
+                    m.body === incoming.body &&
+                    Math.abs(new Date(m.created_at).getTime() - new Date(incoming.created_at).getTime()) < 5000)
+              );
+              if (exists) return prev;
+              return [...prev, incoming];
             },
             { revalidate: false }
           );
