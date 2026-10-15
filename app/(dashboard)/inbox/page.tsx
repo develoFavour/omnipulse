@@ -30,6 +30,7 @@ import {
   useInboxConversations,
   useInboxMessages,
   useInboxActions,
+  useInboxWebSocket,
   type Conversation,
   type InboxMessage,
   type ConversationStatus,
@@ -503,15 +504,19 @@ export default function InboxPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Data
-  const { conversations, total, isLoading, refetch: refetchConversations } = useInboxConversations({
+  const inboxFilter = {
     channel: channelFilter,
     status: statusFilter,
     search: searchQuery,
     limit: 50,
-  });
+  };
+  const { conversations, total, isLoading, refetch: refetchConversations } = useInboxConversations(inboxFilter);
   const { messages, isLoading: isMessagesLoading, isSending, sendReply, markAsRead, refetch: refetchMessages } =
     useInboxMessages(activeConversationId);
   const { updateStatus } = useInboxActions();
+
+  // 🔌 Real-time WebSocket — instantly pushes new messages without polling delays
+  useInboxWebSocket(inboxFilter, activeConversationId);
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) ?? null,
