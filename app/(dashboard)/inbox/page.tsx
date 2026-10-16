@@ -96,15 +96,35 @@ function MessageTime({ date }: { date: string }) {
 function MessageStatus({ status }: { status: string }) {
   switch (status) {
     case "read":
-      return <CheckCheck className="h-3.5 w-3.5 text-sky-400" title="Read" />;
+      return (
+        <span title="Read" className="inline-flex">
+          <CheckCheck className="h-3.5 w-3.5 text-sky-400" />
+        </span>
+      );
     case "delivered":
-      return <CheckCheck className="h-3.5 w-3.5 text-white/80" title="Delivered" />;
+      return (
+        <span title="Delivered" className="inline-flex">
+          <CheckCheck className="h-3.5 w-3.5 text-white/80" />
+        </span>
+      );
     case "sent":
-      return <Check className="h-3.5 w-3.5 text-white/50" title="Sent" />;
+      return (
+        <span title="Sent" className="inline-flex">
+          <Check className="h-3.5 w-3.5 text-white/50" />
+        </span>
+      );
     case "failed":
-      return <XCircle className="h-3.5 w-3.5 text-red-400" title="Failed" />;
+      return (
+        <span title="Failed" className="inline-flex">
+          <XCircle className="h-3.5 w-3.5 text-red-400" />
+        </span>
+      );
     default:
-      return <Clock className="h-3.5 w-3.5 text-white/40" title="Sending..." />;
+      return (
+        <span title="Sending..." className="inline-flex">
+          <Clock className="h-3.5 w-3.5 text-white/40" />
+        </span>
+      );
   }
 }
 
