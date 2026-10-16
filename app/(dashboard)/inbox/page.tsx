@@ -93,15 +93,15 @@ function MessageTime({ date }: { date: string }) {
 function MessageStatus({ status }: { status: string }) {
   switch (status) {
     case "read":
-      return <CheckCheck className="h-3.5 w-3.5 text-sky-500" />;
+      return <CheckCheck className="h-3.5 w-3.5 text-sky-400" title="Read" />;
     case "delivered":
-      return <CheckCheck className="h-3.5 w-3.5 text-gray-400" />;
+      return <CheckCheck className="h-3.5 w-3.5 text-white/80" title="Delivered" />;
     case "sent":
-      return <Check className="h-3.5 w-3.5 text-gray-400" />;
+      return <Check className="h-3.5 w-3.5 text-white/50" title="Sent" />;
     case "failed":
-      return <XCircle className="h-3.5 w-3.5 text-red-500" />;
+      return <XCircle className="h-3.5 w-3.5 text-red-400" title="Failed" />;
     default:
-      return <Clock className="h-3.5 w-3.5 text-gray-300" />;
+      return <Clock className="h-3.5 w-3.5 text-white/40" title="Sending..." />;
   }
 }
 
