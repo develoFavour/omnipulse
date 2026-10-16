@@ -24,6 +24,9 @@ import {
   UserPlus,
   Archive,
   RotateCcw,
+  Play,
+  Pause,
+  Mic,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -241,10 +244,17 @@ function ConversationItem({
           <p
             className={cn(
               "text-xs truncate flex-1",
-              conversation.unread_count > 0 ? "text-gray-700 font-medium" : "text-gray-500"
+              conversation.unread_count > 0 ? "text-gray-700 font-medium" : "text-gray-500",
+              conversation.last_message_text?.includes("deleted") && "italic text-gray-400"
             )}
           >
-            {conversation.last_message_text || "No messages yet"}
+            {conversation.last_message_text === "[Voice message]" ? (
+              <span className="inline-flex items-center gap-1 text-emerald-600 font-medium">
+                <Mic className="h-3 w-3 inline" /> Voice message
+              </span>
+            ) : (
+              conversation.last_message_text || "No messages yet"
+            )}
           </p>
           <div className="flex items-center gap-1.5 shrink-0">
             <ChannelBadge channel={conversation.channel} />
@@ -252,6 +262,144 @@ function ConversationItem({
         </div>
       </div>
     </button>
+  );
+}
+
+// ─── Voice Note Audio Player ──────────────────────────────────────────────────
+
+function VoiceNotePlayer({
+  url,
+  isOutbound,
+}: {
+  url?: string;
+  isOutbound: boolean;
+}) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState<number>(1);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch((err) => {
+        console.warn("Audio playback failed:", err);
+      });
+      setIsPlaying(true);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime);
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current && Number.isFinite(audioRef.current.duration)) {
+      setDuration(audioRef.current.duration);
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = Number(e.target.value);
+    setCurrentTime(time);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
+  };
+
+  const cycleSpeed = () => {
+    const speeds = [1, 1.5, 2];
+    const nextSpeed = speeds[(speeds.indexOf(playbackRate) + 1) % speeds.length];
+    setPlaybackRate(nextSpeed);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = nextSpeed;
+    }
+  };
+
+  const formatSecs = (sec: number) => {
+    if (!sec || isNaN(sec)) return "0:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2.5 p-2 rounded-xl min-w-[220px] max-w-[280px] my-1",
+        isOutbound ? "bg-white/10 text-white" : "bg-gray-100/90 text-gray-900 border border-gray-200"
+      )}
+    >
+      {url && (
+        <audio
+          ref={audioRef}
+          src={url}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
+          preload="metadata"
+        />
+      )}
+
+      {/* Play/Pause Button */}
+      <button
+        onClick={togglePlay}
+        disabled={!url}
+        className={cn(
+          "h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-transform active:scale-95 shadow-sm",
+          isOutbound
+            ? "bg-white text-[#163300] hover:bg-gray-100"
+            : "bg-[#163300] text-white hover:bg-[#1e4a00]",
+          !url && "opacity-50 cursor-not-allowed"
+        )}
+      >
+        {isPlaying ? (
+          <Pause className="h-3.5 w-3.5 fill-current" />
+        ) : (
+          <Play className="h-3.5 w-3.5 fill-current ml-0.5" />
+        )}
+      </button>
+
+      {/* Audio Track & Progress */}
+      <div className="flex-1 flex flex-col justify-center gap-1 min-w-0">
+        <input
+          type="range"
+          min={0}
+          max={duration || 100}
+          step={0.1}
+          value={currentTime}
+          onChange={handleSeek}
+          disabled={!url}
+          className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-black/15 accent-[#163300]"
+        />
+        <div className="flex items-center justify-between text-[10px] font-mono leading-none opacity-80">
+          <span>{formatSecs(currentTime > 0 ? currentTime : duration)}</span>
+          <div className="flex items-center gap-1.5">
+            <Mic className="h-2.5 w-2.5 opacity-60" />
+            <button
+              onClick={cycleSpeed}
+              className={cn(
+                "px-1 py-0.2 rounded text-[9px] font-bold font-sans transition-colors",
+                isOutbound ? "bg-white/20 hover:bg-white/30" : "bg-gray-200 hover:bg-gray-300"
+              )}
+            >
+              {playbackRate}x
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -308,6 +456,11 @@ function MessageBubble({
     );
   }
 
+  const isAudio =
+    message.media_type === "audio" ||
+    (message.media_url && message.media_url.startsWith("data:audio")) ||
+    message.body === "[Voice message]";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -347,7 +500,10 @@ function MessageBubble({
             : "bg-white text-gray-900 border border-gray-100 rounded-bl-md"
         )}
       >
-        {message.media_url && (
+        {/* Voicenote / Audio Message */}
+        {isAudio ? (
+          <VoiceNotePlayer url={message.media_url} isOutbound={isOutbound} />
+        ) : message.media_url ? (
           <div className="mb-2 rounded-lg overflow-hidden">
             <img
               src={message.media_url}
@@ -356,7 +512,7 @@ function MessageBubble({
               loading="lazy"
             />
           </div>
-        )}
+        ) : null}
 
         {editing ? (
           <div className="flex flex-col gap-2">
@@ -376,11 +532,11 @@ function MessageBubble({
               <button onClick={handleEditSubmit} className="text-[11px] px-2 py-0.5 rounded bg-white text-[#163300] font-semibold hover:bg-gray-100">Save</button>
             </div>
           </div>
-        ) : (
+        ) : (!isAudio || message.body !== "[Voice message]") && message.body ? (
           <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap break-words">
             {message.body}
           </p>
-        )}
+        ) : null}
 
         <div
           className={cn(
@@ -627,10 +783,10 @@ export default function InboxPage() {
 
   // Mark as read when opening a conversation
   useEffect(() => {
-    if (activeConversationId && activeConversation?.unread_count) {
+    if (activeConversationId && activeConversation && activeConversation.unread_count > 0) {
       markAsRead().then(() => refetchConversations());
     }
-  }, [activeConversationId]);
+  }, [activeConversationId, activeConversation?.unread_count, markAsRead, refetchConversations]);
 
   const handleSelectConversation = useCallback((id: string) => {
     setActiveConversationId(id);
@@ -663,6 +819,12 @@ export default function InboxPage() {
     [activeConversationId, updateStatus, refetchConversations]
   );
 
+  // Unread conversation count
+  const unreadCount = useMemo(
+    () => conversations.reduce((acc, c) => acc + (c.unread_count > 0 ? 1 : 0), 0),
+    [conversations]
+  );
+
   // Filter counts
   const channelCounts = useMemo(() => {
     const counts: Record<string, number> = { all: conversations.length };
@@ -688,9 +850,9 @@ export default function InboxPage() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-gray-900">Inbox</h1>
-              {total > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-[#e2f6d5] text-[#163300] text-[11px] font-bold">
-                  {total}
+              {unreadCount > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-[#163300] text-white text-[11px] font-bold shadow-sm">
+                  {unreadCount}
                 </span>
               )}
             </div>

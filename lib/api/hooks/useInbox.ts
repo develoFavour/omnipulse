@@ -93,6 +93,20 @@ export function useInboxMessages(conversationId: string | null) {
 
   const markAsRead = useCallback(async () => {
     if (!conversationId) return;
+    // Optimistically zero out unread_count in conversation list caches
+    globalMutate(
+      (key) => typeof key === "string" && key.startsWith("inbox_conversations_"),
+      (prev: ConversationListResponse | undefined) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          conversations: prev.conversations.map((c) =>
+            c.id === conversationId ? { ...c, unread_count: 0 } : c
+          ),
+        };
+      },
+      { revalidate: false }
+    );
     await inboxService.markAsRead(conversationId);
   }, [conversationId]);
 
@@ -138,7 +152,7 @@ export function useInboxActions() {
 
   const editMessage = useCallback(
     async (conversationId: string, messageId: string, newBody: string) => {
-      // Optimistically update cache first for instant UI feedback
+      // Optimistically update message cache first for instant UI feedback
       const msgKey = `inbox_messages_${conversationId}`;
       globalMutate(
         msgKey,
@@ -148,11 +162,26 @@ export function useInboxActions() {
           ),
         { revalidate: false }
       );
+      // Optimistically update conversation list preview
+      globalMutate(
+        (key) => typeof key === "string" && key.startsWith("inbox_conversations_"),
+        (prev: ConversationListResponse | undefined) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            conversations: prev.conversations.map((c) =>
+              c.id === conversationId ? { ...c, last_message_text: newBody } : c
+            ),
+          };
+        },
+        { revalidate: false }
+      );
       try {
         await inboxService.editMessage(messageId, newBody);
       } catch (err) {
         // Roll back optimistic update on failure
         globalMutate(msgKey);
+        globalMutate((key) => typeof key === "string" && key.startsWith("inbox_conversations_"));
         throw err;
       }
     },
@@ -161,7 +190,7 @@ export function useInboxActions() {
 
   const deleteMessage = useCallback(
     async (conversationId: string, messageId: string) => {
-      // Optimistically mark as deleted in cache
+      // Optimistically mark as deleted in message cache
       const msgKey = `inbox_messages_${conversationId}`;
       globalMutate(
         msgKey,
@@ -171,11 +200,26 @@ export function useInboxActions() {
           ),
         { revalidate: false }
       );
+      // Optimistically update conversation list preview
+      globalMutate(
+        (key) => typeof key === "string" && key.startsWith("inbox_conversations_"),
+        (prev: ConversationListResponse | undefined) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            conversations: prev.conversations.map((c) =>
+              c.id === conversationId ? { ...c, last_message_text: "🚫 This message was deleted" } : c
+            ),
+          };
+        },
+        { revalidate: false }
+      );
       try {
         await inboxService.deleteMessage(messageId);
       } catch (err) {
         // Roll back optimistic update on failure
         globalMutate(msgKey);
+        globalMutate((key) => typeof key === "string" && key.startsWith("inbox_conversations_"));
         throw err;
       }
     },
@@ -309,6 +353,8 @@ export function useInboxWebSocket(
               ),
             { revalidate: false }
           );
+          // Revalidate conversation list so preview text updates immediately
+          globalMutate((key) => typeof key === "string" && key.startsWith("inbox_conversations_"));
           console.log(`[INBOX-WS] ✏️ Message edited: ${payload.message_id}`);
         }
 
@@ -324,6 +370,8 @@ export function useInboxWebSocket(
               ),
             { revalidate: false }
           );
+          // Revalidate conversation list so preview text updates immediately
+          globalMutate((key) => typeof key === "string" && key.startsWith("inbox_conversations_"));
           console.log(`[INBOX-WS] 🗑️ Message deleted: ${payload.message_id}`);
         }
       } catch (err) {
