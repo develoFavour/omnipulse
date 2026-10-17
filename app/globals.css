@@ -173,7 +173,6 @@
 }
 
 @layer base {
-
 	/* ── Theme Color Overrides ──────────────────────────────────────────────────
 	   Override Tailwind's neutral gray-900/800/700 to align with our
 	   Wise-inspired Forest/Obsidian palette. This avoids touching every
@@ -194,4 +193,10 @@
 		color: var(--color-slate) !important;
 		/* #6a6c6a — warm slate */
 	}
+	.cl-footerItem {
+		display: none !important;
+	}
+}
+.cl-footerItem {
+	display: none !important;
 }
