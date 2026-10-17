@@ -24,10 +24,22 @@ export interface CampaignResponse {
   media_url?: string;
   status: string;
   scheduled_at?: string;
+  submitted_by?: string;
+  approved_by?: string;
+  approved_at?: string;
+  rejection_reason?: string;
   total_targets: number;
   processed_targets: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface CampaignReport {
+  campaign: CampaignResponse;
+  stats: CampaignStats;
+  deliveries?: CampaignDeliveryItem[];
+  read_rate: number;
+  delivery_rate: number;
 }
 
 export interface CampaignStats {
@@ -110,6 +122,47 @@ class CampaignService {
       ENDPOINTS.CAMPAIGNS.SCHEDULE(campaignId)
     );
     return response.data as unknown as { message: string; campaign_id: string };
+  }
+
+  async submitForApproval(campaignId: string): Promise<{ message: string; campaign_id: string; status: string }> {
+    const response = await apiClient.post<ApiResponse<{ message: string; campaign_id: string; status: string }>>(
+      ENDPOINTS.CAMPAIGNS.SUBMIT(campaignId)
+    );
+    return response.data as unknown as { message: string; campaign_id: string; status: string };
+  }
+
+  async approveCampaign(campaignId: string): Promise<{ message: string; campaign_id: string; status: string }> {
+    const response = await apiClient.post<ApiResponse<{ message: string; campaign_id: string; status: string }>>(
+      ENDPOINTS.CAMPAIGNS.APPROVE(campaignId)
+    );
+    return response.data as unknown as { message: string; campaign_id: string; status: string };
+  }
+
+  async rejectCampaign(campaignId: string, reason: string): Promise<{ message: string; campaign_id: string; status: string }> {
+    const response = await apiClient.post<ApiResponse<{ message: string; campaign_id: string; status: string }>>(
+      ENDPOINTS.CAMPAIGNS.REJECT(campaignId),
+      { reason }
+    );
+    return response.data as unknown as { message: string; campaign_id: string; status: string };
+  }
+
+  async getCampaignReport(campaignId: string): Promise<CampaignReport> {
+    const response = await apiClient.get<ApiResponse<CampaignReport>>(ENDPOINTS.CAMPAIGNS.REPORT(campaignId));
+    return response.data as unknown as CampaignReport;
+  }
+
+  async exportCampaignReport(campaignId: string): Promise<void> {
+    const response = await apiClient.get(ENDPOINTS.CAMPAIGNS.EXPORT(campaignId), {
+      responseType: "blob",
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data as BlobPart], { type: "text/csv" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `campaign-report-${campaignId.slice(0, 8)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   }
 }
 

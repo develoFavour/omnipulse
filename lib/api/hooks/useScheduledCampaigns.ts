@@ -92,8 +92,12 @@ export function useScheduledCampaigns() {
     if (!isSilent) setIsRefreshing(true);
     setError(null);
     try {
-      const data = await campaignService.getCampaigns("scheduled", 1, 100);
-      const enriched = (data || []).map(enrichCampaign);
+      const [scheduledData, pendingData] = await Promise.all([
+        campaignService.getCampaigns("scheduled", 1, 100),
+        campaignService.getCampaigns("pending_approval", 1, 100).catch(() => []),
+      ]);
+      const combined = [...(pendingData || []), ...(scheduledData || [])];
+      const enriched = combined.map(enrichCampaign);
       setCampaigns(enriched);
     } catch (err: any) {
       const msg = err.response?.data?.error || err.message || "Failed to load scheduled campaigns";
@@ -165,6 +169,36 @@ export function useScheduledCampaigns() {
     }
   };
 
+  const approveCampaign = async (campaignId: string) => {
+    try {
+      await campaignService.approveCampaign(campaignId);
+      toast.success("Campaign approved successfully!", {
+        description: "Campaign status updated to approved.",
+      });
+      fetchScheduled(true);
+      return true;
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || "Failed to approve campaign";
+      toast.error(msg);
+      return false;
+    }
+  };
+
+  const rejectCampaign = async (campaignId: string, reason: string) => {
+    try {
+      await campaignService.rejectCampaign(campaignId, reason);
+      toast.success("Campaign rejected", {
+        description: "The campaign draft has been marked as rejected with reason.",
+      });
+      fetchScheduled(true);
+      return true;
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || "Failed to reject campaign";
+      toast.error(msg);
+      return false;
+    }
+  };
+
   return {
     campaigns,
     isLoading,
@@ -175,5 +209,7 @@ export function useScheduledCampaigns() {
     refetch: () => fetchScheduled(false),
     cancelSchedule,
     dispatchNow,
+    approveCampaign,
+    rejectCampaign,
   };
 }

@@ -15,7 +15,9 @@ import {
   Filter,
   ShieldAlert,
   ArrowRight,
+  Download,
 } from "lucide-react";
+import { toast } from "sonner";
 import { FaTelegramPlane, FaWhatsapp } from "react-icons/fa";
 import {
   campaignService,
@@ -517,13 +519,31 @@ export function LiveMissionTracker({
 
       {/* Control Actions */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-6 rounded-3xl border border-gray-200/90 dark:border-white/10 bg-white/95 dark:bg-zinc-950/90 shadow-xl">
-        <a
-          href={APP_ROUTES.DASHBOARD.ACTIVITY}
-          className="flex items-center gap-2 px-5 py-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 font-bold text-sm transition-all shadow-xs"
-        >
-          View in Global Activity Log
-          <ExternalLink className="h-4 w-4 text-gray-400" />
-        </a>
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            href={APP_ROUTES.DASHBOARD.ACTIVITY}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-200 font-bold text-sm transition-all shadow-xs"
+          >
+            View in Global Activity Log
+            <ExternalLink className="h-4 w-4 text-gray-400" />
+          </a>
+
+          <button
+            onClick={async () => {
+              try {
+                await campaignService.exportCampaignReport(campaignId);
+                toast.success("Campaign report downloaded successfully");
+              } catch (err: any) {
+                const msg = err.response?.data?.error || "Failed to export campaign report";
+                toast.error(msg);
+              }
+            }}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 font-bold text-sm transition-all shadow-xs cursor-pointer"
+          >
+            <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            Export Client Report (CSV)
+          </button>
+        </div>
 
         <div className="flex items-center gap-3">
           {isWhatsAppStory && onOpenStoryModal && (

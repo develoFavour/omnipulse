@@ -33,6 +33,11 @@ export const ENDPOINTS = {
 		BY_ID: (id: string) => `${API_VERSION}/campaigns/${id}`,
 		DISPATCH: (id: string) => `${API_VERSION}/campaigns/${id}/dispatch`,
 		SCHEDULE: (id: string) => `${API_VERSION}/campaigns/${id}/schedule`,
+		SUBMIT: (id: string) => `${API_VERSION}/campaigns/${id}/submit`,
+		APPROVE: (id: string) => `${API_VERSION}/campaigns/${id}/approve`,
+		REJECT: (id: string) => `${API_VERSION}/campaigns/${id}/reject`,
+		REPORT: (id: string) => `${API_VERSION}/campaigns/${id}/report`,
+		EXPORT: (id: string) => `${API_VERSION}/campaigns/${id}/export`,
 		STATS: (id: string) => `${API_VERSION}/campaigns/${id}/stats`,
 		DELIVERIES: (id: string) => `${API_VERSION}/campaigns/${id}/deliveries`,
 	},
@@ -140,6 +145,7 @@ export const ENDPOINTS = {
 		UPDATE: `${API_VERSION}/profile`,
 	},
 	WORKSPACE_SETTINGS: `${API_VERSION}/workspace-settings`,
+	SETTINGS_APPROVAL: `${API_VERSION}/settings/approval`,
 
 	// API Keys Management
 	API_KEYS: {

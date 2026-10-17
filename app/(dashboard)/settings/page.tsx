@@ -14,6 +14,7 @@ import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { notificationPreferencesService } from "@/lib/services/notification-preferences.service";
 import { mediaService } from "@/lib/services/media.service";
 import { workspaceSettingsService, type WorkspaceSettings } from "@/lib/services/workspace-settings.service";
+import { approvalSettingsService, type ApprovalSettings } from "@/lib/services/approval-settings.service";
 import { apiKeyService, type ApiKey } from "@/lib/services/api-key.service";
 import { channelService, type ChannelResponse } from "@/lib/services/channel.service";
 import { billingService, type Subscription, type PlanTier, type BillingCycle } from "@/lib/services/billing.service";
@@ -103,7 +104,17 @@ function WorkspaceSection() {
   const [settings, setSettings] = useState<WorkspaceSettings>({ logo_url: "", timezone: "UTC", language: "en-US" });
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(true);
-  useEffect(() => { workspaceSettingsService.get().then(setSettings).catch(() => toast.error("Failed to load workspace settings")).finally(() => setLoadingSettings(false)); }, []);
+  const [approvalSettings, setApprovalSettings] = useState<ApprovalSettings>({
+    require_campaign_approval: false,
+    plan_tier: "starter",
+    can_enable: false,
+  });
+  const [updatingApproval, setUpdatingApproval] = useState(false);
+
+  useEffect(() => {
+    workspaceSettingsService.get().then(setSettings).catch(() => toast.error("Failed to load workspace settings")).finally(() => setLoadingSettings(false));
+    approvalSettingsService.get().then(setApprovalSettings).catch(() => {});
+  }, []);
   useEffect(() => { setName(tenant?.company_name ?? ""); }, [tenant?.company_name]);
   const handleSave = async () => {
     if (!name.trim() || name.trim() === tenant?.company_name) return;
@@ -183,6 +194,76 @@ function WorkspaceSection() {
         </CardSection>
         <CardSection noBorder>
           <div className="flex justify-end"><SaveButton loading={loadingSettings} onClick={async () => { try { await workspaceSettingsService.update(settings); toast.success("Regional settings saved"); } catch { toast.error("Failed to save regional settings"); } }} /></div>
+        </CardSection>
+      </Card>
+      <Card className="mt-4">
+        <CardSection title="Agency Governance & Workflows">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-900">Campaign Approval Workflow</span>
+                {!approvalSettings.can_enable ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200">
+                    <Sparkles className="h-3 w-3 text-amber-500" />
+                    Agency Plan
+                  </span>
+                ) : (
+                  <span className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold border",
+                    approvalSettings.require_campaign_approval 
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-gray-100 text-gray-600 border-gray-200"
+                  )}>
+                    {approvalSettings.require_campaign_approval ? (
+                      <>
+                        <ShieldCheck className="h-3 w-3 text-emerald-500" />
+                        Enforced
+                      </>
+                    ) : (
+                      "Optional"
+                    )}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1 max-w-xl leading-relaxed">
+                When enabled, junior team members and copywriters can draft campaigns, but messages will not be dispatched or scheduled until an Account Manager, Admin, or Owner reviews and clicks <strong>"Approve"</strong>.
+              </p>
+            </div>
+            <div>
+              {approvalSettings.can_enable ? (
+                <Toggle
+                  checked={approvalSettings.require_campaign_approval}
+                  onChange={async (newVal) => {
+                    setUpdatingApproval(true);
+                    try {
+                      const updated = await approvalSettingsService.update(newVal);
+                      setApprovalSettings(updated);
+                      toast.success(
+                        newVal
+                          ? "Campaign approval workflow enabled"
+                          : "Campaign approval workflow disabled"
+                      );
+                    } catch {
+                      toast.error("Failed to update approval workflow setting");
+                    } finally {
+                      setUpdatingApproval(false);
+                    }
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    toast.info("Upgrade to the Agency plan to enable campaign approval workflows.");
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 transition-colors"
+                >
+                  <Lock className="h-3.5 w-3.5 text-amber-600" />
+                  Upgrade to Agency
+                </button>
+              )}
+            </div>
+          </div>
         </CardSection>
       </Card>
     </div>
