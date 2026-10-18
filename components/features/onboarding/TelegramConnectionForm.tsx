@@ -159,10 +159,10 @@ export function TelegramConnectionForm({
 									<Button
 										type="button"
 										onClick={handleOpenBotFather}
-										className="mt-3 w-full rounded-full border border-[#163300] bg-white hover:bg-[#163300] hover:text-[#9fe870] text-[#163300] font-bold text-xs uppercase h-8 transition-all"
+										className="mt-3 flex min-w-0 w-full rounded-full border border-[#163300] bg-white px-2 py-1 hover:bg-[#163300] hover:text-[#9fe870] text-[#163300] font-bold text-xs uppercase min-h-8 h-auto gap-1 transition-all whitespace-normal leading-tight"
 									>
-										<ExternalLink className="w-3.5 h-3.5 mr-1.5" />
-										<span>Launch BotFather</span>
+										<ExternalLink className="w-3.5 h-3.5 shrink-0" />
+										<span className="min-w-0 flex-1 whitespace-normal text-center">Launch BotFather</span>
 									</Button>
 								)}
 							</div>
