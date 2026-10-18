@@ -671,9 +671,9 @@ export default function TeamManagementPage() {
                 {invitations.length}
               </span>
             </div>
-            <span className="text-xs text-gray-500">
+            {/* <span className="text-xs text-gray-500">
               Invited via Brevo transactional email
-            </span>
+            </span> */}
           </div>
 
           {invitations.length === 0 ? (
@@ -795,11 +795,10 @@ export default function TeamManagementPage() {
                 <button
                   type="button"
                   onClick={() => setInviteRole("member")}
-                  className={`flex flex-col p-3 rounded-xl border text-left transition-all ${
-                    inviteRole === "member"
+                  className={`flex flex-col p-3 rounded-xl border text-left transition-all ${inviteRole === "member"
                       ? "border-[#163300] bg-[#e2f6d5]/50 ring-2 ring-[#9fe870]/40"
                       : "border-gray-200 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-semibold text-gray-900">Member</span>
@@ -814,11 +813,10 @@ export default function TeamManagementPage() {
                   <button
                     type="button"
                     onClick={() => setInviteRole("admin")}
-                    className={`flex flex-col p-3 rounded-xl border text-left transition-all ${
-                      inviteRole === "admin"
+                    className={`flex flex-col p-3 rounded-xl border text-left transition-all ${inviteRole === "admin"
                         ? "border-[#163300] bg-[#e2f6d5]/50 ring-2 ring-[#9fe870]/40"
                         : "border-gray-200 hover:border-gray-300"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-semibold text-gray-900">Admin</span>
@@ -910,16 +908,14 @@ export default function TeamManagementPage() {
                   key={r.id}
                   type="button"
                   onClick={() => setSelectedRole(r.id as RoleType)}
-                  className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
-                    isSelected
+                  className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${isSelected
                       ? "border-[#163300] bg-[#e2f6d5]/50 ring-2 ring-[#9fe870]/40"
                       : "border-gray-200 hover:border-gray-300"
-                  }`}
+                    }`}
                 >
                   <div
-                    className={`p-2 rounded-lg ${
-                      isSelected ? "bg-[#163300] text-[#9fe870]" : "bg-gray-100 text-gray-600"
-                    }`}
+                    className={`p-2 rounded-lg ${isSelected ? "bg-[#163300] text-[#9fe870]" : "bg-gray-100 text-gray-600"
+                      }`}
                   >
                     <Icon className="h-4 w-4" />
                   </div>

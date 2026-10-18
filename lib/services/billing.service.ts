@@ -16,6 +16,7 @@ export interface PlanConfig {
   message_limit: number;
   contact_limit: number;
   channel_limit: number;
+  workspace_limit?: number;
 }
 
 export interface Subscription {

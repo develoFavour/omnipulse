@@ -12,6 +12,8 @@ import {
 import { useAppStore } from "@/lib/store";
 import { useDashboard } from "@/lib/api/hooks/useDashboard";
 import { useNotifications } from "@/lib/api/hooks/useNotifications";
+import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
+import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import Link from "next/link";
 import Image from "next/image";
@@ -31,6 +33,16 @@ export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
   const isSwitchingWorkspace = useAppStore((state) => state.isSwitchingWorkspace);
   const { stats } = useDashboard();
   const { notifications, unreadCount, markRead, markAllRead, isMarkingRead } = useNotifications();
+  const {
+    tier,
+    isStarter,
+    isGrowth,
+    isAgency,
+    upgradeModalOpen,
+    setUpgradeModalOpen,
+    openUpgradeModal,
+    modalConfig,
+  } = usePlanUsage();
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -39,6 +51,45 @@ export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateWorkspaceSubmit = async () => {
+    const trimmed = newWorkspaceName.trim();
+    if (!trimmed || isCreating) return;
+
+    setIsCreating(true);
+    try {
+      await createWorkspace(trimmed);
+      setShowCreateModal(false);
+      setNewWorkspaceName("");
+      toast.success("Workspace created! Setting it up for you...");
+    } catch (err: any) {
+      const status = err?.response?.status || err?.status;
+      const errorMsg = String(err?.response?.data?.error || err?.message || "");
+      const is402 =
+        status === 402 ||
+        errorMsg.toLowerCase().includes("workspace capacity limit") ||
+        errorMsg.toLowerCase().includes("quota exceeded") ||
+        errorMsg.toLowerCase().includes("upgrade to");
+
+      if (is402) {
+        setShowCreateModal(false);
+        const targetTier = isStarter ? "growth" : "agency";
+        openUpgradeModal({
+          title: isStarter
+            ? "Growth Plan Required for Multiple Workspaces"
+            : "Agency Plan Required for Additional Workspaces",
+          description: isStarter
+            ? "The Starter plan includes 1 workspace. Upgrade to Growth to unlock up to 3 isolated client workspaces, or Agency for unlimited."
+            : "You have reached the 3-workspace limit on the Growth plan. Upgrade to the Agency plan to manage unlimited isolated client workspaces.",
+          recommendedTier: targetTier,
+        });
+        return;
+      }
+      toast.error(errorMsg || "Failed to create workspace");
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   const onboardingRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -289,26 +340,25 @@ export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
                 type="text"
                 value={newWorkspaceName}
                 onChange={(e) => setNewWorkspaceName(e.target.value)}
-                onKeyDown={async (e) => {
-                  if (e.key === "Enter" && newWorkspaceName.trim() && !isCreating) {
-                    setIsCreating(true);
-                    try {
-                      await createWorkspace(newWorkspaceName.trim());
-                      setShowCreateModal(false);
-                      setNewWorkspaceName("");
-                      toast.success("Workspace created! Setting it up for you...");
-                    } catch (err: any) {
-                      toast.error(err?.message || "Failed to create workspace");
-                    } finally {
-                      setIsCreating(false);
-                    }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCreateWorkspaceSubmit();
                   }
                 }}
                 placeholder="e.g. Acme Corp, Personal Brand..."
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#163300] focus:border-transparent mb-4"
+                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#163300] focus:border-transparent mb-3"
                 autoFocus
                 disabled={isCreating}
               />
+
+              {/* Plan allowance indicator */}
+              <div className="mb-4 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+                <span>Plan allowance:</span>
+                <span className="font-semibold text-gray-800 capitalize">
+                  {isAgency ? "Unlimited (Agency)" : isGrowth ? "Up to 3 (Growth)" : "1 workspace (Starter)"}
+                </span>
+              </div>
 
               <div className="flex items-center gap-2">
                 <button
@@ -319,20 +369,7 @@ export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
                   Cancel
                 </button>
                 <button
-                  onClick={async () => {
-                    if (!newWorkspaceName.trim() || isCreating) return;
-                    setIsCreating(true);
-                    try {
-                      await createWorkspace(newWorkspaceName.trim());
-                      setShowCreateModal(false);
-                      setNewWorkspaceName("");
-                      toast.success("Workspace created! Setting it up for you...");
-                    } catch (err: any) {
-                      toast.error(err?.message || "Failed to create workspace");
-                    } finally {
-                      setIsCreating(false);
-                    }
-                  }}
+                  onClick={handleCreateWorkspaceSubmit}
                   disabled={!newWorkspaceName.trim() || isCreating}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#163300] text-[#9fe870] text-xs font-bold hover:bg-[#163300]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -734,6 +771,18 @@ export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
           </div>
         </div>
       </div>
+
+      {/* Upgrade Modal for Workspace Capacity Gating */}
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        title={modalConfig.title || "Upgrade Your Workspace Plan"}
+        description={
+          modalConfig.description ||
+          "Unlock additional client workspaces and expanded broadcast limits."
+        }
+        recommendedTier={modalConfig.recommendedTier || (isStarter ? "growth" : "agency")}
+      />
     </header>
   );
 }
