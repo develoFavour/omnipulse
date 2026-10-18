@@ -140,7 +140,7 @@ export default function AudiencePage() {
       const res = await channelService.syncWhatsAppContacts();
       await refetch();
       toast.success(res.message || "WhatsApp contacts synced!", {
-        description: `Imported ${res.synced_count} contacts.`,
+        description: `Imported ${res.synced_count} contacts from active chats and groups. Keep WhatsApp open on your phone for further background history syncing.`,
       });
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Failed to sync WhatsApp contacts");
@@ -384,11 +384,21 @@ export default function AudiencePage() {
         <div className="flex flex-wrap items-center gap-3">
           {canSyncContacts && (
             <>
-              <button onClick={handleSyncWhatsApp} disabled={isSyncingWA} className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm shadow-emerald-200 disabled:opacity-50">
+              <button 
+                onClick={handleSyncWhatsApp} 
+                disabled={isSyncingWA} 
+                className="flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm shadow-emerald-200 disabled:opacity-50 cursor-pointer"
+                title="Sync contacts from your active WhatsApp conversations, recent history, and joined groups. For full contact synchronization, ensure WhatsApp remains open and connected on your phone."
+              >
                 {isSyncingWA ? <Loader2 className="h-4 w-4 animate-spin" /> : <FaWhatsapp className="h-4 w-4" />}
                 Sync WhatsApp
               </button>
-              <button onClick={handleSyncTelegram} disabled={isSyncingTG} className="flex items-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-700 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm shadow-sky-200 disabled:opacity-50">
+              <button 
+                onClick={handleSyncTelegram} 
+                disabled={isSyncingTG} 
+                className="flex items-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-700 px-4 py-2.5 text-xs font-bold text-white transition-all shadow-sm shadow-sky-200 disabled:opacity-50 cursor-pointer"
+                title="Sync contacts who have initiated chat or sent /start to your connected Telegram bot."
+              >
                 {isSyncingTG ? <Loader2 className="h-4 w-4 animate-spin" /> : <FaTelegram className="h-4 w-4" />}
                 Sync Telegram
               </button>

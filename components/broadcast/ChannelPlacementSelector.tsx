@@ -251,7 +251,8 @@ export function ChannelPlacementSelector({
                       e.stopPropagation();
                       onSyncWhatsApp();
                     }}
-                    className="w-full mb-3 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition-colors border border-emerald-200 disabled:opacity-50"
+                    title="Sync contacts from your active WhatsApp conversations, recent history, and joined groups. Keep WhatsApp open on your phone for full sync."
+                    className="w-full mb-3 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition-colors border border-emerald-200 disabled:opacity-50 cursor-pointer"
                   >
                     {isSyncingWhatsApp ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -270,7 +271,8 @@ export function ChannelPlacementSelector({
                       e.stopPropagation();
                       onSyncTelegram();
                     }}
-                    className="w-full mb-3 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-bold transition-colors border border-sky-200 disabled:opacity-50"
+                    title="Sync contacts who have initiated chat or sent /start to your connected Telegram bot."
+                    className="w-full mb-3 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-bold transition-colors border border-sky-200 disabled:opacity-50 cursor-pointer"
                   >
                     {isSyncingTelegram ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
