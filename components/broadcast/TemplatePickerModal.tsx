@@ -22,37 +22,37 @@ export const STARTER_TEMPLATES: Omit<MessageTemplate, "id" | "tenant_id" | "crea
   {
     title: "⚡ Flash 24H Exclusive Deal",
     category: "promotions",
-    body: "Hey {{first_name}}! ⚡ For the next 24 hours only, unlock 30% off our premier service bundle with code FLASH30.\n\nClaim your spot here before seats fill up: https://messagerail.link/flash\n\nReply STOP to opt out.",
+    body: "Hey {first_name}! ⚡ For the next 24 hours only, unlock 30% off our premier service bundle with code FLASH30.\n\nClaim your spot here before seats fill up: https://messagerail.link/flash\n\nReply STOP to opt out.",
     variables: ["first_name"],
   },
   {
     title: "⭐ VIP Early Access Invitation",
     category: "promotions",
-    body: "Hello {{first_name}}, as one of our top-tier partners, you get exclusive private access to our upcoming release 48 hours before the public.\n\nExplore the catalog here: https://messagerail.link/vip-early\n\nNeed assistance? Reply directly to this chat!",
+    body: "Hello {first_name}, as one of our top-tier partners, you get exclusive private access to our upcoming release 48 hours before the public.\n\nExplore the catalog here: https://messagerail.link/vip-early\n\nNeed assistance? Reply directly to this chat!",
     variables: ["first_name"],
   },
   {
     title: "👋 Welcome to the Community",
     category: "onboarding",
-    body: "Hi {{first_name}}! Welcome to our inner circle. 🎉\n\nHere is everything you need to get the most value right away:\n1. Community Guidelines & FAQ\n2. Schedule your 1-on-1 strategy briefing\n\nStay tuned for weekly updates right here on Telegram & WhatsApp!",
+    body: "Hi {first_name}! Welcome to our inner circle. 🎉\n\nHere is everything you need to get the most value right away:\n1. Community Guidelines & FAQ\n2. Schedule your 1-on-1 strategy briefing\n\nStay tuned for weekly updates right here on Telegram & WhatsApp!",
     variables: ["first_name"],
   },
   {
     title: "💔 We Miss You — Special Comeback Offer",
     category: "re_engagement",
-    body: "Hey {{first_name}}, we noticed it's been a while! We've made huge improvements to our platform and want to welcome you back.\n\nUse voucher WELCOMEBACK for a free credit on your next campaign: https://messagerail.link/return\n\nLet us know if you need anything!",
+    body: "Hey {first_name}, we noticed it's been a while! We've made huge improvements to our platform and want to welcome you back.\n\nUse voucher WELCOMEBACK for a free credit on your next campaign: https://messagerail.link/return\n\nLet us know if you need anything!",
     variables: ["first_name"],
   },
   {
     title: "⏰ Event Starts in 1 Hour",
     category: "reminders",
-    body: "Quick reminder {{first_name}}: Our live masterclass starts in exactly 60 minutes! 🎙️\n\nHave your questions ready and join the live stream using your secure link:\nhttps://messagerail.link/room\n\nSee you inside!",
+    body: "Quick reminder {first_name}: Our live masterclass starts in exactly 60 minutes! 🎙️\n\nHave your questions ready and join the live stream using your secure link:\nhttps://messagerail.link/room\n\nSee you inside!",
     variables: ["first_name"],
   },
   {
     title: "📢 Important Service Notice",
     category: "urgent",
-    body: "Hello {{first_name}}, please note that our service will undergo scheduled maintenance tonight between 2:00 AM and 4:00 AM UTC. No action is required on your part. Thank you for your continued partnership.",
+    body: "Hello {first_name}, please note that our service will undergo scheduled maintenance tonight between 2:00 AM and 4:00 AM UTC. No action is required on your part. Thank you for your continued partnership.",
     variables: ["first_name"],
   },
 ];
@@ -272,7 +272,7 @@ export function TemplatePickerModal({
             <div className="px-6 py-3.5 bg-gray-50/80 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
               <span className="flex items-center gap-1.5">
                 <Tag className="h-3.5 w-3.5 text-[#163300]" />
-                Variables like <code className="text-[#163300] bg-[#e2f6d5] px-1 rounded">&#123;&#123;first_name&#125;&#125;</code> auto-populate for each contact.
+                Variables like <code className="text-[#163300] bg-[#e2f6d5] px-1 rounded">&#123;first_name&#125;</code> auto-populate for each contact.
               </span>
               <button
                 type="button"

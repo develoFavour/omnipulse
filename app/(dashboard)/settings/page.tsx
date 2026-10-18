@@ -25,7 +25,7 @@ import {
   Building2, User, Users, Bell, CreditCard, Plug, Shield, Trash2,
   Check, X, Eye, EyeOff, Copy, Plus, ChevronRight, AlertTriangle,
   Loader2, KeyRound, Smartphone, Globe, MailCheck, Lock, Pencil, Save, LogOut,
-  Sparkles, ExternalLink, Zap, CheckCircle2, ShieldCheck, RefreshCw,
+  Sparkles, ExternalLink, Zap, CheckCircle2, ShieldCheck, RefreshCw, Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { TenantMember } from "@/lib/services/team.service";
@@ -397,56 +397,144 @@ function TeamSection() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
   const [inviting, setInviting] = useState(false);
+  const [planTier, setPlanTier] = useState<PlanTier>("starter");
+
   const load = useCallback(async () => {
-    try { const data = await teamService.listTeam(); setMembers(data.members ?? []); }
-    catch {} finally { setLoading(false); }
+    try {
+      const [teamData, billingRes] = await Promise.all([
+        teamService.listTeam().catch(() => ({ members: [] })),
+        billingService.getSubscription().catch(() => null),
+      ]);
+      setMembers(teamData.members ?? []);
+      if (billingRes?.subscription?.plan_tier) {
+        setPlanTier(billingRes.subscription.plan_tier);
+      }
+    } catch {} finally {
+      setLoading(false);
+    }
   }, []);
-  useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const isAgency = planTier === "agency";
+
   const handleInvite = async () => {
+    if (!isAgency) {
+      toast.error("Inviting team members requires an Agency plan.");
+      return;
+    }
     if (!inviteEmail.trim()) return;
     setInviting(true);
-    try { await teamService.inviteMember(inviteEmail, inviteRole); toast.success(`Invitation sent to ${inviteEmail}`); setInviteEmail(""); }
-    catch { toast.error("Failed to send invitation"); }
-    finally { setInviting(false); }
+    try {
+      await teamService.inviteMember(inviteEmail, inviteRole);
+      toast.success(`Invitation sent to ${inviteEmail}`);
+      setInviteEmail("");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || "Failed to send invitation");
+    } finally {
+      setInviting(false);
+    }
   };
+
   const handleRemove = async (id: string, email: string) => {
-    try { await teamService.removeMember(id); setMembers((prev) => prev.filter((m) => m.id !== id)); toast.success(`${email} removed`); }
-    catch { toast.error("Failed to remove member"); }
+    try {
+      await teamService.removeMember(id);
+      setMembers((prev) => prev.filter((m) => m.id !== id));
+      toast.success(`${email} removed`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || "Failed to remove member");
+    }
   };
-  const roleColors: Record<string, string> = { owner: "bg-violet-100 text-violet-700", admin: "bg-blue-100 text-blue-700", member: "bg-gray-100 text-gray-600" };
+
+  const roleColors: Record<string, string> = {
+    owner: "bg-violet-100 text-violet-700",
+    admin: "bg-blue-100 text-blue-700",
+    member: "bg-gray-100 text-gray-600",
+  };
+
   if (!canManageTeam) {
     return (
       <div>
         <SectionHeader title="Team & Roles" description="View your workspace team members." />
-        <Card><CardSection noBorder><p className="text-sm text-gray-500">Contact your workspace admin to manage team settings.</p></CardSection></Card>
+        <Card>
+          <CardSection noBorder>
+            <p className="text-sm text-gray-500">Contact your workspace admin to manage team settings.</p>
+          </CardSection>
+        </Card>
       </div>
     );
   }
+
   return (
     <div>
       <SectionHeader title="Team & Roles" description="Manage members, send invitations, and assign roles." />
       {canInviteMembers && (
         <Card className="mb-4">
           <CardSection title="Invite a Team Member">
-            <div className="flex gap-3">
-              <input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleInvite()} placeholder="colleague@company.com" className="flex-1 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all" />
-              {(isOwner || isAdmin) && (
-                <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as "admin" | "member")} className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-[#163300] focus:outline-none">
-                  {isOwner && <option value="admin">Admin</option>}
-                  <option value="member">Member</option>
-                </select>
-              )}
-              <button onClick={handleInvite} disabled={inviting || !inviteEmail} className="inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2.5 text-sm font-bold text-[#9fe870] hover:bg-[#163300]/90 disabled:opacity-50 transition-all">
-                {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}Invite
-              </button>
-            </div>
+            {!isAgency ? (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-amber-50/80 border border-amber-200">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-amber-100 text-amber-800 shrink-0">
+                    <Crown className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-amber-900">
+                      Agency Plan Required for Team Invitations
+                    </p>
+                    <p className="text-[11px] text-amber-700 mt-0.5">
+                      Your workspace is currently on the <span className="font-semibold capitalize">{planTier}</span> tier. Team invitations and multi-seat collaboration require the Agency plan.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href={APP_ROUTES.DASHBOARD.TEAM}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#163300] px-3.5 py-2 text-xs font-bold text-[#9fe870] hover:bg-[#1f4700] transition-all shrink-0 shadow-sm"
+                >
+                  <Crown className="h-3.5 w-3.5" />
+                  View Agency Upgrade
+                </Link>
+              </div>
+            ) : (
+              <div className="flex gap-3">
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleInvite()}
+                  placeholder="colleague@company.com"
+                  className="flex-1 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-[#163300] focus:outline-none focus:ring-2 focus:ring-[#163300]/20 transition-all"
+                />
+                {(isOwner || isAdmin) && (
+                  <select
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value as "admin" | "member")}
+                    className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-[#163300] focus:outline-none"
+                  >
+                    {isOwner && <option value="admin">Admin</option>}
+                    <option value="member">Member</option>
+                  </select>
+                )}
+                <button
+                  onClick={handleInvite}
+                  disabled={inviting || !inviteEmail}
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2.5 text-sm font-bold text-[#9fe870] hover:bg-[#163300]/90 disabled:opacity-50 transition-all"
+                >
+                  {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  Invite
+                </button>
+              </div>
+            )}
           </CardSection>
         </Card>
       )}
       <Card>
         <CardSection title="Current Members" noBorder>
           {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-[#163300]" /></div>
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-[#163300]" />
+            </div>
           ) : members.length === 0 ? (
             <p className="py-6 text-center text-sm text-gray-400">No members found.</p>
           ) : (
@@ -454,24 +542,30 @@ function TeamSection() {
               {members.map((m) => (
                 <div key={m.id} className="flex items-center justify-between py-3.5">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e2f6d5] text-sm font-bold text-[#163300]">{m.email.charAt(0).toUpperCase()}</div>
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#e2f6d5] text-sm font-bold text-[#163300]">
+                      {m.email.charAt(0).toUpperCase()}
+                    </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">{m.email}</p>
-                      <p className="text-xs text-gray-400">Joined {new Date(m.created_at).toLocaleDateString()}</p>
+                      <p className="text-xs text-gray-400">
+                        Joined {new Date(m.created_at).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {isOwner && m.role !== "owner" ? (
+                    {isOwner && m.role !== "owner" && isAgency && members.length > 1 ? (
                       <select
                         value={m.role}
                         onChange={async (e) => {
                           const newRole = e.target.value as "admin" | "member";
                           try {
                             await teamService.updateMemberRole(m.id, newRole);
-                            setMembers((prev) => prev.map((item) => (item.id === m.id ? { ...item, role: newRole } : item)));
+                            setMembers((prev) =>
+                              prev.map((item) => (item.id === m.id ? { ...item, role: newRole } : item))
+                            );
                             toast.success(`Role updated to ${newRole}`);
-                          } catch {
-                            toast.error("Failed to update member role");
+                          } catch (err: any) {
+                            toast.error(err?.response?.data?.error || "Failed to update member role");
                           }
                         }}
                         className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-semibold capitalize text-gray-700 focus:border-[#163300] focus:outline-none"
@@ -480,7 +574,14 @@ function TeamSection() {
                         <option value="member">Member</option>
                       </select>
                     ) : (
-                      <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize", roleColors[m.role] ?? "bg-gray-100 text-gray-600")}>{m.role}</span>
+                      <span
+                        className={cn(
+                          "rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize",
+                          roleColors[m.role] ?? "bg-gray-100 text-gray-600"
+                        )}
+                      >
+                        {m.role}
+                      </span>
                     )}
                     {canRemoveMembers && m.role !== "owner" && (
                       <button onClick={() => handleRemove(m.id, m.email)} className="ml-1 rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"><X className="h-4 w-4" /></button>

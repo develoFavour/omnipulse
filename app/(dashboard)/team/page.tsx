@@ -20,6 +20,7 @@ import {
   XCircle,
   HelpCircle,
   ShieldAlert,
+  Lock,
 } from "lucide-react";
 import {
   teamService,
@@ -33,6 +34,8 @@ import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { usePermissions } from "@/lib/hooks/usePermissions";
+import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
+import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +58,14 @@ import { toast } from "sonner";
 
 export default function TeamManagementPage() {
   const { user } = useUser();
+  const {
+    isAgency,
+    tier: currentTier,
+    upgradeModalOpen,
+    setUpgradeModalOpen,
+    openUpgradeModal,
+    modalConfig,
+  } = usePlanUsage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [members, setMembers] = useState<TenantMember[]>([]);
@@ -164,6 +175,15 @@ export default function TeamManagementPage() {
 
   const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAgency) {
+      toast.error("Inviting team members requires an active Agency plan.");
+      openUpgradeModal({
+        recommendedTier: "agency",
+        title: "Agency Plan Required for Team Seats",
+        description: "Multi-user collaboration and team seats are exclusively available on the Agency plan. Upgrade your workspace to invite team members.",
+      });
+      return;
+    }
     if (!inviteEmail || !inviteEmail.includes("@")) {
       toast.error("Please enter a valid email address");
       return;
@@ -178,7 +198,15 @@ export default function TeamManagementPage() {
       setInviteRole("member");
       fetchTeamData();
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || "Failed to dispatch invitation");
+      if (err?.response?.status === 402) {
+        openUpgradeModal({
+          recommendedTier: "agency",
+          title: "Agency Plan Required",
+          description: err?.response?.data?.error || "Inviting team members is exclusive to the Agency plan.",
+        });
+      } else {
+        toast.error(err?.response?.data?.error || "Failed to dispatch invitation");
+      }
     } finally {
       setIsInviting(false);
     }
@@ -199,6 +227,19 @@ export default function TeamManagementPage() {
 
   const handleUpdateRole = async () => {
     if (!editingMember) return;
+    if (!isAgency) {
+      toast.error("Role management is exclusive to the Agency plan.");
+      openUpgradeModal({
+        recommendedTier: "agency",
+        title: "Agency Plan Required for Role Management",
+        description: "Granular role management is exclusive to the Agency plan. Upgrade to assign Owner, Admin, and Member permissions.",
+      });
+      return;
+    }
+    if (members.length <= 1) {
+      toast.error("You are the sole member of this workspace and must remain the Owner.");
+      return;
+    }
     setIsUpdatingRole(true);
     try {
       await teamService.updateMemberRole(editingMember.id, selectedRole);
@@ -206,7 +247,15 @@ export default function TeamManagementPage() {
       setEditingMember(null);
       fetchTeamData();
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || "Failed to update member role");
+      if (err?.response?.status === 402) {
+        openUpgradeModal({
+          recommendedTier: "agency",
+          title: "Agency Plan Required",
+          description: err?.response?.data?.error || "Role management requires an active Agency plan subscription.",
+        });
+      } else {
+        toast.error(err?.response?.data?.error || "Failed to update member role");
+      }
     } finally {
       setIsUpdatingRole(false);
     }
@@ -374,15 +423,62 @@ export default function TeamManagementPage() {
 
           {canInvite && (
             <button
-              onClick={() => setIsInviteOpen(true)}
+              onClick={() => {
+                if (!isAgency) {
+                  openUpgradeModal({
+                    recommendedTier: "agency",
+                    title: "Agency Plan Required for Team Seats",
+                    description: "Multi-user collaboration and team seats are exclusively available on the Agency plan. Upgrade your workspace to invite team members.",
+                  });
+                  return;
+                }
+                setIsInviteOpen(true);
+              }}
               className="inline-flex items-center gap-2 rounded-lg bg-[#163300] px-4 py-2 text-sm font-semibold text-[#9fe870] shadow-sm hover:bg-[#1f4700] transition-colors"
             >
               <UserPlus className="h-4 w-4" />
               Invite Teammate
+              {!isAgency && (
+                <span className="ml-1 rounded bg-[#9fe870]/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#9fe870]">
+                  Agency
+                </span>
+              )}
             </button>
           )}
         </div>
       </div>
+
+      {/* Agency Plan Upgrade Banner */}
+      {!isAgency && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-200/80 text-gray-900 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
+              <Crown className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-gray-900">
+                Agency Plan Required for Team Collaboration &amp; Role Management
+              </h4>
+              <p className="text-xs text-gray-600 mt-0.5">
+                Your workspace is currently on the <span className="font-semibold capitalize text-[#163300]">{currentTier}</span> tier. Team invitations and granular role permissions (Admin, Member) are reserved for the Agency plan.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() =>
+              openUpgradeModal({
+                recommendedTier: "agency",
+                title: "Upgrade to Agency Plan",
+                description: "Unlock multi-seat team member invitations, role management, and agency collaboration tools.",
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#163300] px-4 py-2 text-xs font-bold text-[#9fe870] hover:bg-[#1f4700] transition-all shrink-0 shadow-sm"
+          >
+            <Crown className="h-3.5 w-3.5" />
+            Upgrade to Agency
+          </button>
+        </div>
+      )}
 
       {/* Member Read-Only Notice */}
       {!canInvite && (
@@ -512,15 +608,39 @@ export default function TeamManagementPage() {
                     {canManageRoles && (
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingMember(member);
-                              setSelectedRole(member.role);
-                            }}
-                            className="text-xs font-semibold text-[#163300] hover:text-[#1f4700] hover:underline px-2 py-1"
-                          >
-                            Change Role
-                          </button>
+                          {members.length <= 1 ? (
+                            <span
+                              className="inline-flex items-center text-xs font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-md border border-gray-200 cursor-not-allowed"
+                              title="The sole member of a workspace must remain Owner"
+                            >
+                              Sole Owner
+                            </span>
+                          ) : !isAgency ? (
+                            <button
+                              onClick={() => {
+                                openUpgradeModal({
+                                  recommendedTier: "agency",
+                                  title: "Agency Plan Required for Role Management",
+                                  description: "Custom role management and permission assignments are exclusive to the Agency plan. Upgrade your workspace to assign Admin and Member roles.",
+                                });
+                              }}
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-800 px-2 py-1"
+                              title="Agency plan required"
+                            >
+                              <Lock className="h-3 w-3 text-amber-500" />
+                              Change Role
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setEditingMember(member);
+                                setSelectedRole(member.role);
+                              }}
+                              className="text-xs font-semibold text-[#163300] hover:text-[#1f4700] hover:underline px-2 py-1"
+                            >
+                              Change Role
+                            </button>
+                          )}
                           {!isCurrentUser && canRemoveMembers && (
                             <button
                               onClick={() => setRemovingMember(member)}
@@ -858,6 +978,18 @@ export default function TeamManagementPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Upgrade Modal for Agency Gating */}
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        title={modalConfig.title || "Upgrade to Agency Plan"}
+        description={
+          modalConfig.description ||
+          "Team seats, collaboration, and granular role management require the Agency plan."
+        }
+        recommendedTier={modalConfig.recommendedTier || "agency"}
+      />
     </div>
   );
 }

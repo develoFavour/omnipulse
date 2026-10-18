@@ -146,7 +146,7 @@ export default function TemplatesPage() {
 
   const handleInsertVariable = (variableToken: string) => {
     if (!textareaRef.current) {
-      setFormBody((prev) => `${prev} {{${variableToken}}}`);
+      setFormBody((prev) => `${prev} {${variableToken}}`);
       return;
     }
     const textarea = textareaRef.current;
@@ -155,7 +155,7 @@ export default function TemplatesPage() {
     const text = formBody;
     const before = text.substring(0, start);
     const after = text.substring(end);
-    const tokenString = `{{${variableToken}}}`;
+    const tokenString = `{${variableToken}}`;
     setFormBody(`${before}${tokenString}${after}`);
 
     setTimeout(() => {
@@ -577,11 +577,11 @@ export default function TemplatesPage() {
                     rows={6}
                     value={formBody}
                     onChange={(e) => setFormBody(e.target.value)}
-                    placeholder="Hello {{first_name}}, we're thrilled to introduce our new offering..."
+                    placeholder="Hello {first_name}, we're thrilled to introduce our new offering..."
                     className="w-full p-3.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300] focus:bg-white text-gray-900 transition-all placeholder:text-gray-400 font-normal leading-relaxed resize-none shadow-inner"
                   />
                   <span className="text-[11px] text-gray-400 block mt-1">
-                    Variables enclosed in <code>&#123;&#123;...&#125;&#125;</code> will be automatically replaced with contact data upon dispatch.
+                    Variables enclosed in <code>&#123;...&#125;</code> will be automatically replaced with contact data upon dispatch.
                   </span>
                 </div>
 
