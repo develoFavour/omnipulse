@@ -19,6 +19,11 @@ export interface ChannelResponse {
   status: string;
   created_at: string;
   updated_at: string;
+  health_status?: "unknown" | "healthy" | "reconnect_required" | "degraded";
+  last_heartbeat_at?: string | null;
+  last_successful_at?: string | null;
+  last_error?: string | null;
+  last_error_at?: string | null;
 }
 
 export interface WhatsAppOAuthConfig {
@@ -86,8 +91,8 @@ class ChannelService {
     return response.data as unknown as { qr_code: string; status?: string; phone?: string; name?: string };
   }
 
-  async getWhatsAppQRStatus(): Promise<{ status: string; phone?: string; name?: string }> {
-    const response = await apiClient.get<ApiResponse<{ status: string; phone?: string; name?: string }>>(
+  async getWhatsAppQRStatus(): Promise<{ status: string; phone?: string; name?: string; health_status?: string; last_successful_at?: string | null; last_error?: string | null }> {
+    const response = await apiClient.get<ApiResponse<{ status: string; phone?: string; name?: string; health_status?: string; last_successful_at?: string | null; last_error?: string | null }>>(
       ENDPOINTS.WHATSAPP.STATUS
     );
     return response.data as unknown as { status: string; phone?: string; name?: string };

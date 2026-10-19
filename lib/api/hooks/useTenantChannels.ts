@@ -9,6 +9,11 @@ export interface TenantChannel {
 	platform_name: "whatsapp" | "telegram" | "instagram" | "x";
 	sender_identity: string;
 	status: "active" | "pending" | "suspended";
+	health_status?: "unknown" | "healthy" | "reconnect_required" | "degraded";
+	last_heartbeat_at?: string | null;
+	last_successful_at?: string | null;
+	last_error?: string | null;
+	last_error_at?: string | null;
 	created_at: string;
 	updated_at: string;
 }

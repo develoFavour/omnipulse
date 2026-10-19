@@ -129,7 +129,7 @@ export default function ConnectionsCatalogPage() {
 		channels,
 		loading: loadingChannels,
 		refetch: refetchChannels,
-	} = useTenantChannels();
+	} = useTenantChannels({ pollInterval: 30000 });
 	const {
 		destinations,
 		isLoading: loadingDestinations,
@@ -180,7 +180,7 @@ export default function ConnectionsCatalogPage() {
 		(c) => c.platform_name === "telegram" && c.status === "active",
 	);
 	const whatsappChannel = channels.find(
-		(c) => c.platform_name === "whatsapp" && c.status === "active",
+		(c) => c.platform_name === "whatsapp",
 	);
 
 	const getPlatformChannel = (platformId: string) => {
@@ -289,6 +289,7 @@ export default function ConnectionsCatalogPage() {
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
 				{PLATFORMS.map((platform) => {
 					const connected = getPlatformChannel(platform.id);
+					const needsReconnect = connected?.health_status === "reconnect_required";
 					return (
 						<motion.div
 							key={platform.id}
@@ -308,11 +309,11 @@ export default function ConnectionsCatalogPage() {
 											<Loader2 className="h-3 w-3 animate-spin text-gray-400" />
 											Checking...
 										</span>
-									) : connected ? (
-										<span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 border border-emerald-200 shadow-sm">
-											<CheckCircle2 className="h-3.5 w-3.5" />
-											Active
-										</span>
+					) : connected ? (
+						<span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border shadow-sm ${needsReconnect ? "bg-amber-50 text-amber-700 border-amber-200" : connected.health_status === "healthy" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-600 border-slate-200"}`}>
+							{needsReconnect ? <AlertCircle className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+							{needsReconnect ? "Reconnect required" : connected.health_status === "healthy" ? "Healthy" : "Connected"}
+						</span>
 									) : platform.available ? (
 										<span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-600 border border-gray-200">
 											Not Configured
@@ -344,12 +345,23 @@ export default function ConnectionsCatalogPage() {
 
 							<div>
 								{connected && (
-									<div className="mb-4 p-3 rounded-xl bg-gray-50 border border-gray-100 text-xs font-medium text-gray-700 flex items-center justify-between">
-										<span className="text-gray-500">Connected identity:</span>
-										<span className="font-bold text-gray-900 font-mono">
-											{connected.sender_identity}
-										</span>
-									</div>
+									<>
+										<div className="mb-4 p-3 rounded-xl bg-gray-50 border border-gray-100 text-xs font-medium text-gray-700 flex items-center justify-between">
+											<span className="text-gray-500">Connected identity:</span>
+											<span className="font-bold text-gray-900 font-mono">
+												{connected.sender_identity}
+											</span>
+										</div>
+										{(connected.last_successful_at || connected.last_error) && (
+											<div className={`mb-4 rounded-xl border p-3 text-xs ${needsReconnect ? "border-amber-200 bg-amber-50 text-amber-800" : "border-gray-100 bg-gray-50 text-gray-600"}`}>
+												{needsReconnect ? (
+													<p className="font-semibold">{connected.last_error || "This channel needs to be connected again."}</p>
+												) : (
+													<p>Last successful connection: {connected.last_successful_at ? new Date(connected.last_successful_at).toLocaleString() : "Not recorded yet"}</p>
+												)}
+											</div>
+										)}
+									</>
 								)}
 
 								{loadingChannels && channels.length === 0 ? (
