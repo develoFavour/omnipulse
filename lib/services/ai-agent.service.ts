@@ -47,10 +47,25 @@ export interface KnowledgeIngestionJob {
   content_type?: string;
   status: KnowledgeIngestionStatus;
   items?: AIKnowledgeItem[];
+  item_count?: number;
   error_message?: string;
   created_at: string;
   started_at?: string;
   completed_at?: string;
+}
+
+export interface KnowledgePage {
+  items: AIKnowledgeItem[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface KnowledgeIngestionPage {
+  jobs: KnowledgeIngestionJob[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 export interface KnowledgeIngestionAccepted {
@@ -75,12 +90,9 @@ class AIAgentService {
     return response.data as unknown as { message: string; config: AIAgentConfig };
   }
 
-  async listKnowledgeItems(): Promise<AIKnowledgeItem[]> {
-    const response = await apiClient.get<{ items: AIKnowledgeItem[]; total: number }>(
-      ENDPOINTS.AI_AGENT.KNOWLEDGE
-    );
-    const data = response.data as unknown as { items: AIKnowledgeItem[]; total: number };
-    return data.items || [];
+  async listKnowledgeItems(params?: { search?: string; category?: string; limit?: number; offset?: number }): Promise<KnowledgePage> {
+    const response = await apiClient.get<KnowledgePage>(ENDPOINTS.AI_AGENT.KNOWLEDGE, { params });
+    return response.data as unknown as KnowledgePage;
   }
 
   async createKnowledgeItem(item: Omit<AIKnowledgeItem, "id" | "tenant_id">): Promise<AIKnowledgeItem> {
@@ -120,6 +132,11 @@ class AIAgentService {
       ENDPOINTS.AI_AGENT.KNOWLEDGE_INGEST_JOB(jobId)
     );
     return response.data as unknown as KnowledgeIngestionJob;
+  }
+
+  async listKnowledgeIngestionJobs(params?: { status?: string; limit?: number; offset?: number }): Promise<KnowledgeIngestionPage> {
+    const response = await apiClient.get<KnowledgeIngestionPage>(ENDPOINTS.AI_AGENT.KNOWLEDGE_INGEST_LIST, { params });
+    return response.data as unknown as KnowledgeIngestionPage;
   }
 
   async approveKnowledgeItems(items: AIKnowledgeItem[]): Promise<{ message: string; count: number }> {

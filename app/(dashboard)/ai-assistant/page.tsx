@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import useSWR from "swr";
+import Link from "next/link";
 import {
 	AlertCircle,
 	BrainCircuit,
@@ -10,9 +10,10 @@ import {
 	FileText,
 	Loader2,
 	RefreshCw,
-	Sparkles,
 	Trash2,
 	UploadCloud,
+	Library,
+	FolderOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -27,10 +28,7 @@ import {
 	useKnowledgeIngestionActions,
 	useKnowledgeIngestionJob,
 } from "@/lib/api/hooks";
-import {
-	aiAgentService,
-	type AIKnowledgeItem,
-} from "@/lib/services/ai-agent.service";
+import type { AIKnowledgeItem } from "@/lib/services/ai-agent.service";
 import { extractErrorMessage } from "@/lib/api/response";
 import { usePermissions } from "@/lib/hooks/usePermissions";
 
@@ -84,13 +82,6 @@ export default function AIAssistantPage() {
 		isError: isJobError,
 		refetch: refetchJob,
 	} = useKnowledgeIngestionJob(jobId);
-	const {
-		data: knowledgeItems = [],
-		isLoading: isKnowledgeLoading,
-		mutate: refreshKnowledge,
-	} = useSWR("ai_agent_knowledge_items", () =>
-		aiAgentService.listKnowledgeItems(),
-	);
 
 	useEffect(() => {
 		if (job?.status === "ready" && loadedJobRef.current !== job.id) {
@@ -186,7 +177,6 @@ export default function AIAssistantPage() {
 					is_active: true,
 				})),
 			);
-			await refreshKnowledge();
 			toast.success(
 				`${validItems.length} knowledge ${validItems.length === 1 ? "item" : "items"} added to your assistant.`,
 			);
@@ -441,55 +431,24 @@ export default function AIAssistantPage() {
 				</Card>
 			)}
 
-			<Card>
-				<CardHeader className="flex-row items-center justify-between">
-					<div>
-						<CardTitle>Published knowledge</CardTitle>
-						<CardDescription>
-							These are the approved answers available to your AI assistant.
-						</CardDescription>
-					</div>
-					<span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
-						{knowledgeItems.length} items
-					</span>
-				</CardHeader>
-				<CardContent>
-					{isKnowledgeLoading ? (
-						<div className="flex justify-center py-8">
-							<Loader2 className="h-6 w-6 animate-spin text-[#163300]" />
-						</div>
-					) : knowledgeItems.length === 0 ? (
-						<div className="py-8 text-center text-sm text-gray-500">
-							No published knowledge yet. Upload a business document to get
-							started.
-						</div>
-					) : (
-						<div className="divide-y divide-gray-100">
-							{knowledgeItems.map((item) => (
-								<div
-									key={item.id ?? `${item.category}-${item.question_or_topic}`}
-									className="py-4 first:pt-0 last:pb-0"
-								>
-									<div className="mb-1 flex items-center gap-2">
-										<span className="rounded-full bg-[#e2f6d5] px-2 py-0.5 text-[11px] font-semibold capitalize text-[#163300]">
-											{item.category}
-										</span>
-										<span className="text-xs text-gray-400">
-											{item.is_active ? "Active" : "Inactive"}
-										</span>
-									</div>
-									<p className="text-sm font-semibold text-gray-900">
-										{item.question_or_topic}
-									</p>
-									<p className="mt-1 whitespace-pre-wrap text-sm text-gray-600">
-										{item.answer_or_content}
-									</p>
-								</div>
-							))}
-						</div>
-					)}
-				</CardContent>
-			</Card>
+			<section className="grid gap-4 md:grid-cols-2">
+				<Link href="/ai-assistant/documents" className="group">
+					<Card className="h-full transition group-hover:border-[#9fe870] group-hover:shadow-sm">
+						<CardContent className="flex items-start gap-4 p-5">
+							<div className="rounded-xl bg-[#e2f6d5] p-3 text-[#163300]"><FolderOpen className="h-5 w-5" /></div>
+							<div><CardTitle className="text-base">Document library</CardTitle><CardDescription className="mt-1">Track every upload, processing status, and review queue in a paginated workspace.</CardDescription></div>
+						</CardContent>
+					</Card>
+				</Link>
+				<Link href="/ai-assistant/knowledge" className="group">
+					<Card className="h-full transition group-hover:border-[#9fe870] group-hover:shadow-sm">
+						<CardContent className="flex items-start gap-4 p-5">
+							<div className="rounded-xl bg-gray-100 p-3 text-gray-700"><Library className="h-5 w-5" /></div>
+							<div><CardTitle className="text-base">Knowledge library</CardTitle><CardDescription className="mt-1">Search, filter, and manage published answers without rendering the entire knowledge base.</CardDescription></div>
+						</CardContent>
+					</Card>
+				</Link>
+			</section>
 		</main>
 	);
 }
