@@ -43,6 +43,8 @@ import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
 import { AIAssistanceToggle } from "@/components/features/ai/AIAssistanceToggle";
 import { useAIAssistantConfig } from "@/lib/api/hooks/useAIAssistant";
+import { teamService, type TenantMember } from "@/lib/services/team.service";
+import { useAppStore } from "@/lib/store";
 
 // ─── Channel Icon Helpers ────────────────────────────────────────────────────
 
@@ -211,10 +213,14 @@ function ConversationItem({
   conversation,
   isActive,
   onClick,
+	selected,
+	onToggleSelected,
 }: {
   conversation: Conversation;
   isActive: boolean;
   onClick: () => void;
+	selected: boolean;
+	onToggleSelected: () => void;
 }) {
   const contactName = conversation.contact
     ? `${conversation.contact.first_name} ${conversation.contact.last_name}`.trim()
@@ -230,6 +236,14 @@ function ConversationItem({
           : "hover:bg-gray-50/80"
       )}
     >
+	  <input
+			 type="checkbox"
+			 checked={selected}
+			 onChange={onToggleSelected}
+			 onClick={(event) => event.stopPropagation()}
+			 aria-label={`Select ${contactName}`}
+			 className="mt-3 h-4 w-4 rounded border-gray-300 accent-[#163300]"
+		  />
       {isActive && (
         <motion.div
           layoutId="active-conversation"
@@ -689,12 +703,16 @@ function ConversationDetail({
   conversation,
   onStatusChange,
   onToggleAI,
+	onAssignmentChange,
+	members,
   isUpdating,
 	workspaceAIEnabled,
 }: {
   conversation: Conversation;
   onStatusChange: (status: ConversationStatus) => void;
   onToggleAI: () => void;
+	onAssignmentChange: (userId: string | null) => void;
+	members: TenantMember[];
   isUpdating: boolean;
 	workspaceAIEnabled: boolean;
 }) {
@@ -725,6 +743,25 @@ function ConversationDetail({
           </span>
         </div>
       </div>
+
+	  {/* Assignment */}
+	  <div className="px-5 py-4 border-b border-gray-100">
+		<h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Assigned to</h4>
+		<select
+			value={conversation.assigned_to || ""}
+			onChange={(event) => onAssignmentChange(event.target.value || null)}
+			disabled={isUpdating}
+			className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#163300]/15 disabled:opacity-60"
+			aria-label="Assign conversation"
+		>
+			<option value="">Unassigned</option>
+			{members.map((member) => (
+				<option key={member.user_id} value={member.user_id}>
+					{member.email || member.user_id}
+				</option>
+			))}
+		</select>
+	  </div>
 
       {/* Contact Info */}
       <div className="px-5 py-4 space-y-3">
@@ -815,10 +852,15 @@ export default function InboxPage() {
   const [channelFilter, setChannelFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [needsAttentionFilter, setNeedsAttentionFilter] = useState(false);
+	const [assignmentFilter, setAssignmentFilter] = useState("all");
+	const [selectedConversationIds, setSelectedConversationIds] = useState<Set<string>>(new Set());
+	const [members, setMembers] = useState<TenantMember[]>([]);
+	const [bulkAssignee, setBulkAssignee] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileThread, setShowMobileThread] = useState(false);
   const [showDetailPanel, setShowDetailPanel] = useState(true);
 	const { config: aiConfig } = useAIAssistantConfig();
+	const currentUserId = useAppStore((state) => state.user?.id || "");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -828,12 +870,21 @@ export default function InboxPage() {
     status: statusFilter,
     search: searchQuery,
     needs_attention: needsAttentionFilter,
+		assigned_to: assignmentFilter === "all" ? undefined : assignmentFilter,
     limit: 50,
   };
   const { conversations, total, isLoading, refetch: refetchConversations } = useInboxConversations(inboxFilter);
   const { messages, isLoading: isMessagesLoading, isSending, sendReply, markAsRead, refetch: refetchMessages } =
     useInboxMessages(activeConversationId);
-  const { updateStatus, editMessage: editMsg, deleteMessage: deleteMsg, toggleAI, isUpdating } = useInboxActions();
+  const { updateStatus, assignConversation, editMessage: editMsg, deleteMessage: deleteMsg, toggleAI, bulkAssignConversations, isUpdating } = useInboxActions();
+
+	useEffect(() => {
+		teamService.listTeam().then((data) => setMembers(data.members ?? [])).catch(() => setMembers([]));
+	}, []);
+
+	useEffect(() => {
+		setSelectedConversationIds(new Set());
+	}, [channelFilter, statusFilter, assignmentFilter, needsAttentionFilter, searchQuery]);
 
   // 🔌 Real-time WebSocket — instantly pushes new messages without polling delays
   useInboxWebSocket(inboxFilter);
@@ -862,6 +913,28 @@ export default function InboxPage() {
     setShowMobileThread(true);
   }, []);
 
+	const toggleConversationSelection = useCallback((id: string) => {
+		setSelectedConversationIds((current) => {
+			const next = new Set(current);
+			if (next.has(id)) next.delete(id); else next.add(id);
+			return next;
+		});
+	}, []);
+
+	const handleBulkAssignment = useCallback(async (value: string) => {
+		if (selectedConversationIds.size === 0) return;
+		try {
+			await bulkAssignConversations(Array.from(selectedConversationIds), value === "__unassign__" || !value ? null : value);
+			setSelectedConversationIds(new Set());
+			setBulkAssignee("");
+			await refetchConversations();
+			toast.success(value ? "Conversations assigned" : "Conversations unassigned");
+		} catch (error: any) {
+			setBulkAssignee("");
+			toast.error(error?.response?.data?.error || "Could not update conversation assignments");
+		}
+	}, [bulkAssignConversations, selectedConversationIds, refetchConversations]);
+
   const handleSendReply = useCallback(
     async (body: string) => {
       try {
@@ -887,6 +960,17 @@ export default function InboxPage() {
     },
     [activeConversationId, updateStatus, refetchConversations]
   );
+
+	const handleAssignmentChange = useCallback(async (userId: string | null) => {
+		if (!activeConversationId) return;
+		try {
+			await assignConversation(activeConversationId, userId);
+			await refetchConversations();
+			toast.success(userId ? "Conversation assigned" : "Conversation unassigned");
+		} catch (error: any) {
+			toast.error(error?.response?.data?.error || "Could not update the assignment");
+		}
+	}, [activeConversationId, assignConversation, refetchConversations]);
 
   const handleAIToggle = useCallback(async () => {
     if (!activeConversation) return;
@@ -998,6 +1082,51 @@ export default function InboxPage() {
               Needs attention
             </button>
           </div>
+
+		  <div className="flex items-center gap-2 mt-2">
+			<select
+				value={assignmentFilter}
+				onChange={(event) => setAssignmentFilter(event.target.value)}
+				className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#163300]/15"
+				aria-label="Filter conversations by assignment"
+			>
+				<option value="all">All assignments</option>
+				<option value="unassigned">Unassigned</option>
+				{currentUserId && <option value={currentUserId}>Assigned to me</option>}
+				{members.filter((member) => member.user_id !== currentUserId).map((member) => (
+					<option key={member.user_id} value={member.user_id}>{member.email || member.user_id}</option>
+				))}
+			</select>
+			{selectedConversationIds.size > 0 && (
+				<select
+					value={bulkAssignee}
+					onChange={(event) => { setBulkAssignee(event.target.value); void handleBulkAssignment(event.target.value); }}
+					className="max-w-[130px] rounded-lg border border-[#9fe870] bg-[#e2f6d5] px-2.5 py-1.5 text-[11px] font-bold text-[#163300] focus:outline-none"
+					aria-label="Assign selected conversations"
+				>
+					<option value="">Assign selected...</option>
+					<option value={currentUserId}>Assign to me</option>
+					{members.filter((member) => member.user_id !== currentUserId).map((member) => (
+						<option key={member.user_id} value={member.user_id}>{member.email || member.user_id}</option>
+					))}
+					<option value="__unassign__">Unassign selected</option>
+				</select>
+			)}
+		  </div>
+		  {conversations.length > 0 && (
+			<div className="flex items-center justify-between mt-2 text-[10px] text-gray-500">
+				<label className="inline-flex items-center gap-1.5 cursor-pointer">
+					<input
+						type="checkbox"
+						checked={conversations.every((conversation) => selectedConversationIds.has(conversation.id))}
+						onChange={(event) => setSelectedConversationIds(event.target.checked ? new Set(conversations.map((conversation) => conversation.id)) : new Set())}
+						className="h-3.5 w-3.5 rounded border-gray-300 accent-[#163300]"
+					/>
+					Select visible
+				</label>
+				{selectedConversationIds.size > 0 && <span>{selectedConversationIds.size} selected</span>}
+			</div>
+		  )}
         </div>
 
         {/* Conversation List */}
@@ -1026,6 +1155,8 @@ export default function InboxPage() {
                 conversation={conv}
                 isActive={conv.id === activeConversationId}
                 onClick={() => handleSelectConversation(conv.id)}
+				selected={selectedConversationIds.has(conv.id)}
+				onToggleSelected={() => toggleConversationSelection(conv.id)}
               />
             ))
           )}
@@ -1164,6 +1295,8 @@ export default function InboxPage() {
               conversation={activeConversation}
               onStatusChange={handleStatusChange}
               onToggleAI={handleAIToggle}
+			  onAssignmentChange={handleAssignmentChange}
+			  members={members}
               isUpdating={isUpdating}
 				workspaceAIEnabled={aiConfig?.is_enabled === true}
             />

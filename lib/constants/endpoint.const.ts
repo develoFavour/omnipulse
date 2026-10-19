@@ -107,6 +107,7 @@ export const ENDPOINTS = {
 	// Unified Team Inbox
 	INBOX: {
 		CONVERSATIONS: `${API_VERSION}/inbox/conversations`,
+		BULK_ASSIGN: `${API_VERSION}/inbox/conversations/bulk-assign`,
 		CONVERSATION: (id: string) => `${API_VERSION}/inbox/conversations/${id}`,
 		MESSAGES: (id: string) => `${API_VERSION}/inbox/conversations/${id}/messages`,
 		REPLY: (id: string) => `${API_VERSION}/inbox/conversations/${id}/reply`,

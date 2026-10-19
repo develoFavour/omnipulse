@@ -150,6 +150,18 @@ export function useInboxActions() {
     []
   );
 
+	const bulkAssignConversations = useCallback(
+		async (conversationIds: string[], userId: string | null) => {
+			setIsUpdating(true);
+			try {
+				await inboxService.bulkAssignConversations(conversationIds, userId);
+			} finally {
+				setIsUpdating(false);
+			}
+		},
+		[]
+	);
+
   const editMessage = useCallback(
     async (conversationId: string, messageId: string, newBody: string) => {
       // Optimistically update message cache first for instant UI feedback
@@ -242,7 +254,7 @@ export function useInboxActions() {
     []
   );
 
-  return { updateStatus, assignConversation, editMessage, deleteMessage, toggleAI, isUpdating };
+	return { updateStatus, assignConversation, bulkAssignConversations, editMessage, deleteMessage, toggleAI, isUpdating };
 }
 
 // ─── Real-Time WebSocket Hook ─────────────────────────────────────────────────

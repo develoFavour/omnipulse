@@ -148,6 +148,13 @@ class InboxService {
     );
   }
 
+	async bulkAssignConversations(conversationIds: string[], assignedTo: string | null): Promise<void> {
+		await apiClient.post(ENDPOINTS.INBOX.BULK_ASSIGN, {
+			conversation_ids: conversationIds,
+			assigned_to: assignedTo,
+		});
+	}
+
   async markAsRead(conversationId: string): Promise<void> {
     await apiClient.post(ENDPOINTS.INBOX.MARK_READ(conversationId));
   }
