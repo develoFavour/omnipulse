@@ -165,6 +165,9 @@ export const ENDPOINTS = {
 	AI_AGENT: {
 		CONFIG: `${API_VERSION}/ai-agent/config`,
 		KNOWLEDGE: `${API_VERSION}/ai-agent/knowledge`,
+		KNOWLEDGE_INGEST: `${API_VERSION}/ai-agent/knowledge/ingest`,
+		KNOWLEDGE_INGEST_JOB: (id: string) => `${API_VERSION}/ai-agent/knowledge/ingest/${id}`,
+		KNOWLEDGE_APPROVE: `${API_VERSION}/ai-agent/knowledge/approve`,
 		KNOWLEDGE_BY_ID: (id: string) => `${API_VERSION}/ai-agent/knowledge/${id}`,
 		CONVERSATION_TOGGLE: (id: string) => `${API_VERSION}/ai-agent/conversations/${id}/toggle`,
 	},

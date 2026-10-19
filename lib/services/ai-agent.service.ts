@@ -39,6 +39,26 @@ export interface AIKnowledgeItem {
   updated_at?: string;
 }
 
+export type KnowledgeIngestionStatus = "queued" | "processing" | "ready" | "failed";
+
+export interface KnowledgeIngestionJob {
+  id: string;
+  filename: string;
+  content_type?: string;
+  status: KnowledgeIngestionStatus;
+  items?: AIKnowledgeItem[];
+  error_message?: string;
+  created_at: string;
+  started_at?: string;
+  completed_at?: string;
+}
+
+export interface KnowledgeIngestionAccepted {
+  message: string;
+  job_id: string;
+  status: "queued";
+}
+
 class AIAgentService {
   async getConfig(): Promise<AIAgentConfig> {
     const response = await apiClient.get<AIAgentConfig>(
@@ -81,6 +101,33 @@ class AIAgentService {
 
   async deleteKnowledgeItem(id: string): Promise<void> {
     await apiClient.delete(ENDPOINTS.AI_AGENT.KNOWLEDGE_BY_ID(id));
+  }
+
+  async ingestDocument(file: File): Promise<KnowledgeIngestionAccepted> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await apiClient.post<KnowledgeIngestionAccepted>(
+      ENDPOINTS.AI_AGENT.KNOWLEDGE_INGEST,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return response.data as unknown as KnowledgeIngestionAccepted;
+  }
+
+  async getKnowledgeIngestionJob(jobId: string): Promise<KnowledgeIngestionJob> {
+    const response = await apiClient.get<KnowledgeIngestionJob>(
+      ENDPOINTS.AI_AGENT.KNOWLEDGE_INGEST_JOB(jobId)
+    );
+    return response.data as unknown as KnowledgeIngestionJob;
+  }
+
+  async approveKnowledgeItems(items: AIKnowledgeItem[]): Promise<{ message: string; count: number }> {
+    const response = await apiClient.post<{ message: string; count: number }>(
+      ENDPOINTS.AI_AGENT.KNOWLEDGE_APPROVE,
+      { items }
+    );
+    return response.data as unknown as { message: string; count: number };
   }
 }
 

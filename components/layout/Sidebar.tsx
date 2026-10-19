@@ -14,6 +14,7 @@ import {
   HelpCircle,
   Activity,
   Sparkles,
+  BrainCircuit,
   ArrowRight,
   FileText,
   BarChart3,
@@ -36,6 +37,7 @@ interface NavItem {
 const navigation: NavItem[] = [
   { name: "Dashboard", href: APP_ROUTES.DASHBOARD.BASE, icon: LayoutDashboard },
   { name: "Inbox", href: APP_ROUTES.DASHBOARD.INBOX, icon: MessageSquare },
+  { name: "AI Assistant", href: APP_ROUTES.DASHBOARD.AI_ASSISTANT, icon: BrainCircuit, roles: ["owner", "admin"] },
   { name: "Broadcast Studio", href: APP_ROUTES.DASHBOARD.BROADCAST, icon: Megaphone },
   { name: "Scheduled Queue", href: APP_ROUTES.DASHBOARD.SCHEDULED, icon: CalendarClock },
   { name: "Message Templates", href: APP_ROUTES.DASHBOARD.TEMPLATES, icon: FileText },
@@ -234,7 +236,7 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
             <div className="absolute -right-4 -top-4 h-16 w-16 rounded-full bg-[#9fe870]/20 blur-2xl opacity-50 transition-opacity group-hover:opacity-100" />
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="h-4 w-4 text-[#163300]" />
-              <h3 className="text-sm font-bold text-[#163300]">What's New</h3>
+              <h3 className="text-sm font-bold text-[#163300]">What&apos;s New</h3>
             </div>
             <ul className="space-y-2.5">
               {[
