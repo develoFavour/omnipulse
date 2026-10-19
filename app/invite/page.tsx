@@ -19,6 +19,7 @@ import { teamService, InvitationPreview } from "@/lib/services/team.service";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useAppStore } from "@/lib/store";
 
 function InviteContent() {
   const searchParams = useSearchParams();
@@ -27,6 +28,7 @@ function InviteContent() {
 
   const { isLoaded: isAuthLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
+	const syncUser = useAppStore((state) => state.syncUser);
 
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState<InvitationPreview | null>(null);
@@ -67,6 +69,10 @@ function InviteContent() {
     setAccepting(true);
     try {
       const res = await teamService.acceptInvitation(token);
+	  // Refresh the active tenant in the client store before entering the
+	  // dashboard so tenant-scoped resources (including channels) use the
+	  // workspace that was just joined.
+	  await syncUser();
       toast.success(res.message || "Welcome to your new workspace!");
       router.push(APP_ROUTES.DASHBOARD.BASE);
     } catch (err: any) {
