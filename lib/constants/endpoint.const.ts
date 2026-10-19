@@ -160,5 +160,13 @@ export const ENDPOINTS = {
 		CHECKOUT: `${API_VERSION}/billing/checkout`,
 		PORTAL: `${API_VERSION}/billing/portal`,
 	},
+
+	// AI Business Assistant
+	AI_AGENT: {
+		CONFIG: `${API_VERSION}/ai-agent/config`,
+		KNOWLEDGE: `${API_VERSION}/ai-agent/knowledge`,
+		KNOWLEDGE_BY_ID: (id: string) => `${API_VERSION}/ai-agent/knowledge/${id}`,
+		CONVERSATION_TOGGLE: (id: string) => `${API_VERSION}/ai-agent/conversations/${id}/toggle`,
+	},
 } as const;
 

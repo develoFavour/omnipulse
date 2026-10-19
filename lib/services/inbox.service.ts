@@ -26,6 +26,9 @@ export interface Conversation {
   last_message_text?: string;
   last_message_at: string;
   unread_count: number;
+  ai_state?: "active" | "paused_by_human" | "escalated" | "disabled";
+  ai_paused_until?: string;
+  needs_human_attention?: boolean;
   created_at: string;
   updated_at: string;
   contact?: ConversationContact;
@@ -157,6 +160,18 @@ class InboxService {
 
   async deleteMessage(messageId: string): Promise<void> {
     await apiClient.delete(ENDPOINTS.INBOX.DELETE_MESSAGE(messageId));
+  }
+
+  async toggleAI(
+    conversationId: string,
+    aiState: "active" | "paused_by_human",
+    clearNeedsHuman = false
+  ): Promise<{ conversation_id: string; ai_state: string; paused_until?: string }> {
+    const response = await apiClient.post(
+      ENDPOINTS.AI_AGENT.CONVERSATION_TOGGLE(conversationId),
+      { ai_state: aiState, clear_needs_human: clearNeedsHuman }
+    );
+    return response.data as unknown as { conversation_id: string; ai_state: string; paused_until?: string };
   }
 }
 
