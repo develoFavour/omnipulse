@@ -130,7 +130,7 @@ export function TemplatePickerModal({
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-2xl bg-[#163300] flex items-center justify-center shadow-md shadow-[#163300]/10 text-[#9fe870]">
-                  <Sparkles className="h-5 w-5" />
+                  
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">

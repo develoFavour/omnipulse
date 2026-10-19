@@ -112,18 +112,15 @@ export default function WelcomePage() {
 							}}
 						>
 							<div className="inline-flex items-center gap-2 rounded-full bg-[#e2f6d5] border border-[#9fe870]/70 px-4 py-1 text-xs font-bold uppercase tracking-wider text-[#163300] shadow-sm mb-1">
-								<Sparkles className="w-3.5 h-3.5 text-[#163300]" />
 								<span>Workspace Ready</span>
 							</div>
 
 							<h1 className="text-4xl sm:text-5xl md:text-6xl font-heading font-black tracking-tight text-[#163300] uppercase leading-tight">
-								Welcome,{" "}
-								<span className="text-[#0e0f0c]">
-									{brandName}
-								</span>
+								Welcome, <span className="text-[#0e0f0c]">{brandName}</span>
 							</h1>
 							<p className="text-base sm:text-lg text-[#454745] font-medium leading-relaxed max-w-lg mx-auto">
-								Your multi-channel broadcast engine is fully provisioned and ready for high-speed transmission.
+								Your multi-channel broadcast engine is fully provisioned and
+								ready for high-speed transmission.
 							</p>
 						</motion.div>
 
