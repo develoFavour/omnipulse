@@ -69,6 +69,7 @@ export interface ConversationFilter {
   status?: string;
   search?: string;
   assigned_to?: string;
+  needs_attention?: boolean;
   limit?: number;
   offset?: number;
 }
@@ -86,6 +87,7 @@ class InboxService {
       params.status = filter.status;
     if (filter.search) params.search = filter.search;
     if (filter.assigned_to) params.assigned_to = filter.assigned_to;
+    if (filter.needs_attention) params.needs_attention = "true";
     params.limit = filter.limit ?? 30;
     params.offset = filter.offset ?? 0;
 

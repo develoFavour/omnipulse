@@ -26,6 +26,7 @@ import {
   RotateCcw,
   Play,
   Pause,
+  Bot,
   Mic,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -277,6 +278,9 @@ function ConversationItem({
             )}
           </p>
           <div className="flex items-center gap-1.5 shrink-0">
+            {conversation.needs_human_attention && (
+              <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">Needs attention</span>
+            )}
             <ChannelBadge channel={conversation.channel} />
           </div>
         </div>
@@ -441,7 +445,10 @@ function MessageBubble({
 
   // Keep edit body in sync if the message is externally updated
   useEffect(() => {
-    if (!editing) setEditBody(message.body);
+    if (!editing) {
+      const timer = window.setTimeout(() => setEditBody(message.body), 0);
+      return () => window.clearTimeout(timer);
+    }
   }, [message.body, editing]);
 
   const handleEditSubmit = () => {
@@ -520,6 +527,11 @@ function MessageBubble({
             : "bg-white text-gray-900 border border-gray-100 rounded-bl-md"
         )}
       >
+        {message.sender_type === "bot" && (
+          <div className={cn("mb-1 flex items-center gap-1 text-[10px] font-bold", isOutbound ? "text-[#bce99b]" : "text-[#163300]")}>
+            <Bot className="h-3 w-3" /> AI Assistant
+          </div>
+        )}
         {/* Voicenote / Audio Message */}
         {isAudio ? (
           <VoiceNotePlayer url={message.media_url} isOutbound={isOutbound} />
@@ -674,9 +686,13 @@ function ComposeBar({
 function ConversationDetail({
   conversation,
   onStatusChange,
+  onToggleAI,
+  isUpdating,
 }: {
   conversation: Conversation;
   onStatusChange: (status: ConversationStatus) => void;
+  onToggleAI: () => void;
+  isUpdating: boolean;
 }) {
   const contactName = conversation.contact
     ? `${conversation.contact.first_name} ${conversation.contact.last_name}`.trim()
@@ -692,6 +708,17 @@ function ConversationDetail({
           <ChannelBadge channel={conversation.channel} />
           <StatusDot status={conversation.status} />
           <span className="text-xs text-gray-500 capitalize">{conversation.status}</span>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
+          <span className={cn(
+            "inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold",
+            conversation.ai_state === "paused_by_human" ? "bg-gray-100 text-gray-600" :
+              conversation.ai_state === "escalated" ? "bg-amber-100 text-amber-700" :
+                "bg-[#e2f6d5] text-[#163300]"
+          )}>
+            <Bot className="h-3 w-3" />
+            {conversation.ai_state === "paused_by_human" ? "AI paused" : conversation.ai_state === "escalated" ? "Needs attention" : "AI active"}
+          </span>
         </div>
       </div>
 
@@ -728,6 +755,21 @@ function ConversationDetail({
       {/* Quick Actions */}
       <div className="px-5 py-4 border-t border-gray-100 space-y-2">
         <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Actions</h4>
+
+        <button
+          type="button"
+          onClick={onToggleAI}
+          disabled={isUpdating || conversation.status === "closed"}
+          className={cn(
+            "w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+            conversation.ai_state === "paused_by_human" || conversation.ai_state === "escalated"
+              ? "bg-[#e2f6d5] text-[#163300] hover:bg-[#d4f0c4]"
+              : "text-gray-700 hover:bg-gray-50"
+          )}
+        >
+          {conversation.ai_state === "paused_by_human" || conversation.ai_state === "escalated" ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+          {conversation.ai_state === "paused_by_human" || conversation.ai_state === "escalated" ? "Resume AI" : "Pause AI"}
+        </button>
 
         {conversation.status !== "closed" && (
           <button
@@ -768,6 +810,7 @@ export default function InboxPage() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [channelFilter, setChannelFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [needsAttentionFilter, setNeedsAttentionFilter] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileThread, setShowMobileThread] = useState(false);
   const [showDetailPanel, setShowDetailPanel] = useState(true);
@@ -779,15 +822,16 @@ export default function InboxPage() {
     channel: channelFilter,
     status: statusFilter,
     search: searchQuery,
+    needs_attention: needsAttentionFilter,
     limit: 50,
   };
   const { conversations, total, isLoading, refetch: refetchConversations } = useInboxConversations(inboxFilter);
   const { messages, isLoading: isMessagesLoading, isSending, sendReply, markAsRead, refetch: refetchMessages } =
     useInboxMessages(activeConversationId);
-  const { updateStatus, editMessage: editMsg, deleteMessage: deleteMsg } = useInboxActions();
+  const { updateStatus, editMessage: editMsg, deleteMessage: deleteMsg, toggleAI, isUpdating } = useInboxActions();
 
   // 🔌 Real-time WebSocket — instantly pushes new messages without polling delays
-  useInboxWebSocket(inboxFilter, activeConversationId);
+  useInboxWebSocket(inboxFilter);
 
   const activeConversation = useMemo(
     () => conversations.find((c) => c.id === activeConversationId) ?? null,
@@ -838,6 +882,18 @@ export default function InboxPage() {
     },
     [activeConversationId, updateStatus, refetchConversations]
   );
+
+  const handleAIToggle = useCallback(async () => {
+    if (!activeConversation) return;
+    const shouldResume = activeConversation.ai_state === "paused_by_human" || activeConversation.ai_state === "escalated";
+    try {
+      await toggleAI(activeConversation.id, shouldResume ? "active" : "paused_by_human", shouldResume);
+      await refetchConversations();
+      toast.success(shouldResume ? "AI assistance resumed for this conversation" : "AI assistance paused for 30 minutes");
+    } catch {
+      toast.error("Could not update AI assistance. Please try again.");
+    }
+  }, [activeConversation, toggleAI, refetchConversations]);
 
   // Unread conversation count
   const unreadCount = useMemo(
@@ -923,6 +979,17 @@ export default function InboxPage() {
                 {st}
               </button>
             ))}
+
+            <button
+              type="button"
+              onClick={() => setNeedsAttentionFilter((value) => !value)}
+              className={cn(
+                "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0",
+                needsAttentionFilter ? "bg-amber-600 text-white shadow-sm" : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+              )}
+            >
+              Needs attention
+            </button>
           </div>
         </div>
 
@@ -1089,6 +1156,8 @@ export default function InboxPage() {
             <ConversationDetail
               conversation={activeConversation}
               onStatusChange={handleStatusChange}
+              onToggleAI={handleAIToggle}
+              isUpdating={isUpdating}
             />
           </motion.div>
         )}

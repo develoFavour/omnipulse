@@ -226,7 +226,23 @@ export function useInboxActions() {
     []
   );
 
-  return { updateStatus, assignConversation, editMessage, deleteMessage, isUpdating };
+  const toggleAI = useCallback(
+    async (
+      conversationId: string,
+      aiState: "active" | "paused_by_human",
+      clearNeedsHuman = false
+    ) => {
+      setIsUpdating(true);
+      try {
+        return await inboxService.toggleAI(conversationId, aiState, clearNeedsHuman);
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    []
+  );
+
+  return { updateStatus, assignConversation, editMessage, deleteMessage, toggleAI, isUpdating };
 }
 
 // ─── Real-Time WebSocket Hook ─────────────────────────────────────────────────
@@ -241,12 +257,12 @@ export function useInboxActions() {
  * @param activeConversationId The conversation currently open in the thread panel.
  */
 export function useInboxWebSocket(
-  conversationFilter: ConversationFilter,
-  activeConversationId: string | null
+  conversationFilter: ConversationFilter
 ) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isUnmountedRef = useRef(false);
+  const connectRef = useRef<() => void>(() => undefined);
 
   const convListKey = `inbox_conversations_${JSON.stringify(conversationFilter)}`;
 
@@ -261,7 +277,7 @@ export function useInboxWebSocket(
     const token = await getAuthToken();
     if (!token) {
       // Auth not ready yet — retry in 2s
-      reconnectTimeoutRef.current = setTimeout(connect, 2000);
+      reconnectTimeoutRef.current = setTimeout(() => { connectRef.current(); }, 2000);
       return;
     }
 
@@ -289,6 +305,9 @@ export function useInboxWebSocket(
           // MESSAGE_EDITED fields
           new_body?: string;
           timestamp?: string;
+          ai_state?: Conversation["ai_state"];
+          ai_paused_until?: string;
+          needs_human_attention?: boolean;
         };
 
         if (payload.type === "NEW_MESSAGE") {
@@ -374,6 +393,33 @@ export function useInboxWebSocket(
           globalMutate((key) => typeof key === "string" && key.startsWith("inbox_conversations_"));
           console.log(`[INBOX-WS] 🗑️ Message deleted: ${payload.message_id}`);
         }
+
+        if (payload.type === "CONVERSATION_AI_UPDATED") {
+          globalMutate(
+            (key) => typeof key === "string" && key.startsWith("inbox_conversations_"),
+            (prev: ConversationListResponse | undefined) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                conversations: prev.conversations.map((conversation) =>
+                  conversation.id === payload.conversation_id
+                    ? {
+                        ...conversation,
+                        ai_state: payload.ai_state,
+                        ai_paused_until: payload.ai_paused_until,
+                        needs_human_attention: payload.needs_human_attention,
+                      }
+                    : conversation
+                ),
+              };
+            },
+            { revalidate: false }
+          );
+          // A conversation can enter or leave the Needs Attention filter, so
+          // refresh filtered lists after applying the optimistic state update.
+          globalMutate(convListKey);
+          console.log(`[INBOX-WS] AI state updated for conversation ${payload.conversation_id}: ${payload.ai_state}`);
+        }
       } catch (err) {
         console.warn("[INBOX-WS] Failed to parse event", err);
       }
@@ -387,13 +433,14 @@ export function useInboxWebSocket(
     ws.onclose = (event) => {
       console.log(`[INBOX-WS] Disconnected (code=${event.code}). Reconnecting in 3s…`);
       if (!isUnmountedRef.current) {
-        reconnectTimeoutRef.current = setTimeout(connect, 3000);
+        reconnectTimeoutRef.current = setTimeout(() => { connectRef.current(); }, 3000);
       }
     };
   }, [convListKey]);
 
   useEffect(() => {
     isUnmountedRef.current = false;
+    connectRef.current = () => { void connect(); };
     connect();
 
     return () => {
