@@ -164,6 +164,7 @@ export const ENDPOINTS = {
 	// AI Business Assistant
 	AI_AGENT: {
 		CONFIG: `${API_VERSION}/ai-agent/config`,
+		TOGGLE: `${API_VERSION}/ai-agent/toggle`,
 		KNOWLEDGE: `${API_VERSION}/ai-agent/knowledge`,
 		KNOWLEDGE_INGEST: `${API_VERSION}/ai-agent/knowledge/ingest`,
 		KNOWLEDGE_INGEST_LIST: `${API_VERSION}/ai-agent/knowledge/ingest`,

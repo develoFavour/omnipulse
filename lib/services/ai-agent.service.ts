@@ -10,6 +10,7 @@ export type AIOperationalMode =
 export interface AIAgentConfig {
   tenant_id: string;
   is_enabled: boolean;
+  provider_available: boolean;
   operational_mode: AIOperationalMode;
   idle_timeout_seconds: number;
   business_name: string;
@@ -86,6 +87,14 @@ class AIAgentService {
     const response = await apiClient.put<{ message: string; config: AIAgentConfig }>(
       ENDPOINTS.AI_AGENT.CONFIG,
       config
+    );
+    return response.data as unknown as { message: string; config: AIAgentConfig };
+  }
+
+  async toggleEnabled(enabled: boolean): Promise<{ message: string; config: AIAgentConfig }> {
+    const response = await apiClient.post<{ message: string; config: AIAgentConfig }>(
+      ENDPOINTS.AI_AGENT.TOGGLE,
+      { enabled },
     );
     return response.data as unknown as { message: string; config: AIAgentConfig };
   }

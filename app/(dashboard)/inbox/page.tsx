@@ -41,6 +41,8 @@ import {
 } from "@/lib/api/hooks/useInbox";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
+import { AIAssistanceToggle } from "@/components/features/ai/AIAssistanceToggle";
+import { useAIAssistantConfig } from "@/lib/api/hooks/useAIAssistant";
 
 // ─── Channel Icon Helpers ────────────────────────────────────────────────────
 
@@ -688,11 +690,13 @@ function ConversationDetail({
   onStatusChange,
   onToggleAI,
   isUpdating,
+	workspaceAIEnabled,
 }: {
   conversation: Conversation;
   onStatusChange: (status: ConversationStatus) => void;
   onToggleAI: () => void;
   isUpdating: boolean;
+	workspaceAIEnabled: boolean;
 }) {
   const contactName = conversation.contact
     ? `${conversation.contact.first_name} ${conversation.contact.last_name}`.trim()
@@ -712,12 +716,12 @@ function ConversationDetail({
         <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5">
           <span className={cn(
             "inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold",
-            conversation.ai_state === "paused_by_human" ? "bg-gray-100 text-gray-600" :
+            !workspaceAIEnabled ? "bg-gray-100 text-gray-600" : conversation.ai_state === "paused_by_human" ? "bg-gray-100 text-gray-600" :
               conversation.ai_state === "escalated" ? "bg-amber-100 text-amber-700" :
                 "bg-[#e2f6d5] text-[#163300]"
           )}>
             <Bot className="h-3 w-3" />
-            {conversation.ai_state === "paused_by_human" ? "AI paused" : conversation.ai_state === "escalated" ? "Needs attention" : "AI active"}
+            {!workspaceAIEnabled ? "AI off for workspace" : conversation.ai_state === "paused_by_human" ? "AI paused" : conversation.ai_state === "escalated" ? "Needs attention" : "AI active"}
           </span>
         </div>
       </div>
@@ -759,7 +763,7 @@ function ConversationDetail({
         <button
           type="button"
           onClick={onToggleAI}
-          disabled={isUpdating || conversation.status === "closed"}
+          disabled={isUpdating || conversation.status === "closed" || !workspaceAIEnabled}
           className={cn(
             "w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50",
             conversation.ai_state === "paused_by_human" || conversation.ai_state === "escalated"
@@ -814,6 +818,7 @@ export default function InboxPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileThread, setShowMobileThread] = useState(false);
   const [showDetailPanel, setShowDetailPanel] = useState(true);
+	const { config: aiConfig } = useAIAssistantConfig();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -933,6 +938,8 @@ export default function InboxPage() {
               )}
             </div>
           </div>
+
+          <AIAssistanceToggle compact />
 
           {/* Search */}
           <div className="relative">
@@ -1158,6 +1165,7 @@ export default function InboxPage() {
               onStatusChange={handleStatusChange}
               onToggleAI={handleAIToggle}
               isUpdating={isUpdating}
+				workspaceAIEnabled={aiConfig?.is_enabled === true}
             />
           </motion.div>
         )}

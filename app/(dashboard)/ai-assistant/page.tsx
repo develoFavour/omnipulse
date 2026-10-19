@@ -31,6 +31,7 @@ import {
 import type { AIKnowledgeItem } from "@/lib/services/ai-agent.service";
 import { extractErrorMessage } from "@/lib/api/response";
 import { usePermissions } from "@/lib/hooks/usePermissions";
+import { AIAssistanceToggle } from "@/components/features/ai/AIAssistanceToggle";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_FILE_TYPES =
@@ -213,6 +214,8 @@ export default function AIAssistantPage() {
 					Human review before publishing
 				</div>
 			</header>
+
+			<AIAssistanceToggle />
 
 			<section className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
 				<Card>
