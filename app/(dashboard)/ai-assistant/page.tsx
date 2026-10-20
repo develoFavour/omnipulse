@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
 	AlertCircle,
@@ -65,12 +66,21 @@ function toDraftItems(items: AIKnowledgeItem[] = []): DraftItem[] {
 }
 
 export default function AIAssistantPage() {
+	const searchParams = useSearchParams();
 	const { canManageChannels } = usePermissions();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const loadedJobRef = useRef<string | null>(null);
 	const [jobId, setJobId] = useState<string | null>(null);
 	const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
 	const [isSaving, setIsSaving] = useState(false);
+	useEffect(() => {
+		const requestedJobId = searchParams.get("job");
+		if (requestedJobId && requestedJobId !== jobId) {
+			setJobId(requestedJobId);
+			setDraftItems([]);
+			loadedJobRef.current = null;
+		}
+	}, [jobId, searchParams]);
 	const {
 		uploadDocument,
 		approveItems,
@@ -174,6 +184,9 @@ export default function AIAssistantPage() {
 					tenant_id: item.tenant_id,
 					question_or_topic: item.question_or_topic,
 					answer_or_content: item.answer_or_content,
+									source_document: item.source_document,
+									source_section: item.source_section,
+									source_excerpt: item.source_excerpt,
 					category: item.category || "faq",
 					is_active: true,
 				})),
@@ -361,6 +374,12 @@ export default function AIAssistantPage() {
 								key={item.draftId}
 								className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
 							>
+								{item.source_document && (
+									<div className="mb-3 rounded-lg border border-[#dcebd2] bg-[#f8fcf5] px-3 py-2 text-xs text-gray-600">
+										<p className="font-semibold text-[#163300]">Source: {item.source_document}{item.source_section ? ` · ${item.source_section}` : ""}</p>
+										{item.source_excerpt && <p className="mt-1 line-clamp-3 leading-5">{item.source_excerpt}</p>}
+									</div>
+								)}
 								<div className="mb-3 flex items-center justify-between gap-3">
 									<select
 										value={item.category}

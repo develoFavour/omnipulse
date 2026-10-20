@@ -35,6 +35,9 @@ export interface AIKnowledgeItem {
   category: "faq" | "pricing" | "product" | "policy" | "hours" | string;
   question_or_topic: string;
   answer_or_content: string;
+  source_document?: string;
+  source_section?: string;
+  source_excerpt?: string;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
