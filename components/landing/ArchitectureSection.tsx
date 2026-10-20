@@ -17,13 +17,13 @@ export function ArchitectureSection() {
           transition={{ duration: 0.6, ease: EASE_EXPO }}
         >
           <span className="text-xs font-black uppercase tracking-wider text-[#163300]">
-            The Campaign Delivery Lifecycle
+            The Agency Messaging Workflow
           </span>
           <h2 className="text-3xl sm:text-5xl font-black uppercase text-[#0e0f0c] tracking-tight font-heading mt-2">
-            Plan. Route. Deliver<span className="text-[#9fe870]">.</span>
+            Organize. Send. Follow Up<span className="text-[#9fe870]">.</span>
           </h2>
           <p className="mt-4 text-base text-[#454745]">
-            From audience opt-in to verified delivery — a predictable, compliant system for managing client campaigns without account flags.
+            Give every client a clear workspace, give your team shared context, and keep campaign delivery and follow-up visible from one place.
           </p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -54,7 +54,7 @@ export function IntroCurtain({ introComplete, introPhase }: IntroCurtainProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: EASE_EXPO }}
                 >
-                  Plan. Route. Deliver.
+                  Organize. Send. Follow Up.
                 </motion.p>
               )}
             </AnimatePresence>

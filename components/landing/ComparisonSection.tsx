@@ -16,13 +16,13 @@ export function ComparisonSection() {
         transition={{ duration: 0.6, ease: EASE_EXPO }}
       >
         <span className="text-xs font-black uppercase tracking-wider text-[#163300]">
-          The Agency Standard
+          The Agency Workflow
         </span>
         <h2 className="text-3xl sm:text-5xl font-black uppercase text-[#0e0f0c] tracking-tight font-heading mt-2">
-          Why Unified Wins<span className="text-[#9fe870]">.</span>
+          Less Switching. More Client Work<span className="text-[#9fe870]">.</span>
         </h2>
         <p className="text-base text-[#454745] mt-4">
-          Compare MessageRail against juggling multiple standalone bots and disconnected browser extensions.
+          MessageRail gives agencies one operating view across client workspaces instead of scattered tools and handoffs.
         </p>
       </motion.div>
       <motion.div
@@ -40,7 +40,7 @@ export function ComparisonSection() {
                 <th className="px-6 py-4 bg-[#e2f6d5] text-[#163300] font-black">
                   MessageRail
                 </th>
-                <th className="px-6 py-4">Legacy Extension / Bots</th>
+                <th className="px-6 py-4">Disconnected Tools</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e8ebe6]">

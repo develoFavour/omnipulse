@@ -26,16 +26,16 @@ export function BenchmarkSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-7">
             <span className="text-xs font-black uppercase tracking-wider text-[#9fe870]">
-              Compliant Campaign Operations
+              The Agency Messaging Workspace
             </span>
             <h2 className="text-3xl sm:text-5xl font-black uppercase text-[#9fe870] tracking-tight font-heading mt-2 leading-[0.95]">
-              BUILT FOR SCALE<span className="text-white">.</span><br />
-              PROTECTED BY DESIGN<span className="text-white">.</span>
+              LESS TOOL-SWITCHING<span className="text-white">.</span><br />
+              CLEARER CLIENT DELIVERY<span className="text-white">.</span>
             </h2>
             <p className="mt-6 text-base text-white/80 leading-relaxed">
-              Designed for high-volume, compliant campaign orchestration with real-time delivery monitoring. Respect platform rate limits, honor compliance service windows, and protect client sender reputations.
+              Give your team one place to organize client audiences, launch campaigns, manage replies, and keep delivery visible. MessageRail helps agencies deliver client messaging work with less operational clutter.
             </p>
-            <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-6 pt-6 border-t border-white/10 items-start">
+            <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-6 pt-6 border-t border-white/10 items-start">
               {BENCHMARK_STATS.map((stat) => (
                 <StatCounter
                   key={stat.label}

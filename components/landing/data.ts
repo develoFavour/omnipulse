@@ -13,37 +13,38 @@ export const NAV_LINKS = [
   { label: "How It Works", href: "#workflow" },
   { label: "Channels", href: "#channels" },
   { label: "Capabilities", href: "#capabilities" },
+  { label: "Pricing", href: "#pricing" },
   { label: "Overview", href: "/get-started" },
 ] as const;
 
 export const TRUST_BADGES = [
-  "Direct WhatsApp Cloud API",
-  "Native Telegram Integration",
-  "Opted-In Consent Safeguards",
-  "Multi-Client Isolated Workspaces",
+  "Separate workspace per client",
+  "WhatsApp + Telegram inbox",
+  "Campaigns and conversations together",
+  "Team assignments and visibility",
 ] as const;
 
 export const PIPELINE_STEPS: PipelineStep[] = [
   {
     step: "01",
     tag: "CAPTURE",
-    title: "Zero-Friction Inbound Capture",
-    body: "Subscribers join when they tap /start on Telegram or reply on WhatsApp. MessageRail logs opt-in, tags audience interests, and organizes contacts without manual spreadsheets.",
-    tags: ["Automated tagging", "No manual spreadsheets"],
+    title: "Bring Every Client Conversation Together",
+    body: "Capture WhatsApp and Telegram replies in the right client workspace, keep contact context attached, and stop losing conversations across separate tools.",
+    tags: ["Unified inbox", "Client context"],
   },
   {
     step: "02",
     tag: "COMPOSE",
-    title: "Multi-Channel Creative Studio",
-    body: "Draft message copy with dynamic personalizations like {{first_name}}. Preview live mobile layouts across device simulators before sending.",
-    tags: ["Dynamic personalization", "Live mobile preview"],
+    title: "Build Campaigns Without Starting Over",
+    body: "Create client-ready broadcasts with reusable templates, audience targeting, and personalisation from one campaign workspace.",
+    tags: ["Reusable templates", "Audience targeting"],
   },
   {
     step: "03",
     tag: "DELIVER",
-    title: "Compliant Routing & Live Tracking",
-    body: "Automated rate pacing prevents platform throttling and protects sender reputation. Monitor real-time delivery status and receipts on an interactive dashboard.",
-    tags: ["Rate-safe pacing", "Live delivery status"],
+    title: "Know What Happened After Send",
+    body: "Track delivery status, replies, and conversations that need attention so your team can report clearly and follow up quickly.",
+    tags: ["Delivery visibility", "Follow-up clarity"],
   },
 ];
 
@@ -51,8 +52,8 @@ export const FEATURE_ITEMS: FeatureItem[] = [
   {
     id: "broadcast",
     tag: "CAMPAIGN STUDIO",
-    headline: "Compose Once. Deliver Across Multiple Channels Simultaneously.",
-    body: "Stop drafting copy twice. Use a unified message studio with dynamic variables, channel toggles, and native phone simulators to engage opted-in audiences across all your platforms.",
+    headline: "Launch Client Campaigns Without Switching Tools.",
+    body: "Create one campaign, select the client audience, and coordinate delivery across WhatsApp and Telegram from the workspace your team already shares.",
     stats: [
       { value: "2 channels", label: "Simultaneous Reach" },
       { value: "Live", label: "Delivery Tracking" },
@@ -61,8 +62,8 @@ export const FEATURE_ITEMS: FeatureItem[] = [
   {
     id: "flywheel",
     tag: "INBOUND AUDIENCE SYNC",
-    headline: "Turn Inbound Inquiries Into Segmented Client Audiences.",
-    body: "Every incoming conversation automatically captures subscriber details. Attach client tags, segment by campaign source, and keep contact lists updated without human intervention.",
+    headline: "Keep Every Client’s Audience and Conversation Together.",
+    body: "Bring replies, contacts, tags, and campaign context into one client workspace so your team can act without searching through disconnected tools.",
     stats: [
       { value: "0", label: "Manual Spreadsheets" },
       { value: "100%", label: "Automated Tagging" },
@@ -71,8 +72,8 @@ export const FEATURE_ITEMS: FeatureItem[] = [
   {
     id: "telemetry",
     tag: "DELIVERY MONITORING",
-    headline: "Live Delivery Tracking. Transparent Status Codes.",
-    body: "Watch campaign delivery status update in real time. Inspect platform-level status codes, automatic rate-safe pacing, and verified delivery receipts without guesswork.",
+    headline: "Know Which Client Conversations Need Attention.",
+    body: "See delivery activity, inbound replies, assignments, and escalations in one place so client follow-up does not depend on scattered updates.",
     stats: [
       { value: "Real-time", label: "Status Receipts" },
       { value: "Rate-safe", label: "Delivery Pacing" },
@@ -81,8 +82,8 @@ export const FEATURE_ITEMS: FeatureItem[] = [
   {
     id: "rbac",
     tag: "AGENCY MULTI-TENANCY",
-    headline: "Workspace Isolation Built for Client-Facing Agencies.",
-    body: "Invite team members with role-based access control. Separate bot credentials, subscriber lists, and campaign history cleanly across every client brand.",
+    headline: "Give Your Team the Right Client Workspace.",
+    body: "Keep client channels, contacts, campaigns, and conversation history separated while your team collaborates with clear roles and ownership.",
     stats: [
       { value: "3", label: "Role Levels (Owner/Admin/Member)" },
       { value: "Unlimited", label: "Isolated Workspaces" },

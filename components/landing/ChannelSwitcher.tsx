@@ -28,13 +28,13 @@ export function ChannelSwitcher() {
           transition={{ duration: 0.6, ease: EASE_EXPO }}
         >
           <span className="text-xs font-black uppercase tracking-wider text-[#163300]">
-            Channel Integrations
+            Client Channels
           </span>
           <h2 className="text-3xl sm:text-5xl font-black uppercase text-[#0e0f0c] tracking-tight font-heading mt-2">
-            Native Connectors<span className="text-[#9fe870]">.</span>
+            Connect the Channels Clients Already Use<span className="text-[#9fe870]">.</span>
           </h2>
           <p className="text-base text-[#454745] mt-4">
-            Connect verified APIs in under 60 seconds with QR codes, OAuth, and secure bot tokens.
+            Keep each client’s connected channels inside the right workspace, then manage campaigns and replies from one team view.
           </p>
           <div className="mt-8 inline-flex items-center rounded-full bg-white p-1 border border-[#e8ebe6] shadow-xs">
             {(["whatsapp", "telegram", "flywheel"] as const).map((tab) => (
@@ -78,7 +78,7 @@ export function ChannelSwitcher() {
                     1-Click Meta OAuth & WhatsApp QR Link
                   </h3>
                   <p className="text-base text-[#454745] leading-relaxed mb-6">
-                    Deploy verified WhatsApp senders without managing infrastructure. Send DMs, target opt-in lists, and preview Status updates from your browser.
+                    Connect a client’s WhatsApp sender, reach opted-in audiences, and keep replies attached to the same client workspace.
                   </p>
                   <ul className="space-y-3 text-sm text-[#454745] font-medium">
                     {[
@@ -124,7 +124,7 @@ export function ChannelSwitcher() {
                     Automatic Telegram Group & Channel Discovery
                   </h3>
                   <p className="text-base text-[#454745] leading-relaxed mb-6">
-                    Add your bot as admin to any community. MessageRail listens, registers Chat IDs, and exposes them in your broadcast studio selector.
+                    Connect a client’s Telegram bot and manage destinations, broadcasts, and incoming conversations without changing tools.
                   </p>
                   <ul className="space-y-3 text-sm text-[#454745] font-medium">
                     {[
@@ -173,7 +173,7 @@ export function ChannelSwitcher() {
                     Zero Manual CSV Imports. Contacts Flow In Live.
                   </h3>
                   <p className="text-base text-[#454745] leading-relaxed mb-6">
-                    Every user interaction triggers instantaneous webhook ingestion. Route incoming phone numbers, Telegram usernames, and metadata into segmented cohorts.
+                    Bring inbound contacts and replies into the right client workspace so your team can keep audience context and follow-up together.
                   </p>
                   <div className="p-3.5 rounded-xl bg-[#f4f5f2] border border-[#e8ebe6] flex items-center justify-between gap-2">
                     <code className="text-xs font-mono font-bold text-[#163300] truncate">

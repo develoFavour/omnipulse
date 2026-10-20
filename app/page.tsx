@@ -10,6 +10,7 @@ import { ArchitectureSection } from "@/components/landing/ArchitectureSection";
 import { FeatureShowcase } from "@/components/landing/FeatureShowcase";
 import { ChannelSwitcher } from "@/components/landing/ChannelSwitcher";
 import { BenchmarkSection } from "@/components/landing/BenchmarkSection";
+import { PricingSection } from "@/components/landing/PricingSection";
 import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 
@@ -92,6 +93,8 @@ export default function LandingPage() {
         <ChannelSwitcher />
 
         <BenchmarkSection />
+
+        <PricingSection />
 
         <ComparisonSection />
 

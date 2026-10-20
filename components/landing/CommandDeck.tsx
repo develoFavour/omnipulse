@@ -79,10 +79,10 @@ export function CommandDeck({
                 </div>
                 <div>
                   <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-[#9fe870] font-heading">
-                    Campaign Operations Studio
+                    Client Messaging Workspace
                   </h3>
                   <p className="text-xs text-white/60 font-medium">
-                    Multi-Channel Delivery Ready · Automated Rate Pacing
+                    Client Workspace Ready · Team Activity Visible
                   </p>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export function CommandDeck({
                     Active Client Campaign
                   </label>
                   <div className="rounded-xl bg-white/5 border border-white/15 px-4 py-3 text-sm font-semibold text-white font-mono flex items-center justify-between">
-                    <span>Spring VIP Product Announcement</span>
+                      <span>Spring Product Announcement</span>
                     <span className="text-[10px] bg-[#9fe870]/20 text-[#9fe870] px-2 py-0.5 rounded font-bold uppercase">
                       Scheduled · 11:00 AM
                     </span>
@@ -154,13 +154,13 @@ export function CommandDeck({
                     </div>
                   </div>
                   <div className="rounded-xl bg-white/5 border border-white/15 p-4 text-sm text-white/90 leading-relaxed min-h-[90px]">
-                    {"Hey "}<span className="text-[#9fe870] font-bold">{"{{first_name}}"}</span>{"! Your exclusive agency pass for "}
-                    <span className="text-[#9fe870] font-bold">{"{{company}}"}</span>{" is unlocked."}
+                    {"Hi "}<span className="text-[#9fe870] font-bold">{"{{first_name}}"}</span>{", here is the latest update from "}
+                    <span className="text-[#9fe870] font-bold">{"{{company}}"}</span>{"."}
                   </div>
                 </div>
                 <div className="rounded-xl bg-white/10 border border-white/15 p-4 flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <div className="text-xs text-white/50 uppercase font-semibold">Opted-In Audience Target</div>
+                    <div className="text-xs text-white/50 uppercase font-semibold">Client Audience Target</div>
                     <div className="text-2xl font-black text-white font-heading">
                       1,250 <span className="text-xs font-semibold text-[#9fe870]">contacts</span>
                     </div>
@@ -180,7 +180,7 @@ export function CommandDeck({
                       href="/sign-up"
                       className="inline-flex items-center gap-2 rounded-full bg-[#9fe870] px-7 py-3 text-sm font-black text-[#163300] hover:brightness-105 transition-all"
                     >
-                      <Rocket className="h-4 w-4" /> Simulate Launch (14,280)
+                      <Rocket className="h-4 w-4" /> Preview Client Launch
                     </Link>
                   </motion.div>
                   <span className="text-xs text-white/50 font-medium">Est. ~11.9 mins</span>
@@ -196,7 +196,7 @@ export function CommandDeck({
                         <FaWhatsapp className="h-4 w-4 text-white" />
                       </div>
                       <div>
-                        <div className="text-xs font-bold text-[#0e0f0c]">MessageRail Verified</div>
+                        <div className="text-xs font-bold text-[#0e0f0c]">Client Workspace Sender</div>
                         <div className="text-[10px] text-gray-500">Official Business Sender</div>
                       </div>
                     </div>
@@ -206,15 +206,15 @@ export function CommandDeck({
                   </div>
                   <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 space-y-2">
                     <div className="text-xs text-gray-800 leading-relaxed">
-                      {"Hey "}<span className="font-bold text-[#163300]">Sarah</span>{"! Your exclusive agency pass for "}
-                      <span className="font-bold text-[#163300]">Apex Media</span>{" is unlocked."}
+                      {"Hi "}<span className="font-bold text-[#163300]">Sarah</span>{", here is the latest update from "}
+                      <span className="font-bold text-[#163300]">Apex Media</span>{"."}
                     </div>
                     <div className="text-[10px] text-gray-400 text-right">10:50 AM · Delivered ✓✓</div>
                   </div>
                   <div className="mt-3 rounded-2xl bg-[#229ED9]/15 p-3 border border-[#229ED9]/25 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <FaTelegram className="h-4 w-4 text-[#229ED9]" />
-                      <span className="font-bold text-white text-[11px]">Mirrored to 6 Channels</span>
+                      <span className="font-bold text-white text-[11px]">Client Activity Synced</span>
                     </div>
                     <span className="text-[10px] text-[#9fe870] font-mono font-bold">100% Synced</span>
                   </div>

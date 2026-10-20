@@ -20,13 +20,13 @@ export function LandingFooter() {
           className="max-w-4xl mx-auto"
         >
           <span className="text-xs font-black uppercase tracking-wider text-[#9fe870]">
-            Start in 2 Minutes · No Credit Card Required
+            Built for Agencies Managing Client Messaging
           </span>
           <h2 className="text-4xl sm:text-6xl font-black uppercase text-[#9fe870] tracking-tight font-heading mt-4 leading-[0.95]">
-            PLAN. ROUTE. DELIVER<span className="text-white">.</span>
+            RUN CLIENT MESSAGING<span className="text-white">.</span>
           </h2>
           <p className="mt-6 text-base sm:text-lg text-white/80 max-w-xl mx-auto leading-relaxed">
-            Create an isolated workspace, connect your communication channels, and orchestrate compliant campaigns across your clients today.
+            Create a workspace for your first client, connect the channels you use, and give your team one place to manage campaigns and conversations.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
@@ -34,7 +34,7 @@ export function LandingFooter() {
                 href="/sign-up"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[#9fe870] px-8 py-3.5 text-base font-black text-[#163300] hover:brightness-105 transition-all shadow-md"
               >
-                Open Free Workspace <ArrowRight className="h-4 w-4 stroke-[2.5]" />
+                Create a Free Client Workspace <ArrowRight className="h-4 w-4 stroke-[2.5]" />
               </Link>
             </motion.div>
             <Link
@@ -67,11 +67,11 @@ export function LandingFooter() {
               </span>
             </div>
             <p className="text-sm text-[#454745] max-w-sm leading-relaxed">
-              The multi-channel campaign workspace for agencies managing compliant outreach across multiple clients.
+              The messaging operations workspace for agencies managing campaigns and conversations across multiple clients.
             </p>
             <div className="inline-flex items-center gap-2 rounded-full bg-[#e2f6d5] border border-[#9fe870]/60 px-3.5 py-1 text-xs font-bold text-[#163300]">
               <ShieldCheck className="h-3.5 w-3.5 text-[#163300]" />
-              Multi-Client Isolation · Real-Time Delivery Tracking
+              Client Workspace Isolation · Team Delivery Visibility
             </div>
           </div>
 
