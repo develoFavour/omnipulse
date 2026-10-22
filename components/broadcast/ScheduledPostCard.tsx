@@ -24,6 +24,7 @@ interface ScheduledPostCardProps {
   onInspect: (campaign: ScheduledCampaignItem) => void;
   onRequestCancel: (campaign: ScheduledCampaignItem) => void;
   onRequestDispatch: (campaign: ScheduledCampaignItem) => void;
+  onRequestSchedule: (campaign: ScheduledCampaignItem) => void;
   isCancelling?: boolean;
   isDispatching?: boolean;
 }
@@ -34,6 +35,7 @@ export function ScheduledPostCard({
   onInspect,
   onRequestCancel,
   onRequestDispatch,
+  onRequestSchedule,
   isCancelling,
   isDispatching,
 }: ScheduledPostCardProps) {
@@ -47,6 +49,7 @@ export function ScheduledPostCard({
     <div
       className={cn(
         "group relative rounded-2xl border bg-white p-5 transition-all duration-200 shadow-xs hover:shadow-md",
+        isDraft && "border-[#cfeebc] bg-gradient-to-br from-[#f7fff2] via-white to-white",
         !isDraft && isUrgent
           ? "border-amber-300 ring-1 ring-amber-200/50 bg-gradient-to-b from-amber-50/20 to-white"
           : "border-gray-200/90 hover:border-[#9fe870]/60"
@@ -113,6 +116,12 @@ export function ScheduledPostCard({
         </div>}
       </div>
 
+      {isDraft && (
+        <p className="mb-3 text-[11px] font-medium text-gray-400">
+          Saved {new Date(campaign.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+        </p>
+      )}
+
       {/* Campaign Title & Message Preview */}
       <div className="mb-4">
         <h3 className="text-base font-bold text-gray-900 tracking-tight group-hover:text-[#163300] transition-colors">
@@ -178,7 +187,10 @@ export function ScheduledPostCard({
       </div>
 
       {/* Card Actions Footer */}
-      <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-100">
+      <div className={cn(
+        "flex gap-2 pt-3 border-t border-gray-100",
+        isDraft ? "flex-col sm:flex-row sm:items-center sm:justify-between" : "items-center justify-between",
+      )}>
         <Button
           type="button"
           variant="ghost"
@@ -190,7 +202,20 @@ export function ScheduledPostCard({
           Inspect Details
         </Button>
 
-        <div className="flex items-center gap-1.5">
+        <div className={cn("flex items-center gap-1.5 flex-wrap", isDraft && "w-full sm:w-auto sm:justify-end") }>
+          {isDraft && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => onRequestSchedule(campaign)}
+              disabled={isCancelling || isDispatching}
+              className="h-8 px-3 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-xs"
+            >
+              <Calendar className="h-3.5 w-3.5 mr-1" />
+              Schedule
+            </Button>
+          )}
+
           <Button
             type="button"
             variant="outline"

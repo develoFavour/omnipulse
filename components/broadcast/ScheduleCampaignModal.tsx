@@ -34,6 +34,7 @@ interface ScheduleCampaignModalProps {
   // Action
   isScheduling: boolean;
   onConfirm: () => Promise<void>;
+  isExistingDraft?: boolean;
 }
 
 export function ScheduleCampaignModal({
@@ -46,6 +47,7 @@ export function ScheduleCampaignModal({
   onScheduledAtChange,
   isScheduling,
   onConfirm,
+  isExistingDraft = false,
 }: ScheduleCampaignModalProps) {
   const [localError, setLocalError] = useState("");
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -186,8 +188,9 @@ export function ScheduleCampaignModal({
           {/* Info callout */}
           <p className="mt-4 text-[11px] font-medium text-gray-400 flex items-start gap-1.5">
             <Info className="h-3 w-3 shrink-0 mt-0.5 text-gray-300" />
-            The campaign will be created as a draft and automatically dispatched at the scheduled
-            time. You can cancel it from the Campaigns list before the time elapses.
+            {isExistingDraft
+              ? "This saved draft will move into the scheduled queue and dispatch automatically at the selected time."
+              : "The campaign will be created as a draft and automatically dispatched at the scheduled time. You can cancel it from the Campaigns list before the time elapses."}
           </p>
         </div>
 

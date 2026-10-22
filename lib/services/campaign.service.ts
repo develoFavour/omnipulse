@@ -115,6 +115,13 @@ class CampaignService {
     return response.data as unknown as { message: string; campaign_id: string; status: string };
   }
 
+  async deleteDraft(campaignId: string): Promise<{ message: string; campaign_id: string }> {
+    const response = await apiClient.delete<ApiResponse<{ message: string; campaign_id: string }>>(
+      ENDPOINTS.CAMPAIGNS.DELETE_DRAFT(campaignId),
+    );
+    return response.data as unknown as { message: string; campaign_id: string };
+  }
+
   async getCampaignStats(campaignId: string): Promise<CampaignStats> {
     const response = await apiClient.get<ApiResponse<CampaignStats>>(ENDPOINTS.CAMPAIGNS.STATS(campaignId));
     return response.data as unknown as CampaignStats;

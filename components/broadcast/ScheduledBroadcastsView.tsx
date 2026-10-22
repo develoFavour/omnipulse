@@ -41,6 +41,7 @@ import { Button } from "@/components/ui/button";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { cn } from "@/lib/utils";
 import { useContacts } from "@/lib/api/hooks/useContacts";
+import { ScheduleCampaignModal } from "./ScheduleCampaignModal";
 
 export function ScheduledBroadcastsView() {
   const searchParams = useSearchParams();
@@ -51,10 +52,14 @@ export function ScheduledBroadcastsView() {
     isRefreshing,
     cancellingId,
     permanentlyCancellingId,
+    deletingDraftId,
+    schedulingId,
     dispatchingId,
     refetch,
     cancelSchedule,
     cancelCampaignPermanently,
+    deleteDraft,
+    scheduleDraft,
     dispatchNow,
   } = useScheduledCampaigns();
   const { contacts } = useContacts({ pageSize: 500 });
@@ -83,6 +88,8 @@ export function ScheduledBroadcastsView() {
   const [campaignToCancel, setCampaignToCancel] = useState<ScheduledCampaignItem | null>(null);
   const [campaignToDispatch, setCampaignToDispatch] = useState<ScheduledCampaignItem | null>(null);
   const [campaignToCancelPermanently, setCampaignToCancelPermanently] = useState<ScheduledCampaignItem | null>(null);
+  const [campaignToSchedule, setCampaignToSchedule] = useState<ScheduledCampaignItem | null>(null);
+  const [scheduledAt, setScheduledAt] = useState("");
 
   // Compute stats for KPI banner
   const nearestCampaign = useMemo(() => {
@@ -171,7 +178,21 @@ export function ScheduledBroadcastsView() {
     if (inspectedCampaign?.id === id) {
       setInspectedCampaign(null);
     }
-    await cancelCampaignPermanently(id);
+    if (campaignToCancelPermanently.status === "draft") {
+      await deleteDraft(id);
+    } else {
+      await cancelCampaignPermanently(id);
+    }
+  };
+
+  const handleScheduleDraft = async () => {
+    if (!campaignToSchedule || !scheduledAt) return;
+    const didSchedule = await scheduleDraft(campaignToSchedule.id, new Date(scheduledAt));
+    if (didSchedule) {
+      setCampaignToSchedule(null);
+      setScheduledAt("");
+      if (inspectedCampaign?.id === campaignToSchedule.id) setInspectedCampaign(null);
+    }
   };
 
   return (
@@ -230,7 +251,7 @@ export function ScheduledBroadcastsView() {
         <div className="rounded-2xl border border-gray-200/90 bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-              Total In Queue
+              {isDraftsView ? "Draft Library" : "Total In Queue"}
             </span>
             <div className="h-8 w-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <CalendarClock className="h-4 w-4" />
@@ -240,7 +261,7 @@ export function ScheduledBroadcastsView() {
             <span className="text-2xl font-extrabold text-gray-900">
               {isLoading ? "—" : visibleCampaigns.length}
             </span>
-            <span className="text-xs text-gray-500 font-medium">campaigns pending</span>
+            <span className="text-xs text-gray-500 font-medium">{isDraftsView ? "saved drafts" : "campaigns pending"}</span>
           </div>
         </div>
 
@@ -248,7 +269,7 @@ export function ScheduledBroadcastsView() {
         <div className="rounded-2xl border border-gray-200/90 bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-              Next Up
+              {isDraftsView ? "Latest Saved" : "Next Up"}
             </span>
             <div className="h-8 w-8 rounded-xl bg-[#e2f6d5] text-[#163300] flex items-center justify-center">
               <Clock className="h-4 w-4" />
@@ -256,14 +277,10 @@ export function ScheduledBroadcastsView() {
           </div>
           <div className="mt-2">
             <span className="text-base font-extrabold text-gray-900 truncate block">
-              {isLoading
-                ? "—"
-                : nearestCampaign
-                ? nearestCampaign.formattedCountdown
-                : "Queue is empty"}
+              {isLoading ? "—" : isDraftsView ? (nearestCampaign ? new Date(nearestCampaign.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "No drafts") : (nearestCampaign ? nearestCampaign.formattedCountdown : "Queue is empty")}
             </span>
             <p className="text-xs text-gray-500 font-medium truncate mt-0.5">
-              {nearestCampaign ? nearestCampaign.title : "No posts scheduled"}
+              {nearestCampaign ? nearestCampaign.title : isDraftsView ? "No drafts saved" : "No posts scheduled"}
             </p>
           </div>
         </div>
@@ -272,7 +289,7 @@ export function ScheduledBroadcastsView() {
         <div className="rounded-2xl border border-gray-200/90 bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-              Target Reach
+              {isDraftsView ? "Audience Planned" : "Target Reach"}
             </span>
             <div className="h-8 w-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <Users className="h-4 w-4" />
@@ -282,7 +299,7 @@ export function ScheduledBroadcastsView() {
             <span className="text-2xl font-extrabold text-gray-900">
               {isLoading ? "—" : totalAudienceReach.toLocaleString()}
             </span>
-            <span className="text-xs text-gray-500 font-medium">targeted entities</span>
+            <span className="text-xs text-gray-500 font-medium">{isDraftsView ? "planned entities" : "targeted entities"}</span>
           </div>
         </div>
 
@@ -290,7 +307,7 @@ export function ScheduledBroadcastsView() {
         <div className="rounded-2xl border border-gray-200/90 bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
-              Channels Utilized
+              {isDraftsView ? "Channels Planned" : "Channels Utilized"}
             </span>
             <div className="h-8 w-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
               <Radio className="h-4 w-4" />
@@ -322,7 +339,7 @@ export function ScheduledBroadcastsView() {
         {/* Filters and Sort */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Time Filter Pills */}
-          <div className="flex items-center p-1 bg-gray-100 rounded-xl border border-gray-200/60 text-xs">
+          {!isDraftsView && <div className="flex items-center p-1 bg-gray-100 rounded-xl border border-gray-200/60 text-xs">
             <button
               type="button"
               onClick={() => setTimeFilter("all")}
@@ -359,7 +376,7 @@ export function ScheduledBroadcastsView() {
             >
               Later
             </button>
-          </div>
+          </div>}
 
           {/* Sort Selector */}
           <select
@@ -453,7 +470,11 @@ export function ScheduledBroadcastsView() {
                   onInspect={(c) => setInspectedCampaign(c)}
                   onRequestCancel={(c) => isDraftsView ? setCampaignToCancelPermanently(c) : setCampaignToCancel(c)}
                   onRequestDispatch={(c) => setCampaignToDispatch(c)}
-                  isCancelling={cancellingId === campaign.id}
+                  onRequestSchedule={(c) => {
+                    setScheduledAt("");
+                    setCampaignToSchedule(c);
+                  }}
+                  isCancelling={cancellingId === campaign.id || deletingDraftId === campaign.id}
                   isDispatching={dispatchingId === campaign.id}
                 />
               </motion.div>
@@ -475,6 +496,13 @@ export function ScheduledBroadcastsView() {
           const item = campaigns.find((c) => c.id === id);
           if (item) setCampaignToDispatch(item);
         }}
+        onSchedule={(id) => {
+          const item = campaigns.find((c) => c.id === id);
+          if (item) {
+            setScheduledAt("");
+            setCampaignToSchedule(item);
+          }
+        }}
         onCancelPermanently={(id) => {
           const item = campaigns.find((c) => c.id === id);
           if (item) setCampaignToCancelPermanently(item);
@@ -483,7 +511,28 @@ export function ScheduledBroadcastsView() {
         isDraft={isDraftsView}
         isCancelling={cancellingId === inspectedCampaign?.id}
         isDispatching={dispatchingId === inspectedCampaign?.id}
-        isPermanentlyCancelling={permanentlyCancellingId === inspectedCampaign?.id}
+        isPermanentlyCancelling={permanentlyCancellingId === inspectedCampaign?.id || deletingDraftId === inspectedCampaign?.id}
+      />
+
+      <ScheduleCampaignModal
+        open={!!campaignToSchedule}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCampaignToSchedule(null);
+            setScheduledAt("");
+          }
+        }}
+        campaignTitle={campaignToSchedule?.title || ""}
+        targetCount={(campaignToSchedule?.parsedContacts.length || 0) + (campaignToSchedule?.parsedDestinations.length || 0)}
+        channelsSummary={[
+          ...(campaignToSchedule?.parsedChannels || []).map((channel) => channel === "whatsapp" ? "WhatsApp DM" : "Telegram DM"),
+          ...(campaignToSchedule?.parsedDestinations.length ? [`${campaignToSchedule.parsedDestinations.length} Telegram destination(s)`] : []),
+        ].join(", ") || "Configured channels"}
+        scheduledAt={scheduledAt}
+        onScheduledAtChange={setScheduledAt}
+        isScheduling={schedulingId === campaignToSchedule?.id}
+        onConfirm={handleScheduleDraft}
+        isExistingDraft
       />
 
       {/* Cancel Schedule Confirmation Dialog */}

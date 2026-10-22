@@ -35,6 +35,7 @@ export const ENDPOINTS = {
 		PAUSE: (id: string) => `${API_VERSION}/campaigns/${id}/pause`,
 		RESUME: (id: string) => `${API_VERSION}/campaigns/${id}/resume`,
 		CANCEL: (id: string) => `${API_VERSION}/campaigns/${id}/cancel`,
+		DELETE_DRAFT: (id: string) => `${API_VERSION}/campaigns/${id}/draft`,
 		SCHEDULE: (id: string) => `${API_VERSION}/campaigns/${id}/schedule`,
 		SUBMIT: (id: string) => `${API_VERSION}/campaigns/${id}/submit`,
 		APPROVE: (id: string) => `${API_VERSION}/campaigns/${id}/approve`,

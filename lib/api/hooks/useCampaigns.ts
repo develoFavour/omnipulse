@@ -96,5 +96,16 @@ export function useCampaigns() {
     }
   }, []);
 
-  return { createCampaign, dispatchCampaign, scheduleCampaign, cancelScheduledCampaign, pauseCampaign, resumeCampaign, cancelCampaign, isCreating, isDispatching, isScheduling, error };
+  const deleteDraft = useCallback(async (campaignId: string): Promise<void> => {
+    setError(null);
+    try {
+      await campaignService.deleteDraft(campaignId);
+    } catch (err: any) {
+      const msg = err.response?.data?.error || "Failed to delete draft";
+      setError(msg);
+      throw err;
+    }
+  }, []);
+
+  return { createCampaign, dispatchCampaign, scheduleCampaign, cancelScheduledCampaign, pauseCampaign, resumeCampaign, cancelCampaign, deleteDraft, isCreating, isDispatching, isScheduling, error };
 }

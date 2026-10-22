@@ -87,6 +87,8 @@ export function useScheduledCampaigns() {
   const [error, setError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [permanentlyCancellingId, setPermanentlyCancellingId] = useState<string | null>(null);
+  const [deletingDraftId, setDeletingDraftId] = useState<string | null>(null);
+  const [schedulingId, setSchedulingId] = useState<string | null>(null);
   const [dispatchingId, setDispatchingId] = useState<string | null>(null);
 
   const fetchScheduled = useCallback(async (isSilent = false) => {
@@ -193,6 +195,42 @@ export function useScheduledCampaigns() {
     }
   };
 
+  const deleteDraft = async (campaignId: string) => {
+    setDeletingDraftId(campaignId);
+    try {
+      await campaignService.deleteDraft(campaignId);
+      setCampaigns((prev) => prev.filter((c) => c.id !== campaignId));
+      toast.success("Draft deleted", {
+        description: "The saved broadcast draft has been removed.",
+      });
+      return true;
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || "Failed to delete draft";
+      toast.error(msg);
+      return false;
+    } finally {
+      setDeletingDraftId(null);
+    }
+  };
+
+  const scheduleDraft = async (campaignId: string, scheduledAt: Date) => {
+    setSchedulingId(campaignId);
+    try {
+      await campaignService.scheduleCampaign(campaignId, scheduledAt);
+      await fetchScheduled(true);
+      toast.success("Draft scheduled", {
+        description: "The broadcast is now in the scheduled queue.",
+      });
+      return true;
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || "Failed to schedule draft";
+      toast.error(msg);
+      return false;
+    } finally {
+      setSchedulingId(null);
+    }
+  };
+
   const approveCampaign = async (campaignId: string) => {
     try {
       await campaignService.approveCampaign(campaignId);
@@ -230,10 +268,14 @@ export function useScheduledCampaigns() {
     error,
     cancellingId,
     permanentlyCancellingId,
+    deletingDraftId,
+    schedulingId,
     dispatchingId,
     refetch: () => fetchScheduled(false),
     cancelSchedule,
     cancelCampaignPermanently,
+    deleteDraft,
+    scheduleDraft,
     dispatchNow,
     approveCampaign,
     rejectCampaign,
