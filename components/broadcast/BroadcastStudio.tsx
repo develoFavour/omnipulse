@@ -35,7 +35,7 @@ import { WhatsAppQRModal } from "@/components/channels/WhatsAppQRModal";
 import { TelegramConnectionForm } from "@/components/features/onboarding/TelegramConnectionForm";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTemplates } from "@/lib/api/hooks/useTemplates";
 import { BroadcastSubNav } from "./BroadcastSubNav";
 import {
@@ -57,6 +57,7 @@ import {
 } from "@/components/features/billing/PlanQuotaBanner";
 
 export function BroadcastStudio() {
+  const router = useRouter();
 	const searchParams = useSearchParams();
 	const templateIdParam = searchParams.get("templateId");
 	const { templates: dbTemplates } = useTemplates();
@@ -384,6 +385,50 @@ export function BroadcastStudio() {
 		setSelectedContactIds([]);
 	};
 
+	const getCampaignChannels = () => {
+		const channels: string[] = [];
+		if (isTelegramDM) channels.push("telegram");
+		if (isWhatsAppDM) channels.push("whatsapp");
+		return channels;
+	};
+
+	const buildCampaignPayload = () => ({
+		title: title.trim(),
+		message_body: messageBody.trim(),
+		delivery_type: "direct_message" as const,
+		selected_channels: JSON.stringify(getCampaignChannels()),
+		selected_telegram_destination_ids: JSON.stringify(selectedDestinationIds),
+		selected_contact_ids: JSON.stringify(selectedContactIds),
+		media_url: mediaUrl || undefined,
+	});
+
+	const handleSaveDraft = async () => {
+		if (!title.trim()) {
+			toast.error("Campaign Title is required", {
+				description: "Add a name so you can identify this draft later.",
+			});
+			return;
+		}
+
+		if (!messageBody.trim()) {
+			toast.error("Message content is empty", {
+				description: "Compose the message before saving this broadcast as a draft.",
+			});
+			return;
+		}
+
+		try {
+			await createCampaign(buildCampaignPayload());
+			toast.success("Broadcast saved as draft", {
+				description: "You can review it from the Drafts tab in the Scheduled Queue.",
+			});
+			router.push(`${APP_ROUTES.DASHBOARD.SCHEDULED}?view=drafts`);
+		} catch (err: any) {
+			const msg = err.response?.data?.error || err.message || "Failed to save broadcast draft";
+			toast.error(msg);
+		}
+	};
+
 	// Dispatch Handler
 	const handleDispatch = async () => {
 		if (!title.trim()) {
@@ -414,9 +459,7 @@ export function BroadcastStudio() {
 		}
 
 		// Determine targeted platforms for private contacts
-		const channelsToSend: string[] = [];
-		if (isTelegramDM) channelsToSend.push("telegram");
-		if (isWhatsAppDM) channelsToSend.push("whatsapp");
+		const channelsToSend = getCampaignChannels();
 
 		const hasDestinationTargets =
 			isTelegramChannel && selectedDestinationIds.length > 0;
@@ -438,18 +481,7 @@ export function BroadcastStudio() {
 		}
 
 		try {
-			const campaign = await createCampaign({
-				title: title.trim(),
-				message_body: messageBody.trim(),
-				delivery_type: "direct_message",
-				selected_channels: JSON.stringify(channelsToSend),
-				selected_telegram_destination_ids: JSON.stringify(
-					selectedDestinationIds,
-				),
-				// Pass hand-picked contact IDs (empty array means "all eligible contacts")
-				selected_contact_ids: JSON.stringify(selectedContactIds),
-				media_url: mediaUrl || undefined,
-			});
+			const campaign = await createCampaign(buildCampaignPayload());
 
 			await dispatchCampaign(campaign.id);
 			setDispatchedCampaignId(campaign.id);
@@ -512,9 +544,7 @@ export function BroadcastStudio() {
 			return;
 		}
 
-		const channelsToSend: string[] = [];
-		if (isTelegramDM) channelsToSend.push("telegram");
-		if (isWhatsAppDM) channelsToSend.push("whatsapp");
+		const channelsToSend = getCampaignChannels();
 
 		const hasDestinationTargets =
 			isTelegramChannel && selectedDestinationIds.length > 0;
@@ -530,17 +560,7 @@ export function BroadcastStudio() {
 		}
 
 		try {
-			const campaign = await createCampaign({
-				title: title.trim(),
-				message_body: messageBody.trim(),
-				delivery_type: "direct_message",
-				selected_channels: JSON.stringify(channelsToSend),
-				selected_telegram_destination_ids: JSON.stringify(
-					selectedDestinationIds,
-				),
-				selected_contact_ids: JSON.stringify(selectedContactIds),
-				media_url: mediaUrl || undefined,
-			});
+			const campaign = await createCampaign(buildCampaignPayload());
 
 			await scheduleCampaign(campaign.id, scheduledDate);
 			setScheduledCampaignTitle(title.trim());
@@ -646,6 +666,17 @@ export function BroadcastStudio() {
 					)}
 
 					{/* Schedule for Later — opens modal */}
+					<button
+						type="button"
+						onClick={handleSaveDraft}
+						disabled={isCreating}
+						title="Save this broadcast for later"
+						className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white font-bold text-xs text-gray-600 hover:border-[#9fe870] hover:bg-[#e2f6d5]/50 hover:text-[#163300] transition-all disabled:opacity-60"
+					>
+						{isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
+						Save as Draft
+					</button>
+
 					<button
 						type="button"
 						onClick={() => setIsScheduleModalOpen(true)}

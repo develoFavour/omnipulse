@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 
 interface ScheduledPostCardProps {
   campaign: ScheduledCampaignItem;
+  variant?: "scheduled" | "draft";
   onInspect: (campaign: ScheduledCampaignItem) => void;
   onRequestCancel: (campaign: ScheduledCampaignItem) => void;
   onRequestDispatch: (campaign: ScheduledCampaignItem) => void;
@@ -29,6 +30,7 @@ interface ScheduledPostCardProps {
 
 export function ScheduledPostCard({
   campaign,
+  variant = "scheduled",
   onInspect,
   onRequestCancel,
   onRequestDispatch,
@@ -38,13 +40,14 @@ export function ScheduledPostCard({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const scheduledDate = campaign.scheduled_at ? new Date(campaign.scheduled_at) : null;
+  const isDraft = variant === "draft";
   const isUrgent = campaign.timeRemainingMs > 0 && campaign.timeRemainingMs < 1000 * 60 * 60; // < 1 hour
 
   return (
     <div
       className={cn(
         "group relative rounded-2xl border bg-white p-5 transition-all duration-200 shadow-xs hover:shadow-md",
-        isUrgent
+        !isDraft && isUrgent
           ? "border-amber-300 ring-1 ring-amber-200/50 bg-gradient-to-b from-amber-50/20 to-white"
           : "border-gray-200/90 hover:border-[#9fe870]/60"
       )}
@@ -56,7 +59,9 @@ export function ScheduledPostCard({
           <span
             className={cn(
               "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase",
-              campaign.isPastDue
+              isDraft
+                ? "bg-gray-100 text-gray-700 border border-gray-200"
+                : campaign.isPastDue
                 ? "bg-rose-50 text-rose-700 border border-rose-200"
                 : isUrgent
                 ? "bg-amber-100 text-amber-800 border border-amber-300"
@@ -66,32 +71,34 @@ export function ScheduledPostCard({
             <span
               className={cn(
                 "h-2 w-2 rounded-full",
-                campaign.isPastDue
+                isDraft
+                  ? "bg-gray-500"
+                  : campaign.isPastDue
                   ? "bg-rose-500 animate-pulse"
                   : isUrgent
                   ? "bg-amber-600 animate-ping"
                   : "bg-amber-500"
               )}
             />
-            {campaign.isPastDue ? "Due Now" : "Scheduled"}
+            {isDraft ? "Draft" : campaign.isPastDue ? "Due Now" : "Scheduled"}
           </span>
 
           {/* Countdown Pill */}
           <div
             className={cn(
               "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold",
-              isUrgent
+              !isDraft && isUrgent
                 ? "bg-amber-100/80 text-amber-900 font-bold"
                 : "bg-gray-100 text-gray-700"
             )}
           >
-            <Clock className={cn("h-3 w-3", isUrgent ? "text-amber-600" : "text-gray-400")} />
-            <span>{campaign.formattedCountdown}</span>
+            <Clock className={cn("h-3 w-3", !isDraft && isUrgent ? "text-amber-600" : "text-gray-400")} />
+            <span>{isDraft ? "Not scheduled" : campaign.formattedCountdown}</span>
           </div>
         </div>
 
         {/* Scheduled Target Date & Time */}
-        <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+        {!isDraft && <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
           <Calendar className="h-3.5 w-3.5 text-gray-400" />
           <span>
             {scheduledDate
@@ -103,7 +110,7 @@ export function ScheduledPostCard({
                 })
               : "Date unassigned"}
           </span>
-        </div>
+        </div>}
       </div>
 
       {/* Campaign Title & Message Preview */}
@@ -193,7 +200,7 @@ export function ScheduledPostCard({
             className="h-8 px-2.5 text-xs font-bold text-rose-600 border-rose-200/80 hover:bg-rose-50 hover:text-rose-700"
           >
             <XCircle className="h-3.5 w-3.5 mr-1 text-rose-500" />
-            Cancel
+            {isDraft ? "Delete Draft" : "Cancel"}
           </Button>
 
           <Button

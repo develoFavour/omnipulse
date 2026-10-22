@@ -16,6 +16,8 @@ import {
   ShieldAlert,
   ArrowRight,
   Download,
+  Pause,
+  Play,
 } from "lucide-react";
 import { toast } from "sonner";
 import { FaTelegramPlane, FaWhatsapp } from "react-icons/fa";
@@ -56,6 +58,7 @@ export function LiveMissionTracker({
   const [isPolling, setIsPolling] = useState<boolean>(true);
   const [isWsConnected, setIsWsConnected] = useState<boolean>(false);
   const [pollError, setPollError] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const startTimeRef = useRef<number>(Date.now());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -102,6 +105,24 @@ export function LiveMissionTracker({
     } catch (err: any) {
       console.warn("[LIVE-TRACKER] Telemetry poll failed:", err);
       setPollError("Connection glitch; retrying feed...");
+    }
+  };
+
+  const transitionCampaign = async (action: "pause" | "resume") => {
+    setIsTransitioning(true);
+    try {
+      if (action === "pause") {
+        await campaignService.pauseCampaign(campaignId);
+        toast.success("Campaign paused. Queued recipients will wait safely.");
+      } else {
+        await campaignService.resumeCampaign(campaignId);
+        toast.success("Campaign resumed.");
+      }
+      await fetchTelemetry();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || `Failed to ${action} campaign`);
+    } finally {
+      setIsTransitioning(false);
     }
   };
 
@@ -259,6 +280,26 @@ export function LiveMissionTracker({
           </div>
 
           <div className="flex items-center gap-2 self-start md:self-auto">
+            {stats?.status?.toLowerCase() === "processing" && (
+              <button
+                onClick={() => transitionCampaign("pause")}
+                disabled={isTransitioning}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-xs font-semibold text-amber-800 transition-colors disabled:opacity-50"
+              >
+                <Pause className="h-3.5 w-3.5" />
+                Pause
+              </button>
+            )}
+            {stats?.status?.toLowerCase() === "paused" && (
+              <button
+                onClick={() => transitionCampaign("resume")}
+                disabled={isTransitioning}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold text-emerald-800 transition-colors disabled:opacity-50"
+              >
+                <Play className="h-3.5 w-3.5" />
+                Resume
+              </button>
+            )}
             {isPolling && (
               <button
                 onClick={fetchTelemetry}

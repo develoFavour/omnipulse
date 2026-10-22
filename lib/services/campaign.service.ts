@@ -94,6 +94,27 @@ class CampaignService {
     return response.data as unknown as { message: string; campaign_id: string };
   }
 
+  async pauseCampaign(campaignId: string): Promise<{ message: string; campaign_id: string; status: string }> {
+    const response = await apiClient.post<ApiResponse<{ message: string; campaign_id: string; status: string }>>(
+      ENDPOINTS.CAMPAIGNS.PAUSE(campaignId),
+    );
+    return response.data as unknown as { message: string; campaign_id: string; status: string };
+  }
+
+  async resumeCampaign(campaignId: string): Promise<{ message: string; campaign_id: string; status: string }> {
+    const response = await apiClient.post<ApiResponse<{ message: string; campaign_id: string; status: string }>>(
+      ENDPOINTS.CAMPAIGNS.RESUME(campaignId),
+    );
+    return response.data as unknown as { message: string; campaign_id: string; status: string };
+  }
+
+  async cancelCampaign(campaignId: string): Promise<{ message: string; campaign_id: string; status: string }> {
+    const response = await apiClient.post<ApiResponse<{ message: string; campaign_id: string; status: string }>>(
+      ENDPOINTS.CAMPAIGNS.CANCEL(campaignId),
+    );
+    return response.data as unknown as { message: string; campaign_id: string; status: string };
+  }
+
   async getCampaignStats(campaignId: string): Promise<CampaignStats> {
     const response = await apiClient.get<ApiResponse<CampaignStats>>(ENDPOINTS.CAMPAIGNS.STATS(campaignId));
     return response.data as unknown as CampaignStats;

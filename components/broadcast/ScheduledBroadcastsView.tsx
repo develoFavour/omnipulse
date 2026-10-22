@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarClock,
@@ -17,6 +18,7 @@ import {
   CheckCircle2,
   Rocket,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import {
   useScheduledCampaigns,
@@ -38,18 +40,36 @@ import {
 import { Button } from "@/components/ui/button";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { cn } from "@/lib/utils";
+import { useContacts } from "@/lib/api/hooks/useContacts";
 
 export function ScheduledBroadcastsView() {
+  const searchParams = useSearchParams();
+  const isDraftsView = searchParams.get("view") === "drafts";
   const {
     campaigns,
     isLoading,
     isRefreshing,
     cancellingId,
+    permanentlyCancellingId,
     dispatchingId,
     refetch,
     cancelSchedule,
+    cancelCampaignPermanently,
     dispatchNow,
   } = useScheduledCampaigns();
+  const { contacts } = useContacts({ pageSize: 500 });
+  const visibleCampaigns = useMemo(
+    () => campaigns.filter((campaign) => isDraftsView ? campaign.status === "draft" : campaign.status !== "draft"),
+    [campaigns, isDraftsView],
+  );
+  const contactLabels = useMemo(() => {
+    return Object.fromEntries(
+      contacts.map((contact) => [
+        contact.id,
+        [contact.first_name, contact.last_name].filter(Boolean).join(" ") || contact.routing_value,
+      ]),
+    );
+  }, [contacts]);
 
   // Search and Filter State
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,34 +82,35 @@ export function ScheduledBroadcastsView() {
   // Confirmation Alert Dialog States
   const [campaignToCancel, setCampaignToCancel] = useState<ScheduledCampaignItem | null>(null);
   const [campaignToDispatch, setCampaignToDispatch] = useState<ScheduledCampaignItem | null>(null);
+  const [campaignToCancelPermanently, setCampaignToCancelPermanently] = useState<ScheduledCampaignItem | null>(null);
 
   // Compute stats for KPI banner
   const nearestCampaign = useMemo(() => {
-    if (campaigns.length === 0) return null;
-    const sorted = [...campaigns].sort((a, b) => a.timeRemainingMs - b.timeRemainingMs);
+    if (visibleCampaigns.length === 0) return null;
+    const sorted = [...visibleCampaigns].sort((a, b) => a.timeRemainingMs - b.timeRemainingMs);
     return sorted[0];
-  }, [campaigns]);
+  }, [visibleCampaigns]);
 
   const totalAudienceReach = useMemo(() => {
-    return campaigns.reduce((acc, c) => {
+    return visibleCampaigns.reduce((acc, c) => {
       const contactCount = c.parsedContacts.length;
       const destCount = c.parsedDestinations.length;
       return acc + (contactCount > 0 ? contactCount : 0) + destCount;
     }, 0);
-  }, [campaigns]);
+  }, [visibleCampaigns]);
 
   const activeChannelTypes = useMemo(() => {
     const set = new Set<string>();
-    campaigns.forEach((c) => {
+    visibleCampaigns.forEach((c) => {
       c.parsedChannels.forEach((ch) => set.add(ch));
       if (c.parsedDestinations.length > 0) set.add("telegram_channel");
     });
     return Array.from(set);
-  }, [campaigns]);
+  }, [visibleCampaigns]);
 
   // Filtered and sorted campaigns
   const filteredCampaigns = useMemo(() => {
-    return campaigns
+    return visibleCampaigns
       .filter((c) => {
         // Search filter
         if (searchQuery.trim()) {
@@ -119,7 +140,7 @@ export function ScheduledBroadcastsView() {
           return a.title.localeCompare(b.title);
         }
       });
-  }, [campaigns, searchQuery, timeFilter, sortBy]);
+  }, [visibleCampaigns, searchQuery, timeFilter, sortBy]);
 
   // Cancel Handler
   const handleConfirmCancel = async () => {
@@ -143,10 +164,23 @@ export function ScheduledBroadcastsView() {
     await dispatchNow(id);
   };
 
+  const handleConfirmPermanentCancel = async () => {
+    if (!campaignToCancelPermanently) return;
+    const id = campaignToCancelPermanently.id;
+    setCampaignToCancelPermanently(null);
+    if (inspectedCampaign?.id === id) {
+      setInspectedCampaign(null);
+    }
+    await cancelCampaignPermanently(id);
+  };
+
   return (
     <div className="max-w-[1440px] mx-auto pb-16">
       {/* Sub-Navigation Switcher */}
-      <BroadcastSubNav scheduledCount={campaigns.length} />
+      <BroadcastSubNav
+        scheduledCount={campaigns.filter((c) => c.status !== "draft").length}
+        draftCount={campaigns.filter((c) => c.status === "draft").length}
+      />
 
       {/* Header Command Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-gray-200/80">
@@ -154,13 +188,15 @@ export function ScheduledBroadcastsView() {
           <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
             <span>Campaigns</span>
             <span>/</span>
-            <span className="text-amber-600 font-bold">Scheduled Queue</span>
+            <span className="text-amber-600 font-bold">{isDraftsView ? "Drafts" : "Scheduled Queue"}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            Scheduled Broadcasts
+            {isDraftsView ? "Broadcast Drafts" : "Scheduled Broadcasts"}
           </h1>
           <p className="text-sm font-medium text-gray-500 mt-1">
-            Monitor, inspect, and manage automated upcoming transmissions across all connected channels.
+            {isDraftsView
+              ? "Review saved broadcasts, selected audiences, and channel plans before scheduling."
+              : "Monitor, inspect, and manage automated upcoming transmissions across all connected channels."}
           </p>
         </div>
 
@@ -182,7 +218,7 @@ export function ScheduledBroadcastsView() {
               className="flex items-center gap-2 bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white font-bold text-xs shadow-md shadow-[#163300]/20"
             >
               <PlusCircle className="h-4 w-4" />
-              Schedule New Post
+              {isDraftsView ? "Create New Draft" : "Schedule New Post"}
             </Button>
           </Link>
         </div>
@@ -202,7 +238,7 @@ export function ScheduledBroadcastsView() {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-gray-900">
-              {isLoading ? "—" : campaigns.length}
+              {isLoading ? "—" : visibleCampaigns.length}
             </span>
             <span className="text-xs text-gray-500 font-medium">campaigns pending</span>
           </div>
@@ -297,7 +333,7 @@ export function ScheduledBroadcastsView() {
                   : "text-gray-500 hover:text-gray-900"
               )}
             >
-              All ({campaigns.length})
+              All ({visibleCampaigns.length})
             </button>
             <button
               type="button"
@@ -362,20 +398,22 @@ export function ScheduledBroadcastsView() {
             <CalendarClock className="h-8 w-8" />
           </div>
           <h3 className="text-lg font-bold text-gray-900">
-            {campaigns.length === 0
-              ? "No scheduled broadcasts in queue"
-              : "No scheduled posts match your filters"}
+            {visibleCampaigns.length === 0
+              ? isDraftsView ? "No saved drafts yet" : "No scheduled broadcasts in queue"
+              : isDraftsView ? "No drafts match your filters" : "No scheduled posts match your filters"}
           </h3>
           <p className="text-xs text-gray-500 max-w-md mx-auto mt-1 leading-relaxed">
-            {campaigns.length === 0
-              ? "Plan automated marketing campaigns, newsletters, and announcements in advance. They will trigger automatically when their target time arrives."
+            {visibleCampaigns.length === 0
+              ? isDraftsView
+                ? "Save a broadcast from the studio and it will appear here with its message, channels, and selected audience details."
+                : "Plan automated marketing campaigns, newsletters, and announcements in advance. They will trigger automatically when their target time arrives."
               : "Try adjusting your search query or switching between time window filters."}
           </p>
 
           <div className="mt-6 flex justify-center gap-3">
-            {campaigns.length > 0 ? (
+            {visibleCampaigns.length > 0 ? (
               <Button
-                variant="outline"
+                  variant="outline"
                 onClick={() => {
                   setSearchQuery("");
                   setTimeFilter("all");
@@ -411,8 +449,9 @@ export function ScheduledBroadcastsView() {
               >
                 <ScheduledPostCard
                   campaign={campaign}
+                  variant={isDraftsView ? "draft" : "scheduled"}
                   onInspect={(c) => setInspectedCampaign(c)}
-                  onRequestCancel={(c) => setCampaignToCancel(c)}
+                  onRequestCancel={(c) => isDraftsView ? setCampaignToCancelPermanently(c) : setCampaignToCancel(c)}
                   onRequestDispatch={(c) => setCampaignToDispatch(c)}
                   isCancelling={cancellingId === campaign.id}
                   isDispatching={dispatchingId === campaign.id}
@@ -436,8 +475,15 @@ export function ScheduledBroadcastsView() {
           const item = campaigns.find((c) => c.id === id);
           if (item) setCampaignToDispatch(item);
         }}
+        onCancelPermanently={(id) => {
+          const item = campaigns.find((c) => c.id === id);
+          if (item) setCampaignToCancelPermanently(item);
+        }}
+        contactLabels={contactLabels}
+        isDraft={isDraftsView}
         isCancelling={cancellingId === inspectedCampaign?.id}
         isDispatching={dispatchingId === inspectedCampaign?.id}
+        isPermanentlyCancelling={permanentlyCancellingId === inspectedCampaign?.id}
       />
 
       {/* Cancel Schedule Confirmation Dialog */}
@@ -469,6 +515,41 @@ export function ScheduledBroadcastsView() {
               className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs"
             >
               Yes, Cancel Schedule
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Permanent cancellation confirmation */}
+      <AlertDialog
+        open={!!campaignToCancelPermanently}
+        onOpenChange={(open) => !open && setCampaignToCancelPermanently(null)}
+      >
+        <AlertDialogContent className="bg-white border border-gray-200 shadow-xl rounded-2xl">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2 text-rose-700 mb-1">
+              <AlertTriangle className="h-5 w-5" />
+              <AlertDialogTitle className="text-base font-bold text-gray-900">
+                {campaignToCancelPermanently?.status === "draft"
+                  ? "Delete Draft?"
+                  : "Cancel Campaign Permanently?"}
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-xs text-gray-600 leading-relaxed">
+              {campaignToCancelPermanently?.status === "draft"
+                ? <>This will permanently delete <strong className="text-gray-900">&ldquo;{campaignToCancelPermanently?.title}&rdquo;</strong>. This action cannot be undone.</>
+                : <>This will permanently cancel <strong className="text-gray-900">&ldquo;{campaignToCancelPermanently?.title}&rdquo;</strong>. It will not be dispatched or scheduled again. Use <strong>Cancel Schedule</strong> if you only want to move it back to Draft for editing.</>}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="text-xs font-semibold">Keep Campaign</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmPermanentCancel}
+              className="bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs"
+            >
+              {campaignToCancelPermanently?.status === "draft"
+                ? "Yes, Delete Draft"
+                : "Yes, Cancel Permanently"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

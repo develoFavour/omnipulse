@@ -63,5 +63,38 @@ export function useCampaigns() {
     }
   }, []);
 
-  return { createCampaign, dispatchCampaign, scheduleCampaign, cancelScheduledCampaign, isCreating, isDispatching, isScheduling, error };
+  const pauseCampaign = useCallback(async (campaignId: string): Promise<void> => {
+    setError(null);
+    try {
+      await campaignService.pauseCampaign(campaignId);
+    } catch (err: any) {
+      const msg = err.response?.data?.error || "Failed to pause campaign";
+      setError(msg);
+      throw err;
+    }
+  }, []);
+
+  const resumeCampaign = useCallback(async (campaignId: string): Promise<void> => {
+    setError(null);
+    try {
+      await campaignService.resumeCampaign(campaignId);
+    } catch (err: any) {
+      const msg = err.response?.data?.error || "Failed to resume campaign";
+      setError(msg);
+      throw err;
+    }
+  }, []);
+
+  const cancelCampaign = useCallback(async (campaignId: string): Promise<void> => {
+    setError(null);
+    try {
+      await campaignService.cancelCampaign(campaignId);
+    } catch (err: any) {
+      const msg = err.response?.data?.error || "Failed to cancel campaign";
+      setError(msg);
+      throw err;
+    }
+  }, []);
+
+  return { createCampaign, dispatchCampaign, scheduleCampaign, cancelScheduledCampaign, pauseCampaign, resumeCampaign, cancelCampaign, isCreating, isDispatching, isScheduling, error };
 }

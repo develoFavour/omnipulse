@@ -29,9 +29,13 @@ interface ScheduledCampaignDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCancelSchedule: (id: string) => void;
+  onCancelPermanently: (id: string) => void;
   onDispatchNow: (id: string) => void;
   isCancelling: boolean;
+  isPermanentlyCancelling: boolean;
   isDispatching: boolean;
+  isDraft?: boolean;
+  contactLabels?: Record<string, string>;
 }
 
 export function ScheduledCampaignDetailModal({
@@ -39,9 +43,13 @@ export function ScheduledCampaignDetailModal({
   isOpen,
   onClose,
   onCancelSchedule,
+  onCancelPermanently,
   onDispatchNow,
   isCancelling,
+  isPermanentlyCancelling,
   isDispatching,
+  isDraft = false,
+  contactLabels = {},
 }: ScheduledCampaignDetailModalProps) {
   if (!campaign) return null;
 
@@ -57,7 +65,7 @@ export function ScheduledCampaignDetailModal({
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
                 <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping" />
-                Scheduled Dispatch
+                {isDraft ? "Saved Draft" : "Scheduled Dispatch"}
               </span>
               <span className="text-xs font-semibold text-gray-500">
                 ID: {campaign.id.slice(0, 8)}...
@@ -90,7 +98,7 @@ export function ScheduledCampaignDetailModal({
               </div>
               <div>
                 <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">
-                  Target Dispatch Date & Time
+                  {isDraft ? "Dispatch Timing" : "Target Dispatch Date & Time"}
                 </p>
                 <p className="text-sm font-bold text-gray-900 mt-0.5">
                   {scheduledDate
@@ -102,13 +110,13 @@ export function ScheduledCampaignDetailModal({
                         hour: "2-digit",
                         minute: "2-digit",
                       })
-                    : "No schedule date set"}
+                    : "Not scheduled yet"}
                 </p>
               </div>
             </div>
             <div className="text-right">
               <span className="inline-block px-2.5 py-1 rounded-lg bg-white border border-amber-200 text-xs font-bold text-amber-800 shadow-xs">
-                {campaign.formattedCountdown}
+                {isDraft ? "Draft" : campaign.formattedCountdown}
               </span>
             </div>
           </div>
@@ -211,20 +219,52 @@ export function ScheduledCampaignDetailModal({
                 </p>
               </div>
             </div>
+            {campaign.parsedContacts.length > 0 && (
+              <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                  Selected Contacts
+                </p>
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {campaign.parsedContacts.map((contactId) => (
+                    <div key={contactId} className="flex items-center justify-between gap-3 text-xs">
+                      <span className="font-semibold text-gray-800 truncate">
+                        {contactLabels[contactId] || "Contact"}
+                      </span>
+                      <span className="font-mono text-[10px] text-gray-400 truncate max-w-[45%]">
+                        {contactId}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Footer Actions */}
         <div className="p-5 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          {!isDraft && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onCancelSchedule(campaign.id)}
+              disabled={isCancelling || isDispatching}
+              className="w-full sm:w-auto text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 font-bold text-xs"
+            >
+              <XCircle className="h-4 w-4 mr-1.5 text-rose-500" />
+              {isCancelling ? "Cancelling..." : "Cancel Schedule"}
+            </Button>
+          )}
+
           <Button
             type="button"
             variant="outline"
-            onClick={() => onCancelSchedule(campaign.id)}
-            disabled={isCancelling || isDispatching}
-            className="w-full sm:w-auto text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 font-bold text-xs"
+            onClick={() => onCancelPermanently(campaign.id)}
+            disabled={isCancelling || isDispatching || isPermanentlyCancelling}
+            className="w-full sm:w-auto text-rose-700 border-rose-300 hover:bg-rose-100 hover:text-rose-800 font-bold text-xs"
           >
-            <XCircle className="h-4 w-4 mr-1.5 text-rose-500" />
-            {isCancelling ? "Cancelling..." : "Cancel Schedule"}
+            <AlertTriangle className="h-4 w-4 mr-1.5 text-rose-600" />
+            {isPermanentlyCancelling ? "Deleting..." : isDraft ? "Delete Draft" : "Cancel Permanently"}
           </Button>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">

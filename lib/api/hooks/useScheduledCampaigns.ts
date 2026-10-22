@@ -86,17 +86,23 @@ export function useScheduledCampaigns() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [permanentlyCancellingId, setPermanentlyCancellingId] = useState<string | null>(null);
   const [dispatchingId, setDispatchingId] = useState<string | null>(null);
 
   const fetchScheduled = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsRefreshing(true);
     setError(null);
     try {
-      const [scheduledData, pendingData] = await Promise.all([
+      const [scheduledData, pendingData, draftData] = await Promise.all([
         campaignService.getCampaigns("scheduled", 1, 100),
         campaignService.getCampaigns("pending_approval", 1, 100).catch(() => []),
+        campaignService.getCampaigns("draft", 1, 100).catch(() => []),
       ]);
-      const combined = [...(pendingData || []), ...(scheduledData || [])];
+      const combined = [
+        ...(draftData || []),
+        ...(pendingData || []),
+        ...(scheduledData || []),
+      ];
       const enriched = combined.map(enrichCampaign);
       setCampaigns(enriched);
     } catch (err: any) {
@@ -169,6 +175,24 @@ export function useScheduledCampaigns() {
     }
   };
 
+  const cancelCampaignPermanently = async (campaignId: string) => {
+    setPermanentlyCancellingId(campaignId);
+    try {
+      await campaignService.cancelCampaign(campaignId);
+      setCampaigns((prev) => prev.filter((c) => c.id !== campaignId));
+      toast.success("Campaign permanently cancelled", {
+        description: "It will not be dispatched or scheduled again.",
+      });
+      return true;
+    } catch (err: any) {
+      const msg = err.response?.data?.error || err.message || "Failed to cancel campaign";
+      toast.error(msg);
+      return false;
+    } finally {
+      setPermanentlyCancellingId(null);
+    }
+  };
+
   const approveCampaign = async (campaignId: string) => {
     try {
       await campaignService.approveCampaign(campaignId);
@@ -205,9 +229,11 @@ export function useScheduledCampaigns() {
     isRefreshing,
     error,
     cancellingId,
+    permanentlyCancellingId,
     dispatchingId,
     refetch: () => fetchScheduled(false),
     cancelSchedule,
+    cancelCampaignPermanently,
     dispatchNow,
     approveCampaign,
     rejectCampaign,
