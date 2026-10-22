@@ -5,8 +5,9 @@ import { ScheduledCampaignItem } from "@/lib/api/hooks/useScheduledCampaigns";
 import {
   Clock,
   Calendar,
+  MoreHorizontal,
   Rocket,
-  XCircle,
+  Trash2,
   Eye,
   ImageIcon,
   Users,
@@ -44,6 +45,7 @@ export function ScheduledPostCard({
   const scheduledDate = campaign.scheduled_at ? new Date(campaign.scheduled_at) : null;
   const isDraft = variant === "draft";
   const isUrgent = campaign.timeRemainingMs > 0 && campaign.timeRemainingMs < 1000 * 60 * 60; // < 1 hour
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
 
   return (
     <div
@@ -100,6 +102,7 @@ export function ScheduledPostCard({
           </div>
         </div>
 
+        <div className="flex items-center gap-2">
         {/* Scheduled Target Date & Time */}
         {!isDraft && <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
           <Calendar className="h-3.5 w-3.5 text-gray-400" />
@@ -114,6 +117,21 @@ export function ScheduledPostCard({
               : "Date unassigned"}
           </span>
         </div>}
+        {isDraft && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => onRequestCancel(campaign)}
+            disabled={isCancelling || isDispatching}
+            aria-label="Delete draft"
+            title="Delete draft"
+            className="h-7 w-7 rounded-lg text-gray-400 hover:bg-rose-50 hover:text-rose-600"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+        </div>
       </div>
 
       {isDraft && (
@@ -202,43 +220,67 @@ export function ScheduledPostCard({
           Inspect Details
         </Button>
 
-        <div className={cn("flex items-center gap-1.5 flex-wrap", isDraft && "w-full sm:w-auto sm:justify-end") }>
-          {isDraft && (
+        {isDraft ? (
+          <div className="relative">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsActionMenuOpen((open) => !open)}
+              aria-expanded={isActionMenuOpen}
+              aria-label="Draft actions"
+              className="h-8 px-2.5 text-xs font-bold text-gray-700 border-gray-200 hover:border-[#9fe870] hover:bg-[#e2f6d5]/50"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+              Actions
+            </Button>
+            {isActionMenuOpen && (
+              <div className="absolute right-0 bottom-10 z-20 w-44 rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
+                <button
+                  type="button"
+                  onClick={() => { setIsActionMenuOpen(false); onRequestSchedule(campaign); }}
+                  disabled={isCancelling || isDispatching}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-800 disabled:opacity-50"
+                >
+                  <Calendar className="h-3.5 w-3.5 text-amber-600" />
+                  Schedule
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsActionMenuOpen(false); onRequestDispatch(campaign); }}
+                  disabled={isCancelling || isDispatching}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-[#e2f6d5]/60 hover:text-[#163300] disabled:opacity-50"
+                >
+                  <Rocket className="h-3.5 w-3.5 text-[#163300]" />
+                  Send now
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onRequestCancel(campaign)}
+              disabled={isCancelling || isDispatching}
+              className="h-8 px-2.5 text-xs font-bold text-rose-600 border-rose-200/80 hover:bg-rose-50 hover:text-rose-700"
+            >
+              Cancel
+            </Button>
             <Button
               type="button"
               size="sm"
-              onClick={() => onRequestSchedule(campaign)}
+              onClick={() => onRequestDispatch(campaign)}
               disabled={isCancelling || isDispatching}
-              className="h-8 px-3 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-xs"
+              className="h-8 px-3 text-xs font-bold bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white shadow-xs"
             >
-              <Calendar className="h-3.5 w-3.5 mr-1" />
-              Schedule
+              <Rocket className="h-3.5 w-3.5 mr-1" />
+              Send Now
             </Button>
-          )}
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onRequestCancel(campaign)}
-            disabled={isCancelling || isDispatching}
-            className="h-8 px-2.5 text-xs font-bold text-rose-600 border-rose-200/80 hover:bg-rose-50 hover:text-rose-700"
-          >
-            <XCircle className="h-3.5 w-3.5 mr-1 text-rose-500" />
-            {isDraft ? "Delete Draft" : "Cancel"}
-          </Button>
-
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => onRequestDispatch(campaign)}
-            disabled={isCancelling || isDispatching}
-            className="h-8 px-3 text-xs font-bold bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white shadow-xs"
-          >
-            <Rocket className="h-3.5 w-3.5 mr-1" />
-            Send Now
-          </Button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

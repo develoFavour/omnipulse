@@ -60,7 +60,7 @@ export function ScheduledCampaignDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[calc(100vw-2rem)] max-w-3xl bg-white border border-gray-200/90 shadow-2xl rounded-3xl p-0 overflow-hidden">
+      <DialogContent className="w-[min(92vw,960px)] !max-w-none max-h-[calc(100vh-2rem)] min-w-0 bg-white border border-gray-200/90 shadow-2xl rounded-3xl p-0 overflow-hidden">
         {/* Header Ribbon */}
         <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-[#9fe870]/20 border-b border-amber-200/50 p-6 pb-5">
           <div className="flex items-center justify-between gap-4">
@@ -91,7 +91,7 @@ export function ScheduledCampaignDetailModal({
         </div>
 
         {/* Content Body */}
-        <div className="p-6 space-y-6 max-h-[68vh] overflow-y-auto">
+        <div className="min-w-0 p-6 space-y-6 max-h-[68vh] overflow-x-hidden overflow-y-auto">
           {/* Schedule Timing Card */}
           <div className="bg-amber-50/60 border border-amber-200/70 rounded-2xl p-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -244,7 +244,7 @@ export function ScheduledCampaignDetailModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-5 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
           {!isDraft && (
             <Button
               type="button"
@@ -269,13 +269,13 @@ export function ScheduledCampaignDetailModal({
             {isPermanentlyCancelling ? "Deleting..." : isDraft ? "Delete Draft" : "Cancel Permanently"}
           </Button>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
             <Button
               type="button"
               variant="outline"
               onClick={() => onSchedule(campaign.id)}
               disabled={isCancelling || isDispatching || isPermanentlyCancelling}
-              className="flex-1 sm:flex-initial text-xs font-bold text-amber-700 border-amber-200 hover:bg-amber-50"
+              className="flex-1 sm:flex-initial min-w-[92px] text-xs font-bold text-amber-700 border-amber-200 hover:bg-amber-50"
             >
               <Calendar className="h-4 w-4 mr-1.5" />
               Schedule
@@ -284,7 +284,7 @@ export function ScheduledCampaignDetailModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 sm:flex-initial text-xs font-semibold text-gray-600"
+              className="flex-1 sm:flex-initial min-w-[72px] text-xs font-semibold text-gray-600"
             >
               Close
             </Button>
@@ -292,7 +292,7 @@ export function ScheduledCampaignDetailModal({
               type="button"
               onClick={() => onDispatchNow(campaign.id)}
               disabled={isCancelling || isDispatching}
-              className="flex-1 sm:flex-initial bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white font-bold text-xs shadow-md shadow-[#163300]/20"
+              className="flex-1 sm:flex-initial min-w-[112px] bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white font-bold text-xs shadow-md shadow-[#163300]/20"
             >
               <Rocket className="h-4 w-4 mr-1.5" />
               {isDispatching ? "Launching..." : "Dispatch Now"}
