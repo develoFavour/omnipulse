@@ -127,6 +127,15 @@ class AIAgentService {
     await apiClient.delete(ENDPOINTS.AI_AGENT.KNOWLEDGE_BY_ID(id));
   }
 
+  async deleteKnowledgeItems(ids: string[]): Promise<{ succeeded: number; failed: number }> {
+    const results = await Promise.allSettled(
+      ids.map((id) => apiClient.delete(ENDPOINTS.AI_AGENT.KNOWLEDGE_BY_ID(id)))
+    );
+    const succeeded = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
+    return { succeeded, failed };
+  }
+
   async ingestDocument(file: File): Promise<KnowledgeIngestionAccepted> {
     const formData = new FormData();
     formData.append("file", file);
