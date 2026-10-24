@@ -177,6 +177,7 @@ export const ENDPOINTS = {
 		KNOWLEDGE_APPROVE: `${API_VERSION}/ai-agent/knowledge/approve`,
 		KNOWLEDGE_BY_ID: (id: string) => `${API_VERSION}/ai-agent/knowledge/${id}`,
 		CONVERSATION_TOGGLE: (id: string) => `${API_VERSION}/ai-agent/conversations/${id}/toggle`,
+		SIMULATE: `${API_VERSION}/ai-agent/simulate`,
 	},
 } as const;
 

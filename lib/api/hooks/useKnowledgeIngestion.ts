@@ -46,6 +46,20 @@ export function useKnowledgeIngestionActions() {
     }
   }, []);
 
+  const uploadText = useCallback(async (content: string, title?: string) => {
+    setIsUploading(true);
+    setError(null);
+    try {
+      return await aiAgentService.ingestText(content, title);
+    } catch (uploadError) {
+      const message = extractErrorMessage(uploadError, "The text could not be submitted. Please try again.");
+      setError(message);
+      throw uploadError;
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
+
   const approveItems = useCallback(async (items: AIKnowledgeItem[]) => {
     setError(null);
     try {
@@ -57,5 +71,5 @@ export function useKnowledgeIngestionActions() {
     }
   }, []);
 
-  return { uploadDocument, approveItems, isUploading, error };
+  return { uploadDocument, uploadText, approveItems, isUploading, error };
 }

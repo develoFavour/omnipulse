@@ -158,6 +158,34 @@ class AIAgentService {
     );
     return response.data as unknown as { message: string; count: number };
   }
+
+  async ingestText(content: string, title?: string): Promise<KnowledgeIngestionAccepted> {
+    const response = await apiClient.post<KnowledgeIngestionAccepted>(
+      ENDPOINTS.AI_AGENT.KNOWLEDGE_INGEST,
+      { content, title }
+    );
+    return response.data as unknown as KnowledgeIngestionAccepted;
+  }
+
+  async simulateResponse(query: string): Promise<{
+    query: string;
+    reply: string;
+    needs_human: boolean;
+    lead_info?: { name?: string; email?: string };
+  }> {
+    const response = await apiClient.post<{
+      query: string;
+      reply: string;
+      needs_human: boolean;
+      lead_info?: { name?: string; email?: string };
+    }>(ENDPOINTS.AI_AGENT.SIMULATE, { query });
+    return response.data as unknown as {
+      query: string;
+      reply: string;
+      needs_human: boolean;
+      lead_info?: { name?: string; email?: string };
+    };
+  }
 }
 
 export const aiAgentService = new AIAgentService();
