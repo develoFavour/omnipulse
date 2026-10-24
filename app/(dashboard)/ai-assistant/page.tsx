@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
 	AlertCircle,
@@ -85,10 +85,13 @@ function toDraftItems(items: AIKnowledgeItem[] = []): DraftItem[] {
 }
 
 export default function AIAssistantPage() {
+	const router = useRouter();
+	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const { canManageChannels } = usePermissions();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const loadedJobRef = useRef<string | null>(null);
+	const discardedJobIdsRef = useRef<Set<string>>(new Set());
 
 	const [activeTab, setActiveTab] = useState<ActiveTab>("training");
 	const [jobId, setJobId] = useState<string | null>(null);
@@ -107,7 +110,11 @@ export default function AIAssistantPage() {
 
 	useEffect(() => {
 		const requestedJobId = searchParams.get("job");
-		if (requestedJobId && requestedJobId !== jobId) {
+		if (
+			requestedJobId &&
+			requestedJobId !== jobId &&
+			!discardedJobIdsRef.current.has(requestedJobId)
+		) {
 			setJobId(requestedJobId);
 			setDraftItems([]);
 			loadedJobRef.current = null;
@@ -131,7 +138,11 @@ export default function AIAssistantPage() {
 	} = useKnowledgeIngestionJob(jobId);
 
 	useEffect(() => {
-		if (job?.status === "ready" && loadedJobRef.current !== job.id) {
+		if (
+			job?.status === "ready" &&
+			loadedJobRef.current !== job.id &&
+			!discardedJobIdsRef.current.has(job.id)
+		) {
 			loadedJobRef.current = job.id;
 			const timer = window.setTimeout(
 				() => setDraftItems(toDraftItems(job.items)),
@@ -141,8 +152,17 @@ export default function AIAssistantPage() {
 		}
 	}, [job]);
 
-	const activeJob = job?.status === "queued" || job?.status === "processing";
-	const canReview = job?.status === "ready" && draftItems.length > 0;
+	const activeJob = Boolean(
+		job &&
+			!discardedJobIdsRef.current.has(job.id) &&
+			(job.status === "queued" || job.status === "processing"),
+	);
+	const canReview = Boolean(
+		job &&
+			!discardedJobIdsRef.current.has(job.id) &&
+			job.status === "ready" &&
+			draftItems.length > 0,
+	);
 
 	// Filtered drafts in review
 	const filteredDrafts = useMemo(() => {
@@ -254,6 +274,26 @@ export default function AIAssistantPage() {
 		toast.info("Item discarded from review queue.");
 	}
 
+	function handleDiscardAll() {
+		if (jobId) {
+			discardedJobIdsRef.current.add(jobId);
+		}
+		if (job?.id) {
+			discardedJobIdsRef.current.add(job.id);
+		}
+		setDraftItems([]);
+		setJobId(null);
+		loadedJobRef.current = null;
+
+		// Clear query parameter from the browser URL so it doesn't re-trigger loading
+		const params = new URLSearchParams(searchParams.toString());
+		params.delete("job");
+		const newQuery = params.toString();
+		router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
+
+		toast.info("Staged knowledge items have been discarded.");
+	}
+
 	async function handleApproveAll() {
 		const validItems = draftItems.filter(
 			(item) => item.question_or_topic.trim() && item.answer_or_content.trim(),
@@ -279,10 +319,23 @@ export default function AIAssistantPage() {
 				})),
 			);
 			toast.success(
-				`${validItems.length} knowledge items published with pgvector semantic embeddings.`,
+				`${validItems.length} knowledge items published and activated for your assistant.`,
 			);
+			if (jobId) {
+				discardedJobIdsRef.current.add(jobId);
+			}
+			if (job?.id) {
+				discardedJobIdsRef.current.add(job.id);
+			}
 			setDraftItems([]);
 			setJobId(null);
+			loadedJobRef.current = null;
+
+			// Clear query parameter
+			const params = new URLSearchParams(searchParams.toString());
+			params.delete("job");
+			const newQuery = params.toString();
+			router.replace(newQuery ? `${pathname}?${newQuery}` : pathname, { scroll: false });
 		} catch (error) {
 			toast.error(
 				extractErrorMessage(
@@ -312,11 +365,11 @@ export default function AIAssistantPage() {
 									</h1>
 									<span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
 										<span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-										v2.0 Hybrid RAG
+										Active Assistant
 									</span>
 								</div>
 								<p className="text-xs text-gray-500 sm:text-sm">
-									Autonomous customer intelligence across WhatsApp & Telegram with semantic vector search.
+									Autonomous customer support &amp; messaging across WhatsApp &amp; Telegram powered by your business knowledge.
 								</p>
 							</div>
 						</div>
@@ -324,9 +377,9 @@ export default function AIAssistantPage() {
 
 					<div className="flex flex-wrap items-center gap-3">
 						<div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50/80 px-3.5 py-2 text-xs font-medium text-gray-700">
-							<Cpu className="h-4 w-4 text-[#163300]" />
-							<span>Search Engine:</span>
-							<strong className="text-emerald-700">pgvector HNSW + GIN</strong>
+							<Sparkles className="h-4 w-4 text-[#163300]" />
+							<span>Engine:</span>
+							<strong className="text-emerald-700">Powered by Gemini &amp; Groq</strong>
 						</div>
 						<div className="w-full sm:w-auto">
 							<AIAssistanceToggle compact />
@@ -341,8 +394,8 @@ export default function AIAssistantPage() {
 							<ShieldCheck className="h-4 w-4" />
 						</div>
 						<div className="min-w-0">
-							<p className="text-[11px] font-medium text-gray-500">Model Pipeline</p>
-							<p className="truncate text-xs font-semibold text-gray-900">Gemini ➔ Groq Fallback</p>
+							<p className="text-[11px] font-medium text-gray-500">AI Intelligence</p>
+							<p className="truncate text-xs font-semibold text-gray-900">Powered by Gemini &amp; Groq</p>
 						</div>
 					</div>
 					<div className="flex items-center gap-3">
@@ -350,8 +403,8 @@ export default function AIAssistantPage() {
 							<Zap className="h-4 w-4" />
 						</div>
 						<div className="min-w-0">
-							<p className="text-[11px] font-medium text-gray-500">Vector Embeddings</p>
-							<p className="truncate text-xs font-semibold text-gray-900">768-dim Semantic Cosine</p>
+							<p className="text-[11px] font-medium text-gray-500">Knowledge Matching</p>
+							<p className="truncate text-xs font-semibold text-gray-900">Smart Context Retrieval</p>
 						</div>
 					</div>
 					<div className="flex items-center gap-3">
@@ -359,8 +412,8 @@ export default function AIAssistantPage() {
 							<Layers className="h-4 w-4" />
 						</div>
 						<div className="min-w-0">
-							<p className="text-[11px] font-medium text-gray-500">Human Escalation</p>
-							<p className="truncate text-xs font-semibold text-gray-900">Auto-Detect & Pause</p>
+							<p className="text-[11px] font-medium text-gray-500">Human Handover</p>
+							<p className="truncate text-xs font-semibold text-gray-900">Auto-Transfers Complex Chats</p>
 						</div>
 					</div>
 					<div className="flex items-center gap-3">
@@ -640,7 +693,7 @@ export default function AIAssistantPage() {
 													2
 												</span>
 												<p>
-													<strong>AI Fact Extraction:</strong> Content is chunked with provenance attribution and parsed into discrete Q&amp;As.
+													<strong>AI Fact Extraction:</strong> Content is analyzed and structured into clear Q&amp;As.
 												</p>
 											</div>
 											<div className="flex items-start gap-2">
@@ -648,7 +701,7 @@ export default function AIAssistantPage() {
 													3
 												</span>
 												<p>
-													<strong>Semantic Embeddings:</strong> High-dimensional vectors (768-dim) are stored in Postgres via pgvector.
+													<strong>Smart Search Indexing:</strong> Knowledge is indexed for lightning-fast matching and contextual answers.
 												</p>
 											</div>
 											<div className="flex items-start gap-2">
@@ -656,7 +709,7 @@ export default function AIAssistantPage() {
 													4
 												</span>
 												<p>
-													<strong>Human Gatekeeper:</strong> Nothing is published until an agency team member verifies the answers.
+													<strong>Human Gatekeeper:</strong> Nothing is published until your team reviews and approves it.
 												</p>
 											</div>
 										</div>
@@ -714,7 +767,7 @@ export default function AIAssistantPage() {
 													: job.status === "processing"
 														? "Processing…"
 														: job.status === "queued"
-															? "Queued in NATS"
+															? "Queued for Processing"
 															: "Failed"}
 											</span>
 										</div>
@@ -742,7 +795,7 @@ export default function AIAssistantPage() {
 															: "font-medium text-gray-800"
 													}
 												>
-													2. AI fact chunking &amp; Q&amp;A extraction
+													2. AI content analysis &amp; Q&amp;A extraction
 												</span>
 											</div>
 											<div className="flex items-center gap-2.5">
@@ -754,14 +807,14 @@ export default function AIAssistantPage() {
 													<span className="h-4 w-4 rounded-full border border-gray-300 shrink-0" />
 												)}
 												<span className="text-gray-600">
-													3. pgvector semantic embedding indexing
+													3. Instant search indexing &amp; verification
 												</span>
 											</div>
 										</div>
 
 										{activeJob && (
 											<p className="text-xs text-gray-500 leading-relaxed">
-												Background workers are running in the cloud. You can leave this page
+												Background workers are processing your content in the cloud. You can leave this page
 												or browse other tabs; we will notify you when it finishes.
 											</p>
 										)}
@@ -777,21 +830,33 @@ export default function AIAssistantPage() {
 										{job.status === "ready" && (
 											<div className="flex items-center justify-between rounded-xl bg-emerald-50/70 p-3 border border-emerald-200/80">
 												<p className="text-xs font-semibold text-emerald-900">
-													{draftItems.length} items extracted and staged for approval below.
+													{draftItems.length} items extracted and ready for review.
 												</p>
-												<Button
-													size="sm"
-													onClick={() => void handleApproveAll()}
-													disabled={isSaving || !draftItems.length}
-													className="bg-[#163300] hover:bg-[#163300]/90 text-xs h-8"
-												>
-													{isSaving ? (
-														<Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-													) : (
-														<Check className="mr-1.5 h-3.5 w-3.5" />
-													)}
-													Publish All
-												</Button>
+												<div className="flex items-center gap-2">
+													<Button
+														variant="outline"
+														size="sm"
+														onClick={handleDiscardAll}
+														disabled={isSaving}
+														className="text-xs h-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+													>
+														<Trash2 className="mr-1.5 h-3.5 w-3.5" />
+														Discard
+													</Button>
+													<Button
+														size="sm"
+														onClick={() => void handleApproveAll()}
+														disabled={isSaving || !draftItems.length}
+														className="bg-[#163300] hover:bg-[#163300]/90 text-xs h-8"
+													>
+														{isSaving ? (
+															<Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+														) : (
+															<Check className="mr-1.5 h-3.5 w-3.5" />
+														)}
+														Publish All
+													</Button>
+												</div>
 											</div>
 										)}
 									</div>
@@ -817,7 +882,7 @@ export default function AIAssistantPage() {
 											</span>
 										</div>
 										<CardDescription className="text-xs">
-											Edit, approve, or discard extracted facts before they are indexed into your live assistant.
+											Edit, approve, or discard extracted facts before they are activated for your live assistant.
 										</CardDescription>
 									</div>
 
@@ -826,10 +891,7 @@ export default function AIAssistantPage() {
 										<Button
 											variant="outline"
 											size="sm"
-											onClick={() => {
-												setDraftItems([]);
-												setJobId(null);
-											}}
+											onClick={handleDiscardAll}
 											className="text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
 										>
 											<Trash2 className="mr-1.5 h-3.5 w-3.5" />
@@ -846,7 +908,7 @@ export default function AIAssistantPage() {
 											) : (
 												<Check className="mr-1.5 h-3.5 w-3.5" />
 											)}
-											Approve &amp; Index ({draftItems.length})
+											Approve &amp; Publish ({draftItems.length})
 										</Button>
 									</div>
 								</div>

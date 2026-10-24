@@ -267,32 +267,32 @@ export function AISimulatorPlayground() {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#163300]">
               <Sparkles className="h-4 w-4" />
-              <span>Inspection Inspector</span>
+              <span>Response Intelligence</span>
             </div>
-            <CardTitle className="text-sm">Behind the Scenes</CardTitle>
+            <CardTitle className="text-sm">How Responses Work</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-xs">
             <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-              <span className="font-semibold text-gray-700">Retrieval Pipeline:</span>
+              <span className="font-semibold text-gray-700">Knowledge Matching:</span>
               <p className="mt-1 text-gray-600 leading-relaxed">
-                Queries first run through <strong className="text-[#163300]">pgvector cosine similarity</strong> (768-dim) merged with <strong className="text-[#163300]">Postgres tsvector GIN</strong> rankings via Reciprocal Rank Fusion.
+                Queries are matched against your company knowledge base using <strong className="text-[#163300]">smart semantic understanding and keyword matching</strong> to deliver accurate, brand-aligned answers.
               </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between text-gray-600">
-                <span>Semantic Indexing:</span>
+                <span>AI Models:</span>
                 <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
-                  <ShieldCheck className="h-3.5 w-3.5" /> HNSW Active
+                  <ShieldCheck className="h-3.5 w-3.5" /> Powered by Gemini &amp; Groq
                 </span>
               </div>
               <div className="flex items-center justify-between text-gray-600">
-                <span>Dual Engine Failover:</span>
-                <span className="font-semibold text-gray-900">Gemini ➔ Groq</span>
+                <span>Search Quality:</span>
+                <span className="font-semibold text-gray-900">Semantic &amp; Keyword Match</span>
               </div>
               <div className="flex items-center justify-between text-gray-600">
-                <span>Quota Circuit Breaker:</span>
-                <span className="font-semibold text-emerald-700">Armed (60s cooldown)</span>
+                <span>High Availability:</span>
+                <span className="font-semibold text-emerald-700">Active &amp; Protected</span>
               </div>
             </div>
 
