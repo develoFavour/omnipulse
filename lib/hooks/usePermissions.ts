@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useAppStore } from "@/lib/store";
 
 export type RoleType = "owner" | "admin" | "member";
@@ -9,6 +10,7 @@ export interface WorkspacePermissions {
   isOwner: boolean;
   isAdmin: boolean;
   isMember: boolean;
+  isLoading: boolean;
 
   // High-level capabilities
   canManageTeam: boolean;        // owner, admin
@@ -34,9 +36,11 @@ export interface WorkspacePermissions {
 }
 
 export function usePermissions(): WorkspacePermissions {
+  const { isLoaded, isSignedIn } = useAuth();
   const user = useAppStore((state) => state.user);
   const workspaces = useAppStore((state) => state.workspaces);
   const tenant = useAppStore((state) => state.tenant);
+  const isAuthenticating = useAppStore((state) => state.isAuthenticating);
 
   // Active workspace lookup
   const activeWs = workspaces.find((w) => w.id === tenant?.id || w.is_active);
@@ -49,11 +53,14 @@ export function usePermissions(): WorkspacePermissions {
   const isAdmin = role === "admin";
   const isMember = role === "member";
 
+  const isLoading = !isLoaded || (Boolean(isSignedIn) && !user && !tenant) || isAuthenticating;
+
   return {
     role,
     isOwner,
     isAdmin,
     isMember,
+    isLoading,
 
     // Team management
     canManageTeam: isOwner || isAdmin,

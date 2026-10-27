@@ -88,7 +88,8 @@ export default function AIAssistantPage() {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-	const { canManageChannels } = usePermissions();
+	const { canManageChannels, isLoading: isPermissionsLoading } =
+		usePermissions();
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const loadedJobRef = useRef<string | null>(null);
 	const discardedJobIdsRef = useRef<Set<string>>(new Set());
@@ -187,6 +188,17 @@ export default function AIAssistantPage() {
 		}
 		return counts;
 	}, [draftItems]);
+
+	if (isPermissionsLoading) {
+		return (
+			<div className="flex h-96 w-full flex-col items-center justify-center gap-3">
+				<Loader2 className="h-8 w-8 animate-spin text-[#163300]" />
+				<p className="text-sm font-medium text-gray-500">
+					Loading AI Assistant...
+				</p>
+			</div>
+		);
+	}
 
 	if (!canManageChannels) {
 		return (
