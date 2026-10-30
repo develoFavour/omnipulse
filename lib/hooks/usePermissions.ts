@@ -53,7 +53,12 @@ export function usePermissions(): WorkspacePermissions {
   const isAdmin = role === "admin";
   const isMember = role === "member";
 
-  const isLoading = !isLoaded || (Boolean(isSignedIn) && !user && !tenant) || isAuthenticating;
+  // Permissions are loading if Clerk hasn't initialized, or if the user is signed in
+  // but auth sync or workspace fetching is still in flight
+  const isLoading =
+    !isLoaded ||
+    isAuthenticating ||
+    (Boolean(isSignedIn) && (!user || !tenant || (!activeWs && workspaces.length === 0 && !user?.role)));
 
   return {
     role,

@@ -56,6 +56,21 @@ import {
 	QuotaPill,
 } from "@/components/features/billing/PlanQuotaBanner";
 
+function formatSenderIdentity(identity: string | undefined, fallback: string): string {
+	if (!identity) return fallback;
+	const trimmed = identity.trim();
+	// Deduplicate duplicated string pattern like "2347025130492 (+2347025130492)"
+	const dupMatch = trimmed.match(/^([^\s(]+)\s*\(\+?([^\s)]+)\)$/);
+	if (dupMatch) {
+		const part1 = dupMatch[1].replace(/\D/g, "");
+		const part2 = dupMatch[2].replace(/\D/g, "");
+		if (part1 && part1 === part2) {
+			return `+${part1}`;
+		}
+	}
+	return trimmed;
+}
+
 export function BroadcastStudio() {
   const router = useRouter();
 	const searchParams = useSearchParams();
@@ -157,8 +172,10 @@ export function BroadcastStudio() {
 
 	const botUsername =
 		activeTelegramChannel?.sender_identity || "@MessageRailBot";
-	const verifiedWhatsAppName =
-		activeWhatsAppChannel?.sender_identity || "MessageRail Business";
+	const verifiedWhatsAppName = formatSenderIdentity(
+		activeWhatsAppChannel?.sender_identity,
+		"MessageRail Business",
+	);
 
 	// Automatically enable WhatsApp DM if WhatsApp channel is connected
 	useEffect(() => {
@@ -275,13 +292,23 @@ export function BroadcastStudio() {
 	const isWhatsAppDM = selectedPlacements.includes("whatsapp_dm");
 	const isWhatsAppStory = selectedPlacements.includes("whatsapp_story");
 
-	const targetContacts = useMemo(() => {
+	// Contacts eligible for currently selected private-DM placements
+	const eligibleContacts = useMemo(() => {
 		return activeContacts.filter((c) => {
 			if (isTelegramDM && c.channel === "telegram") return true;
 			if (isWhatsAppDM && c.channel === "whatsapp") return true;
 			return false;
 		});
 	}, [activeContacts, isTelegramDM, isWhatsAppDM]);
+
+	// When contacts are hand-picked in Audience Intelligence, only those selected are targeted
+	const isFilteringContacts = selectedContactIds.length > 0;
+	const targetContacts = useMemo(() => {
+		if (isFilteringContacts) {
+			return eligibleContacts.filter((c) => selectedContactIds.includes(c.id));
+		}
+		return eligibleContacts;
+	}, [eligibleContacts, isFilteringContacts, selectedContactIds]);
 
 	const targetCount = useMemo(() => {
 		let count = targetContacts.length;
@@ -362,13 +389,6 @@ export function BroadcastStudio() {
 	};
 
 	// Contact targeting handlers
-	// eligibleContacts: contacts valid for currently selected private-DM placements
-	const eligibleContacts = activeContacts.filter((c) => {
-		if (isTelegramDM && c.channel === "telegram") return true;
-		if (isWhatsAppDM && c.channel === "whatsapp") return true;
-		return false;
-	});
-
 	const handleToggleContact = (id: string) => {
 		setSelectedContactIds((current) =>
 			current.includes(id)
@@ -653,37 +673,42 @@ export function BroadcastStudio() {
 					</p>
 				</div>
 
-				<div className="flex items-center gap-3">
+				<div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
 					{isWhatsAppStory && (
 						<button
 							type="button"
 							onClick={() => setIsStoryModalOpen(true)}
-							className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100/80 px-4 py-2.5 text-xs font-bold text-emerald-800 transition-all"
+							className="h-10 inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100/80 px-3.5 text-xs font-bold text-emerald-800 transition-all whitespace-nowrap shadow-2xs"
 						>
 							<Share2 className="h-3.5 w-3.5 text-emerald-600" />
 							Preview Story Share
 						</button>
 					)}
 
-					{/* Schedule for Later — opens modal */}
+					{/* Save as Draft */}
 					<button
 						type="button"
 						onClick={handleSaveDraft}
 						disabled={isCreating}
 						title="Save this broadcast for later"
-						className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white font-bold text-xs text-gray-600 hover:border-[#9fe870] hover:bg-[#e2f6d5]/50 hover:text-[#163300] transition-all disabled:opacity-60"
+						className="h-10 inline-flex items-center gap-2 px-3.5 rounded-xl border border-gray-200 bg-white font-semibold text-xs text-gray-700 hover:border-gray-300 hover:bg-gray-50/80 hover:text-gray-900 transition-all disabled:opacity-60 whitespace-nowrap shadow-2xs"
 					>
-						{isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
+						{isCreating ? (
+							<Loader2 className="h-3.5 w-3.5 animate-spin text-[#163300]" />
+						) : (
+							<Copy className="h-3.5 w-3.5 text-gray-500" />
+						)}
 						Save as Draft
 					</button>
 
+					{/* Schedule for Later */}
 					<button
 						type="button"
 						onClick={() => setIsScheduleModalOpen(true)}
 						title="Schedule for later"
-						className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 bg-white font-bold text-xs text-gray-500 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 transition-all"
+						className="h-10 inline-flex items-center gap-2 px-3.5 rounded-xl border border-gray-200 bg-white font-semibold text-xs text-gray-700 hover:border-amber-300 hover:bg-amber-50/50 hover:text-amber-800 transition-all whitespace-nowrap shadow-2xs"
 					>
-						<CalendarClock className="h-4 w-4" />
+						<CalendarClock className="h-3.5 w-3.5 text-gray-500" />
 						Schedule
 					</button>
 
@@ -693,6 +718,7 @@ export function BroadcastStudio() {
 						limit={messagesQuota.limit}
 						unit="dispatches/mo"
 						isUnlimited={messagesQuota.isUnlimited}
+						className="h-10 px-3.5 whitespace-nowrap"
 						onUpgrade={() =>
 							openUpgradeModal({
 								featureName: "25,000 Monthly Broadcasts",
@@ -711,7 +737,7 @@ export function BroadcastStudio() {
 							(targetCount === 0 && !isWhatsAppStory)
 						}
 						className={cn(
-							"flex items-center gap-2.5 px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-md",
+							"h-10 inline-flex items-center gap-2 px-5 rounded-xl font-bold text-xs transition-all shadow-sm whitespace-nowrap",
 							isDispatching || isCreating
 								? "bg-[#163300]/70 text-white cursor-wait"
 								: targetCount > 0 || isWhatsAppStory
@@ -721,13 +747,13 @@ export function BroadcastStudio() {
 					>
 						{isDispatching || isCreating ? (
 							<>
-								<Loader2 className="h-4 w-4 animate-spin" />
+								<Loader2 className="h-3.5 w-3.5 animate-spin" />
 								Transmitting...
 							</>
 						) : (
 							<>
-								<Rocket className="h-4 w-4" />
-								Launch Broadcast ({targetCount})
+								<Rocket className="h-3.5 w-3.5" />
+								Launch Broadcast ({targetCount.toLocaleString()})
 							</>
 						)}
 					</button>
@@ -797,26 +823,26 @@ export function BroadcastStudio() {
 			</AnimatePresence>
 
 			{/* Live Channel Pipeline Status Ribbon */}
-			<div className="mb-6 rounded-2xl border border-gray-200/90 bg-white p-4 shadow-xs flex flex-wrap items-center justify-between gap-4">
-				<div className="flex flex-wrap items-center gap-3">
-					<span className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-2">
+			<div className="mb-6 rounded-2xl border border-gray-200/80 bg-white px-4 py-3 shadow-xs flex flex-wrap items-center justify-between gap-3">
+				<div className="flex flex-wrap items-center gap-2.5">
+					<span className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1.5 mr-1">
 						<Radio className="h-3.5 w-3.5 text-[#163300]" />
 						Active Channels:
 					</span>
 
 					{/* Telegram Status Badge */}
 					{isTelegramConnected ? (
-						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sky-50 border border-sky-200 text-xs font-bold text-sky-800">
+						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-sky-50/70 border border-sky-200/80 text-xs text-sky-900">
 							<span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
 							<FaTelegram className="h-3.5 w-3.5 text-[#0088cc]" />
-							<span>Telegram Bot:</span>
-							<span className="font-mono text-sky-900">{botUsername}</span>
-							<span className="text-sky-600 text-[11px] font-normal">
+							<span className="font-medium text-sky-800">Telegram Bot:</span>
+							<span className="font-semibold text-sky-950 font-mono">{botUsername}</span>
+							<span className="text-sky-600/80 text-[11px]">
 								({activeDestinations.length} groups)
 							</span>
 						</div>
 					) : (
-						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
+						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
 							<span className="h-2 w-2 rounded-full bg-gray-400" />
 							<FaTelegram className="h-3.5 w-3.5 text-gray-400" />
 							<span>Telegram: Not Linked</span>
@@ -832,19 +858,19 @@ export function BroadcastStudio() {
 
 					{/* WhatsApp Status Badge */}
 					{isWhatsAppConnected ? (
-						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800">
+						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50/70 border border-emerald-200/80 text-xs text-emerald-900">
 							<span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
 							<FaWhatsapp className="h-3.5 w-3.5 text-[#25D366]" />
-							<span>WhatsApp:</span>
-							<span className="font-mono text-emerald-900">
+							<span className="font-medium text-emerald-800">WhatsApp:</span>
+							<span className="font-semibold text-emerald-950 font-mono">
 								{verifiedWhatsAppName}
 							</span>
-							<span className="text-emerald-600 text-[11px] font-normal">
+							<span className="text-emerald-600/80 text-[11px]">
 								({whatsappContacts.length} contacts)
 							</span>
 						</div>
 					) : (
-						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
+						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 text-xs font-medium text-gray-600">
 							<span className="h-2 w-2 rounded-full bg-gray-400" />
 							<FaWhatsapp className="h-3.5 w-3.5 text-gray-400" />
 							<span>WhatsApp: Not Linked</span>
@@ -868,12 +894,12 @@ export function BroadcastStudio() {
 							if (isWhatsAppConnected) await handleSyncWhatsApp();
 							if (isTelegramConnected) await handleSyncTelegram();
 						}}
-						className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold transition-all disabled:opacity-50 cursor-pointer"
+						className="h-8 inline-flex items-center gap-1.5 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
 					>
 						<RefreshCw
 							className={cn(
-								"h-3 w-3",
-								(isSyncingWhatsApp || isSyncingTelegram) && "animate-spin",
+								"h-3 w-3 text-gray-500",
+								(isSyncingWhatsApp || isSyncingTelegram) && "animate-spin text-[#163300]",
 							)}
 						/>
 						Sync Audience

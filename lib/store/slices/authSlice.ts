@@ -32,9 +32,13 @@ export const createAuthSlice: StateCreator<AuthState> = (set, get) => ({
     set({ isAuthenticating: true, authError: null });
     try {
       const data = await authService.syncUser();
-      set({ user: data.user, tenant: data.tenant, isAuthenticating: false });
-      // Trigger workspace list refresh in background after sync
-      get().loadWorkspaces().catch(() => {});
+      set({ user: data.user, tenant: data.tenant });
+      try {
+        const workspaces = await workspaceService.listWorkspaces();
+        set({ workspaces: workspaces ?? [], isAuthenticating: false });
+      } catch {
+        set({ isAuthenticating: false });
+      }
       return data;
     } catch (err: any) {
       const msg =
