@@ -78,6 +78,34 @@ export interface KnowledgeIngestionAccepted {
   status: "queued";
 }
 
+export interface AIKnowledgeGap {
+  id: string;
+  tenant_id: string;
+  query: string;
+  channel: "whatsapp" | "telegram" | "simulator" | string;
+  conversation_id?: string;
+  ai_confidence: number;
+  occurrences: number;
+  status: "pending" | "resolved" | "dismissed";
+  resolution_item_id?: string;
+  last_asked_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AIKnowledgeGapsPage {
+  gaps: AIKnowledgeGap[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface ResolveKnowledgeGapPayload {
+  category: string;
+  question_or_topic: string;
+  answer_or_content: string;
+}
+
 class AIAgentService {
   async getConfig(): Promise<AIAgentConfig> {
     const response = await apiClient.get<AIAgentConfig>(
@@ -181,19 +209,48 @@ class AIAgentService {
     reply: string;
     needs_human: boolean;
     lead_info?: { name?: string; email?: string };
+    confidence?: number;
+    is_gap?: boolean;
   }> {
     const response = await apiClient.post<{
       query: string;
       reply: string;
       needs_human: boolean;
       lead_info?: { name?: string; email?: string };
+      confidence?: number;
+      is_gap?: boolean;
     }>(ENDPOINTS.AI_AGENT.SIMULATE, { query });
     return response.data as unknown as {
       query: string;
       reply: string;
       needs_human: boolean;
       lead_info?: { name?: string; email?: string };
+      confidence?: number;
+      is_gap?: boolean;
     };
+  }
+
+  async listKnowledgeGaps(params?: { status?: string; limit?: number; offset?: number }): Promise<AIKnowledgeGapsPage> {
+    const response = await apiClient.get<AIKnowledgeGapsPage>(
+      ENDPOINTS.AI_AGENT.GAPS,
+      { params }
+    );
+    return response.data as unknown as AIKnowledgeGapsPage;
+  }
+
+  async resolveKnowledgeGap(id: string, payload: ResolveKnowledgeGapPayload): Promise<{ message: string; item: AIKnowledgeItem }> {
+    const response = await apiClient.post<{ message: string; item: AIKnowledgeItem }>(
+      ENDPOINTS.AI_AGENT.RESOLVE_GAP(id),
+      payload
+    );
+    return response.data as unknown as { message: string; item: AIKnowledgeItem };
+  }
+
+  async dismissKnowledgeGap(id: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>(
+      ENDPOINTS.AI_AGENT.DISMISS_GAP(id)
+    );
+    return response.data as unknown as { message: string };
   }
 }
 
