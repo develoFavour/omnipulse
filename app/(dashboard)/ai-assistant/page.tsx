@@ -30,6 +30,7 @@ import {
 	Filter,
 	Cpu,
 	Plus,
+	HelpCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ import {
 	useKnowledgeIngestionActions,
 	useKnowledgeIngestionJob,
 } from "@/lib/api/hooks";
+import { useKnowledgeGaps } from "@/lib/api/hooks/useKnowledgeGaps";
 import {
 	aiAgentService,
 	type AIKnowledgeItem,
@@ -54,6 +56,7 @@ import { usePermissions } from "@/lib/hooks/usePermissions";
 import { AIAssistanceToggle } from "@/components/features/ai/AIAssistanceToggle";
 import { KnowledgeLibrary } from "@/components/features/ai/KnowledgeLibrary";
 import { AISimulatorPlayground } from "@/components/features/ai/AISimulatorPlayground";
+import { KnowledgeGapsList } from "@/components/features/ai/KnowledgeGapsList";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_FILE_TYPES =
@@ -66,7 +69,7 @@ const CATEGORY_OPTIONS = [
 	"hours",
 ] as const;
 
-type ActiveTab = "training" | "simulator" | "library" | "documents";
+type ActiveTab = "training" | "simulator" | "library" | "documents" | "gaps";
 
 type DraftItem = AIKnowledgeItem & {
 	draftId: string;
@@ -90,6 +93,7 @@ export default function AIAssistantPage() {
 	const searchParams = useSearchParams();
 	const { canManageChannels, isLoading: isPermissionsLoading } =
 		usePermissions();
+	const { total: gapsCount } = useKnowledgeGaps("pending");
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const loadedJobRef = useRef<string | null>(null);
 	const discardedJobIdsRef = useRef<Set<string>>(new Set());
@@ -360,6 +364,14 @@ export default function AIAssistantPage() {
 		}
 	}
 
+	if (isPermissionsLoading) {
+		return (
+			<div className="flex h-[60vh] items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-[#163300]" />
+			</div>
+		);
+	}
+
 	return (
 		<main className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-10">
 			{/* Top Executive Header */}
@@ -497,6 +509,24 @@ export default function AIAssistantPage() {
 				>
 					<FolderOpen className="h-4 w-4 text-gray-500" />
 					<span>Document Vault</span>
+				</button>
+
+				<button
+					type="button"
+					onClick={() => setActiveTab("gaps")}
+					className={`flex items-center gap-2 rounded-lg px-4 py-2 transition-all ${
+						activeTab === "gaps"
+							? "bg-white text-gray-900 shadow-sm"
+							: "text-gray-600 hover:text-gray-900"
+					}`}
+				>
+					<HelpCircle className="h-4 w-4 text-amber-600" />
+					<span>Unanswered Gaps</span>
+					{gapsCount > 0 && (
+						<span className="rounded-full bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-white">
+							{gapsCount}
+						</span>
+					)}
 				</button>
 			</div>
 
@@ -1134,6 +1164,11 @@ export default function AIAssistantPage() {
 					</CardContent>
 				</Card>
 			)}
+
+			{/* ============================================================ */}
+			{/* TAB 5: UNANSWERED KNOWLEDGE GAPS                             */}
+			{/* ============================================================ */}
+			{activeTab === "gaps" && <KnowledgeGapsList />}
 		</main>
 	);
 }
