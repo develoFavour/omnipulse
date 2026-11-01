@@ -72,7 +72,7 @@ export function ChannelSwitcher() {
               >
                 <div>
                   <div className="inline-flex items-center gap-2 rounded-full bg-[#25D366]/10 text-[#25D366] px-3 py-1 text-xs font-bold mb-4">
-                    <FaWhatsapp className="h-4 w-4" /> Official Meta Cloud Partner
+                    <FaWhatsapp className="h-4 w-4" /> Meta Cloud API & QR Multi-Device
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-[#0e0f0c] font-heading mb-4">
                     1-Click Meta OAuth & WhatsApp QR Link
