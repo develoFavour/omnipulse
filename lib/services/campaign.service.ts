@@ -62,7 +62,33 @@ export interface CampaignDeliveryItem {
   routing_value: string;
   status: "delivered" | "failed" | "sent";
   error_message?: string;
+  failure_code?: "invalid_number" | "window_expired" | "rate_limited" | "provider_error" | "blocked" | "unsupported";
+  retryable?: boolean;
+  attempt_count?: number;
+  provider_message_id?: string;
   created_at: string;
+}
+
+export interface FailureBreakdown {
+  invalid_number: number;
+  window_expired: number;
+  rate_limited: number;
+  provider_error: number;
+  blocked: number;
+  unsupported: number;
+}
+
+export interface CampaignHealth {
+  campaign_id: string;
+  total_delivered: number;
+  total_failed: number;
+  total_retryable: number;
+  failure_breakdown: FailureBreakdown;
+}
+
+export interface RetryDeliveriesResponse {
+  queued: number;
+  delivery_ids: string[];
 }
 
 class CampaignService {
@@ -191,6 +217,22 @@ class CampaignService {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  }
+
+  async getCampaignHealth(campaignId: string): Promise<CampaignHealth> {
+    const response = await apiClient.get<ApiResponse<CampaignHealth>>(
+      ENDPOINTS.CAMPAIGNS.HEALTH(campaignId)
+    );
+    return response.data as unknown as CampaignHealth;
+  }
+
+  async retryDeliveries(campaignId: string, deliveryIds?: string[]): Promise<RetryDeliveriesResponse> {
+    const body = deliveryIds?.length ? { delivery_ids: deliveryIds } : {};
+    const response = await apiClient.post<ApiResponse<RetryDeliveriesResponse>>(
+      ENDPOINTS.CAMPAIGNS.RETRY_DELIVERIES(campaignId),
+      body
+    );
+    return response.data as unknown as RetryDeliveriesResponse;
   }
 }
 

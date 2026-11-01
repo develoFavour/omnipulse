@@ -44,6 +44,8 @@ export const ENDPOINTS = {
 		EXPORT: (id: string) => `${API_VERSION}/campaigns/${id}/export`,
 		STATS: (id: string) => `${API_VERSION}/campaigns/${id}/stats`,
 		DELIVERIES: (id: string) => `${API_VERSION}/campaigns/${id}/deliveries`,
+		HEALTH: (id: string) => `${API_VERSION}/campaigns/${id}/health`,
+		RETRY_DELIVERIES: (id: string) => `${API_VERSION}/campaigns/${id}/deliveries/retry`,
 	},
 
 	// Dashboard
