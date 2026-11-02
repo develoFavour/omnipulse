@@ -53,6 +53,14 @@ export interface CampaignStats {
   progress_percent?: number;
 }
 
+export type CampaignFailureCode =
+  | "invalid_number"
+  | "window_expired"
+  | "rate_limited"
+  | "provider_error"
+  | "blocked"
+  | "unsupported";
+
 export interface CampaignDeliveryItem {
   id: string;
   campaign_id: string;
@@ -60,9 +68,35 @@ export interface CampaignDeliveryItem {
   target_type: "contact" | "telegram_destination";
   platform: string;
   routing_value: string;
-  status: "delivered" | "failed" | "sent";
+  first_name?: string;
+  status: "queued" | "delivered" | "failed" | "sent";
   error_message?: string;
+  failure_code?: CampaignFailureCode;
+  retryable?: boolean;
+  attempt_count?: number;
+  provider_message_id?: string;
   created_at: string;
+}
+
+export type FailureBreakdown = Partial<Record<CampaignFailureCode, number>>;
+
+export interface CampaignHealth {
+  campaign_id: string;
+  status: string;
+  total_targets: number;
+  processed_targets: number;
+  delivered: number;
+  sent: number;
+  failed: number;
+  retryable_failed: number;
+  terminal_failed: number;
+  failure_breakdown: FailureBreakdown;
+}
+
+export interface RetryDeliveriesResponse {
+  message: string;
+  retried: number;
+  total_tasks: number;
 }
 
 class CampaignService {
@@ -191,6 +225,22 @@ class CampaignService {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  }
+
+  async getCampaignHealth(campaignId: string): Promise<CampaignHealth> {
+    const response = await apiClient.get<ApiResponse<CampaignHealth>>(
+      ENDPOINTS.CAMPAIGNS.HEALTH(campaignId)
+    );
+    return response.data as unknown as CampaignHealth;
+  }
+
+  async retryDeliveries(campaignId: string, deliveryIds?: string[]): Promise<RetryDeliveriesResponse> {
+    const body = deliveryIds?.length ? { delivery_ids: deliveryIds } : {};
+    const response = await apiClient.post<ApiResponse<RetryDeliveriesResponse>>(
+      ENDPOINTS.CAMPAIGNS.RETRY_DELIVERIES(campaignId),
+      body
+    );
+    return response.data as unknown as RetryDeliveriesResponse;
   }
 }
 

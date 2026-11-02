@@ -25,6 +25,7 @@ import {
   campaignService,
   CampaignStats,
   CampaignDeliveryItem,
+  CampaignHealth,
   getCampaignWebSocketURL,
 } from "@/lib/services/campaign.service";
 import { getAuthToken } from "@/lib/api/axios-instance";
@@ -53,6 +54,8 @@ export function LiveMissionTracker({
 }: LiveMissionTrackerProps) {
   const [stats, setStats] = useState<CampaignStats | null>(null);
   const [deliveries, setDeliveries] = useState<CampaignDeliveryItem[]>([]);
+  const [health, setHealth] = useState<CampaignHealth | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
   const [filter, setFilter] = useState<"all" | "delivered" | "failed">("all");
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [isPolling, setIsPolling] = useState<boolean>(true);
@@ -101,10 +104,25 @@ export function LiveMissionTracker({
         setIsPolling(false);
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
         if (timerRef.current) clearInterval(timerRef.current);
+        // Fetch final health snapshot
+        campaignService.getCampaignHealth(campaignId).then(setHealth).catch(() => {});
       }
     } catch (err: any) {
       console.warn("[LIVE-TRACKER] Telemetry poll failed:", err);
       setPollError("Connection glitch; retrying feed...");
+    }
+  };
+
+  const handleRetryDeliveries = async () => {
+    setIsRetrying(true);
+    try {
+      const result = await campaignService.retryDeliveries(campaignId);
+      toast.success(`${result.retried} failed ${result.retried === 1 ? "delivery" : "deliveries"} re-queued.`);
+      await fetchTelemetry();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to queue retries");
+    } finally {
+      setIsRetrying(false);
     }
   };
 
@@ -557,6 +575,89 @@ export function LiveMissionTracker({
           )}
         </div>
       </div>
+
+      {/* Delivery Health & Recovery Console — shown only when there are failures */}
+      {failedCount > 0 && (
+        <div className="rounded-3xl border border-rose-200/70 dark:border-rose-500/20 bg-white/95 dark:bg-zinc-950/90 p-6 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-rose-100 dark:border-rose-500/10">
+            <div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4 text-rose-500" />
+                Delivery Health & Recovery
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+                Failure taxonomy from this campaign run
+              </p>
+            </div>
+
+            {health && health.retryable_failed > 0 && (
+              <button
+                onClick={handleRetryDeliveries}
+                disabled={isRetrying}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white font-bold text-sm transition-all shadow-md shadow-rose-500/20"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRetrying ? "animate-spin" : ""}`} />
+                {isRetrying ? "Queuing…" : `Retry ${health.retryable_failed} Failed`}
+              </button>
+            )}
+          </div>
+
+          {/* Failure breakdown badges */}
+          {health ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {(
+                [
+                  { code: "invalid_number", label: "Invalid Number", terminal: true },
+                  { code: "window_expired", label: "Window Expired", terminal: true },
+                  { code: "blocked", label: "Compliance Block", terminal: true },
+                  { code: "unsupported", label: "Unsupported Channel", terminal: true },
+                  { code: "rate_limited", label: "Rate Limited", terminal: false },
+                  { code: "provider_error", label: "Provider Error", terminal: false },
+                ] as const
+              ).map(({ code, label, terminal }) => {
+                const count = health.failure_breakdown[code];
+                if (!count) return null;
+                return (
+                  <div
+                    key={code}
+                    className={`flex flex-col gap-0.5 p-3 rounded-2xl border text-xs ${
+                      terminal
+                        ? "border-rose-100 dark:border-rose-500/10 bg-rose-50/60 dark:bg-rose-500/5"
+                        : "border-amber-100 dark:border-amber-500/10 bg-amber-50/60 dark:bg-amber-500/5"
+                    }`}
+                  >
+                    <span
+                      className={`font-mono font-bold text-base ${
+                        terminal ? "text-rose-700 dark:text-rose-400" : "text-amber-700 dark:text-amber-400"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                    <span className="text-gray-600 dark:text-zinc-300 font-medium">{label}</span>
+                    <span
+                      className={`text-[10px] uppercase tracking-wider font-semibold ${
+                        terminal ? "text-rose-400" : "text-amber-500"
+                      }`}
+                    >
+                      {terminal ? "Terminal" : "Retryable"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <button
+              onClick={() =>
+                campaignService.getCampaignHealth(campaignId).then(setHealth).catch(() => {})
+              }
+              className="text-xs text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1.5"
+            >
+              <Filter className="h-3.5 w-3.5" />
+              Load failure breakdown
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Control Actions */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-6 rounded-3xl border border-gray-200/90 dark:border-white/10 bg-white/95 dark:bg-zinc-950/90 shadow-xl">
