@@ -117,7 +117,7 @@ export function LiveMissionTracker({
     setIsRetrying(true);
     try {
       const result = await campaignService.retryDeliveries(campaignId);
-      toast.success(`${result.queued} failed deliveries re-queued for retry.`);
+      toast.success(`${result.retried} failed ${result.retried === 1 ? "delivery" : "deliveries"} re-queued.`);
       await fetchTelemetry();
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to queue retries");
@@ -590,14 +590,14 @@ export function LiveMissionTracker({
               </p>
             </div>
 
-            {health && health.total_retryable > 0 && (
+            {health && health.retryable_failed > 0 && (
               <button
                 onClick={handleRetryDeliveries}
                 disabled={isRetrying}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white font-bold text-sm transition-all shadow-md shadow-rose-500/20"
               >
                 <RefreshCw className={`h-4 w-4 ${isRetrying ? "animate-spin" : ""}`} />
-                {isRetrying ? "Queuing…" : `Retry ${health.total_retryable} Failed`}
+                {isRetrying ? "Queuing…" : `Retry ${health.retryable_failed} Failed`}
               </button>
             )}
           </div>

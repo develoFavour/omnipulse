@@ -53,6 +53,14 @@ export interface CampaignStats {
   progress_percent?: number;
 }
 
+export type CampaignFailureCode =
+  | "invalid_number"
+  | "window_expired"
+  | "rate_limited"
+  | "provider_error"
+  | "blocked"
+  | "unsupported";
+
 export interface CampaignDeliveryItem {
   id: string;
   campaign_id: string;
@@ -60,35 +68,35 @@ export interface CampaignDeliveryItem {
   target_type: "contact" | "telegram_destination";
   platform: string;
   routing_value: string;
-  status: "delivered" | "failed" | "sent";
+  first_name?: string;
+  status: "queued" | "delivered" | "failed" | "sent";
   error_message?: string;
-  failure_code?: "invalid_number" | "window_expired" | "rate_limited" | "provider_error" | "blocked" | "unsupported";
+  failure_code?: CampaignFailureCode;
   retryable?: boolean;
   attempt_count?: number;
   provider_message_id?: string;
   created_at: string;
 }
 
-export interface FailureBreakdown {
-  invalid_number: number;
-  window_expired: number;
-  rate_limited: number;
-  provider_error: number;
-  blocked: number;
-  unsupported: number;
-}
+export type FailureBreakdown = Partial<Record<CampaignFailureCode, number>>;
 
 export interface CampaignHealth {
   campaign_id: string;
-  total_delivered: number;
-  total_failed: number;
-  total_retryable: number;
+  status: string;
+  total_targets: number;
+  processed_targets: number;
+  delivered: number;
+  sent: number;
+  failed: number;
+  retryable_failed: number;
+  terminal_failed: number;
   failure_breakdown: FailureBreakdown;
 }
 
 export interface RetryDeliveriesResponse {
-  queued: number;
-  delivery_ids: string[];
+  message: string;
+  retried: number;
+  total_tasks: number;
 }
 
 class CampaignService {
