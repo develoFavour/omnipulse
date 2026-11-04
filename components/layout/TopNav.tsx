@@ -602,7 +602,11 @@ export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
                             if (!item.is_read) {
                               markRead(item.id);
                             }
-                            if (item.type === "campaign_pending_approval") {
+                            if (
+                              item.type === "campaign_pending_approval" ||
+                              item.type === "campaign_brand_approved" ||
+                              item.type === "campaign_brand_changes_requested"
+                            ) {
                               const campaignId =
                                 typeof item.metadata?.campaign_id === "string"
                                   ? item.metadata.campaign_id
@@ -623,6 +627,14 @@ export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
                             {item.type === "campaign_pending_approval" ? (
                               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
                                 <ShieldCheck className="h-4 w-4" />
+                              </div>
+                            ) : item.type === "campaign_brand_approved" ? (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                                <CheckCircle2 className="h-4 w-4" />
+                              </div>
+                            ) : item.type === "campaign_brand_changes_requested" ? (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+                                <AlertTriangle className="h-4 w-4" />
                               </div>
                             ) : item.type === "campaign_completed" ? (
                               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
