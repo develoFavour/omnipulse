@@ -603,8 +603,16 @@ export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
                               markRead(item.id);
                             }
                             if (item.type === "campaign_pending_approval") {
+                              const campaignId =
+                                typeof item.metadata?.campaign_id === "string"
+                                  ? item.metadata.campaign_id
+                                  : "";
                               setShowNotifications(false);
-                              router.push(APP_ROUTES.DASHBOARD.SCHEDULED);
+                              router.push(
+                                campaignId
+                                  ? `${APP_ROUTES.DASHBOARD.SCHEDULED}?campaign=${encodeURIComponent(campaignId)}`
+                                  : APP_ROUTES.DASHBOARD.SCHEDULED
+                              );
                             }
                           }}
                           className={`py-2.5 px-2 flex items-start gap-3 rounded-lg transition-colors cursor-pointer ${

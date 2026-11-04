@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarClock,
@@ -45,7 +45,10 @@ import { ScheduleCampaignModal } from "./ScheduleCampaignModal";
 
 export function ScheduledBroadcastsView() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const isDraftsView = searchParams.get("view") === "drafts";
+  const campaignIdParam = searchParams.get("campaign");
   const {
     campaigns,
     isLoading,
@@ -90,14 +93,29 @@ export function ScheduledBroadcastsView() {
 
   // Inspection Modal State
   const [inspectedCampaign, setInspectedCampaign] = useState<ScheduledCampaignItem | null>(null);
+  // Notifications and approval emails deep-link straight to the campaign they mention.
+  const campaignFromLink = useMemo(
+    () => (campaignIdParam ? campaigns.find((c) => c.id === campaignIdParam) ?? null : null),
+    [campaigns, campaignIdParam],
+  );
   // Keep the modal in step with the refreshed list so approval changes show immediately.
   const inspected = useMemo(
     () =>
-      inspectedCampaign
+      campaignFromLink ??
+      (inspectedCampaign
         ? campaigns.find((c) => c.id === inspectedCampaign.id) ?? inspectedCampaign
-        : null,
-    [campaigns, inspectedCampaign],
+        : null),
+    [campaigns, inspectedCampaign, campaignFromLink],
   );
+
+  const closeInspector = () => {
+    setInspectedCampaign(null);
+    if (!campaignIdParam) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("campaign");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
 
   // Confirmation Alert Dialog States
   const [campaignToCancel, setCampaignToCancel] = useState<ScheduledCampaignItem | null>(null);
@@ -504,7 +522,7 @@ export function ScheduledBroadcastsView() {
         key={inspected?.id}
         campaign={inspected}
         isOpen={!!inspected}
-        onClose={() => setInspectedCampaign(null)}
+        onClose={closeInspector}
         onCancelSchedule={(id) => {
           const item = campaigns.find((c) => c.id === id);
           if (item) setCampaignToCancel(item);
@@ -525,7 +543,7 @@ export function ScheduledBroadcastsView() {
           if (item) setCampaignToCancelPermanently(item);
         }}
         contactLabels={contactLabels}
-        isDraft={isDraftsView}
+        isDraft={inspected?.status === "draft"}
         approvalRequired={approvalRequired}
         onSubmitForApproval={submitForApproval}
         onApprove={approveCampaign}
