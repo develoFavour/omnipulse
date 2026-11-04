@@ -31,6 +31,7 @@ import {
 } from "@/lib/services/campaign.service";
 import { getAuthToken } from "@/lib/api/axios-instance";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
+import { ClientReviewPanel } from "./ClientReviewPanel";
 
 interface LiveMissionTrackerProps {
   campaignId: string;
@@ -684,8 +685,10 @@ export function LiveMissionTracker({
             className="flex items-center gap-2 px-5 py-3 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 font-bold text-sm transition-all shadow-xs cursor-pointer"
           >
             <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-            Export Client Report (CSV)
+            Export Brand Report (CSV)
           </button>
+
+          <ClientReviewPanel campaignId={campaignId} campaignStatus={stats?.status} />
 
           <button
             onClick={async () => {

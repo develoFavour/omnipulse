@@ -17,9 +17,45 @@ import {
   Users,
 } from "lucide-react";
 import { apiMessage, apiStatus } from "@/lib/api/axios-error";
-import { reviewService, PublicReview } from "@/lib/services/review.service";
+import { reviewService, PublicReview, ReviewTrailStage } from "@/lib/services/review.service";
 
 const DECIDABLE_STATUSES = new Set(["draft", "pending_approval", "approved"]);
+const SENT_STATUSES = new Set(["scheduled", "processing", "completed", "paused", "cancelled"]);
+
+function trailEntryMeta(stage: ReviewTrailStage) {
+  switch (stage) {
+    case "submitted":
+      return {
+        title: "Submitted for internal approval",
+        tone: "bg-gray-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300",
+        Icon: Send,
+      };
+    case "approved":
+      return {
+        title: "Approved internally",
+        tone: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
+        Icon: ShieldCheck,
+      };
+    case "rejected":
+      return {
+        title: "Rejected internally",
+        tone: "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400",
+        Icon: AlertTriangle,
+      };
+    case "brand_approved":
+      return {
+        title: "Approved by brand",
+        tone: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
+        Icon: CheckCircle2,
+      };
+    default:
+      return {
+        title: "Changes requested by brand",
+        tone: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400",
+        Icon: AlertTriangle,
+      };
+  }
+}
 
 function formatDate(value?: string) {
   if (!value) return "";
@@ -133,6 +169,7 @@ export default function ClientReviewPage() {
 
   const brandInitial = review.brand.name?.trim().charAt(0).toUpperCase() || "M";
   const decided = review.decision;
+  const isReport = SENT_STATUSES.has(review.status);
 
   return (
     <main className="min-h-screen bg-[#f9fafb] px-4 py-8 dark:bg-zinc-950 sm:px-6 sm:py-12">
@@ -157,7 +194,7 @@ export default function ClientReviewPage() {
             )}
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Campaign review request
+                {isReport ? "Campaign report" : "Campaign review request"}
               </p>
               <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                 {review.brand.name || "Your agency"}
@@ -238,6 +275,41 @@ export default function ClientReviewPage() {
             <p className="text-xs text-zinc-500">no recorded opt-in</p>
           </div>
         </section>
+
+        {review.approval_trail.length > 0 && (
+          <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-8">
+            <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Review trail</h2>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+              Who sent this campaign for approval and who cleared it.
+            </p>
+            <ol className="mt-5 space-y-4">
+              {review.approval_trail.map((entry, index) => {
+                const { title, tone, Icon } = trailEntryMeta(entry.stage);
+                return (
+                  <li key={`${entry.stage}-${index}`} className="flex gap-3">
+                    <div
+                      className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${tone}`}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{title}</p>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                        {entry.actor}
+                        {entry.at ? ` · ${formatDate(entry.at)}` : ""}
+                      </p>
+                      {entry.note && (
+                        <p className="mt-2 whitespace-pre-wrap rounded-xl bg-gray-50 p-3 text-sm text-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-200">
+                          {entry.note}
+                        </p>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        )}
 
         {decided ? (
           <section
@@ -331,16 +403,16 @@ export default function ClientReviewPage() {
               </div>
             )}
           </section>
-        ) : (
+        ) : isReport ? null : (
           <section className="rounded-3xl border border-gray-200 bg-white p-6 text-sm text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
-            This campaign has moved past client review, so no action is needed.
+            This campaign has moved past brand review, so no action is needed.
           </section>
         )}
 
         {review.report && (
           <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Campaign outcome</h2>
+              <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Delivery results</h2>
               <a
                 href={reviewService.outcomeCsvUrl(token)}
                 className="flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
@@ -370,6 +442,21 @@ export default function ClientReviewPage() {
             <p className="mt-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
               Delivery rate: {review.report.delivery_rate}%
             </p>
+          </section>
+        )}
+
+        {!review.report && review.status === "scheduled" && (
+          <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Campaign report</h2>
+            <div className="mt-3 flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
+              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" />
+              <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                {review.scheduled_at
+                  ? `Scheduled to send ${formatDate(review.scheduled_at)}. `
+                  : "Scheduled to send. "}
+                Delivery results appear here once it starts sending.
+              </p>
+            </div>
           </section>
         )}
 
