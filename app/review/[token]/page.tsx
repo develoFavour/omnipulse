@@ -26,19 +26,19 @@ function trailEntryMeta(stage: ReviewTrailStage) {
   switch (stage) {
     case "submitted":
       return {
-        title: "Submitted for internal approval",
+        title: "Submitted for internal sign-off",
         tone: "bg-gray-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300",
         Icon: Send,
       };
     case "approved":
       return {
-        title: "Approved internally",
+        title: "Signed off by your agency",
         tone: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
         Icon: ShieldCheck,
       };
     case "rejected":
       return {
-        title: "Rejected internally",
+        title: "Not signed off",
         tone: "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400",
         Icon: AlertTriangle,
       };
@@ -60,8 +60,12 @@ function trailEntryMeta(stage: ReviewTrailStage) {
 function formatDate(value?: string) {
   if (!value) return "";
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
   }).format(new Date(value));
 }
 
@@ -170,6 +174,12 @@ export default function ClientReviewPage() {
   const brandInitial = review.brand.name?.trim().charAt(0).toUpperCase() || "M";
   const decided = review.decision;
   const isReport = SENT_STATUSES.has(review.status);
+  const decisionLead =
+    review.status === "approved"
+      ? "Your agency has already signed off. Approve it to confirm, or request changes before it is scheduled."
+      : review.status === "pending_approval"
+        ? "Approve to let your agency send this campaign, or ask for changes first."
+        : "Approve this campaign as ready to send, or ask for changes first.";
 
   return (
     <main className="min-h-screen bg-[#f9fafb] px-4 py-8 dark:bg-zinc-950 sm:px-6 sm:py-12">
@@ -184,7 +194,7 @@ export default function ClientReviewPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={review.brand.logo_url}
-                alt={review.brand.name || "Client logo"}
+                alt={review.brand.name || "Agency logo"}
                 className="h-11 w-11 rounded-xl object-contain"
               />
             ) : (
@@ -280,7 +290,7 @@ export default function ClientReviewPage() {
           <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-8">
             <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Review trail</h2>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Who sent this campaign for approval and who cleared it.
+              Who prepared this campaign and who signed it off inside your agency.
             </p>
             <ol className="mt-5 space-y-4">
               {review.approval_trail.map((entry, index) => {
@@ -341,9 +351,7 @@ export default function ClientReviewPage() {
         ) : canDecide ? (
           <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Your decision</h2>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Approve to let your agency send this campaign, or ask for changes first.
-            </p>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{decisionLead}</p>
 
             {actionError && (
               <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
