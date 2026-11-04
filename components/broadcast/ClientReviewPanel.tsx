@@ -27,6 +27,18 @@ interface ClientReviewPanelProps {
 }
 
 const REPORT_STATUSES = new Set(["scheduled", "processing", "completed", "paused", "cancelled"]);
+// A brand can be emailed while the campaign is still open for review, and again
+// once it has been sent. Only a rejected campaign cannot be shared.
+const EMAILABLE_STATUSES = new Set([
+	"draft",
+	"pending_approval",
+	"approved",
+	"scheduled",
+	"processing",
+	"completed",
+	"paused",
+	"cancelled",
+]);
 
 function linkState(link: ReviewLinkRecord) {
 	if (link.revoked_at) return { label: "Revoked", tone: "muted" as const };
@@ -42,6 +54,7 @@ function linkState(link: ReviewLinkRecord) {
 export function ClientReviewPanel({ campaignId, compact = false, campaignStatus }: ClientReviewPanelProps) {
 	const role = useAppStore((state) => state.user?.role);
 	const isReport = campaignStatus ? REPORT_STATUSES.has(campaignStatus) : false;
+	const canEmailBrand = campaignStatus ? EMAILABLE_STATUSES.has(campaignStatus) : false;
 	const [isOpen, setIsOpen] = useState(false);
 	const [links, setLinks] = useState<ReviewLinkRecord[]>([]);
 	const [isLoadingLinks, setIsLoadingLinks] = useState(false);
@@ -107,18 +120,18 @@ export function ClientReviewPanel({ campaignId, compact = false, campaignStatus 
 		}
 	};
 
-	const handleEmailReport = async () => {
+	const handleEmailBrand = async () => {
 		const email = emailTo.trim();
 		if (!email) return;
 		setIsEmailing(true);
 		try {
 			await reviewService.emailReport(campaignId, { email, name: contactName.trim() });
-			toast.success(`Report sent to ${email}`);
+			toast.success(`${isReport ? "Report" : "Review request"} sent to ${email}`);
 			setEmailTo("");
 			setContactName("");
 			await loadLinks();
 		} catch (err: unknown) {
-			toast.error(apiMessage(err, "Could not send the report."));
+			toast.error(apiMessage(err, "Could not send the email."));
 		} finally {
 			setIsEmailing(false);
 		}
@@ -263,10 +276,12 @@ export function ClientReviewPanel({ campaignId, compact = false, campaignStatus 
 								</div>
 							) : (
 								<div className="space-y-3">
-										{isReport && (
+										{canEmailBrand && (
 											<div className="space-y-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
 												<label className="text-xs font-semibold uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
-													Email the report to the brand
+													{isReport
+														? "Email the report to the brand"
+														: "Email the review request to the brand"}
 												</label>
 												<input
 													type="email"
@@ -284,7 +299,7 @@ export function ClientReviewPanel({ campaignId, compact = false, campaignStatus 
 													className="w-full rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-900 dark:bg-zinc-950 dark:text-zinc-100"
 												/>
 												<button
-													onClick={handleEmailReport}
+													onClick={handleEmailBrand}
 													disabled={isEmailing || emailTo.trim() === ""}
 													className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
 												>
@@ -293,16 +308,17 @@ export function ClientReviewPanel({ campaignId, compact = false, campaignStatus 
 													) : (
 														<Mail className="h-4 w-4" />
 													)}
-													Send report
+													{isReport ? "Send report" : "Send review request"}
 												</button>
 												<p className="text-[11px] leading-relaxed text-emerald-800 dark:text-emerald-400">
-													We email a secure link that expires in 14 days. Revoke it any time from
-													the list below.
+													{isReport
+														? "We email a secure link that expires in 14 days. Revoke it any time from the list below."
+														: "The brand opens the same review page and can approve or request changes. The link expires in 14 days and you can revoke it below."}
 												</p>
 											</div>
 										)}
 
-										{isReport && (
+										{canEmailBrand && (
 											<p className="pt-1 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-400">
 												or copy a link yourself
 											</p>

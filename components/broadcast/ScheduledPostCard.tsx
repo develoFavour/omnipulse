@@ -261,7 +261,7 @@ export function ScheduledPostCard({
       {/* Card Actions Footer */}
       <div className={cn(
         "flex gap-2 pt-3 border-t border-gray-100",
-        isDraft ? "flex-col sm:flex-row sm:items-center sm:justify-between" : "items-center justify-between",
+        isDraft ? "flex-col sm:flex-row sm:items-center sm:justify-between" : "flex-wrap items-center justify-between",
       )}>
         <Button
           type="button"
@@ -277,7 +277,7 @@ export function ScheduledPostCard({
         {actionsBlocked ? (
           <span
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold",
+              "ml-auto inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold",
               isRejected || brandRequestedChanges
                 ? "border-rose-200 bg-rose-50 text-rose-700"
                 : "border-amber-200 bg-amber-50 text-amber-800"
@@ -325,7 +325,7 @@ export function ScheduledPostCard({
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-1.5">
+          <div className="ml-auto flex items-center gap-1.5">
             <Button
               type="button"
               variant="outline"
