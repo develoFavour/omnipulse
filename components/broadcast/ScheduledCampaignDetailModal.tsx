@@ -483,8 +483,12 @@ export function ScheduledCampaignDetailModal({
           )}
 
           <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
-            {["draft", "pending_approval", "approved"].includes(campaign.status) && (
-              <ClientReviewPanel campaignId={campaign.id} compact />
+            {campaign.status !== "rejected" && (
+              <ClientReviewPanel
+                campaignId={campaign.id}
+                campaignStatus={campaign.status}
+                compact
+              />
             )}
             {!actionsBlocked && (
               <Button

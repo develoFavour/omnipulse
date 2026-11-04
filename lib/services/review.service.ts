@@ -46,6 +46,21 @@ export interface PublicOutcomeReport {
   generated_at: string;
 }
 
+export type ReviewTrailStage =
+  | "submitted"
+  | "approved"
+  | "rejected"
+  | "brand_approved"
+  | "brand_changes_requested";
+
+export interface PublicReviewTrailEntry {
+  stage: ReviewTrailStage;
+  actor_role: "operator" | "brand";
+  actor: string;
+  note?: string;
+  at?: string;
+}
+
 export interface PublicReview {
   campaign_id: string;
   title: string;
@@ -59,6 +74,7 @@ export interface PublicReview {
   brand: { name: string; logo_url?: string };
   expires_at: string;
   decision?: PublicReviewDecision;
+  approval_trail: PublicReviewTrailEntry[];
   report?: PublicOutcomeReport;
 }
 

@@ -22,7 +22,10 @@ import { useAppStore } from "@/lib/store";
 interface ClientReviewPanelProps {
 	campaignId: string;
 	compact?: boolean;
+	campaignStatus?: string;
 }
+
+const REPORT_STATUSES = new Set(["scheduled", "processing", "completed", "paused", "cancelled"]);
 
 function linkState(link: ReviewLinkRecord) {
 	if (link.revoked_at) return { label: "Revoked", tone: "muted" as const };
@@ -35,8 +38,9 @@ function linkState(link: ReviewLinkRecord) {
 	return { label: "Awaiting brand", tone: "neutral" as const };
 }
 
-export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewPanelProps) {
+export function ClientReviewPanel({ campaignId, compact = false, campaignStatus }: ClientReviewPanelProps) {
 	const role = useAppStore((state) => state.user?.role);
+	const isReport = campaignStatus ? REPORT_STATUSES.has(campaignStatus) : false;
 	const [isOpen, setIsOpen] = useState(false);
 	const [links, setLinks] = useState<ReviewLinkRecord[]>([]);
 	const [isLoadingLinks, setIsLoadingLinks] = useState(false);
@@ -103,7 +107,7 @@ export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewP
 		try {
 			await navigator.clipboard.writeText(url);
 			setCopied(id);
-			toast.success("Review link copied");
+			toast.success(isReport ? "Report link copied" : "Review link copied");
 			setTimeout(() => setCopied((current) => (current === id ? null : current)), 2000);
 		} catch {
 			toast.error("Your browser blocked clipboard access. Copy the link manually.");
@@ -145,7 +149,7 @@ export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewP
 				}
 			>
 				<Users className={compact ? "h-3.5 w-3.5" : "h-4 w-4 text-violet-600 dark:text-violet-400"} />
-				Brand Review
+				{isReport ? "Campaign Report" : "Brand Review"}
 			</button>
 
 			<AnimatePresence>
@@ -172,11 +176,12 @@ export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewP
 											id="brand-review-title"
 											className="text-lg font-bold text-gray-900 dark:text-zinc-50"
 										>
-											Brand review link
+											{isReport ? "Campaign report link" : "Brand review link"}
 										</h3>
 										<p className="text-xs text-gray-500 dark:text-zinc-400">
-											Share a read-only preview. Brands see the message and audience counts — never
-											names or phone numbers.
+											{isReport
+												? "Share the message, review trail and delivery results. Brands see counts — never names or phone numbers."
+												: "Share a read-only preview. Brands see the message and audience counts — never names or phone numbers."}
 										</p>
 									</div>
 								</div>
@@ -275,12 +280,12 @@ export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewP
 										) : (
 											<Link2 className="h-4 w-4" />
 										)}
-										Generate review link
+										{isReport ? "Generate report link" : "Generate review link"}
 									</button>
 									<p className="text-[11px] leading-relaxed text-gray-500 dark:text-zinc-400">
-										The brand sees the message and audience counts, never contact details. Their
-										decision is recorded here. If the campaign is awaiting internal approval, approval
-										also moves it to approved; a change request never changes the status.
+										{isReport
+											? "The report updates as the campaign sends. Revoke the link any time."
+											: "The brand sees the message and audience counts, never contact details. Their decision is recorded here. If the campaign is awaiting internal approval, approval also moves it to approved; a change request never changes the status."}
 									</p>
 								</div>
 							)}
@@ -310,7 +315,7 @@ export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewP
 
 								{!loadError && !isLoadingLinks && links.length === 0 && (
 									<p className="rounded-xl border border-dashed border-gray-200 px-3 py-4 text-center text-xs text-gray-400 dark:border-zinc-700">
-										No review links yet.
+										No links yet.
 									</p>
 								)}
 
