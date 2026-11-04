@@ -8,6 +8,7 @@ import {
 	ExternalLink,
 	Link2,
 	Loader2,
+	Mail,
 	MailCheck,
 	RefreshCw,
 	Trash2,
@@ -50,6 +51,9 @@ export function ClientReviewPanel({ campaignId, compact = false, campaignStatus 
 	const [expiresInDays, setExpiresInDays] = useState(7);
 	const [isCreating, setIsCreating] = useState(false);
 	const [newLink, setNewLink] = useState<{ token: string; label: string } | null>(null);
+	const [emailTo, setEmailTo] = useState("");
+	const [contactName, setContactName] = useState("");
+	const [isEmailing, setIsEmailing] = useState(false);
 	const [copied, setCopied] = useState<string | null>(null);
 	const [revokingId, setRevokingId] = useState<string | null>(null);
 
@@ -103,8 +107,24 @@ export function ClientReviewPanel({ campaignId, compact = false, campaignStatus 
 		}
 	};
 
-	const handleCopy = async (url: string, id: string) => {
+	const handleEmailReport = async () => {
+		const email = emailTo.trim();
+		if (!email) return;
+		setIsEmailing(true);
 		try {
+			await reviewService.emailReport(campaignId, { email, name: contactName.trim() });
+			toast.success(`Report sent to ${email}`);
+			setEmailTo("");
+			setContactName("");
+			await loadLinks();
+		} catch (err: unknown) {
+			toast.error(apiMessage(err, "Could not send the report."));
+		} finally {
+			setIsEmailing(false);
+		}
+	};
+
+	const handleCopy = async (url: string, id: string) => {		try {
 			await navigator.clipboard.writeText(url);
 			setCopied(id);
 			toast.success(isReport ? "Report link copied" : "Review link copied");
@@ -243,9 +263,53 @@ export function ClientReviewPanel({ campaignId, compact = false, campaignStatus 
 								</div>
 							) : (
 								<div className="space-y-3">
+										{isReport && (
+											<div className="space-y-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 dark:border-emerald-900 dark:bg-emerald-950/20">
+												<label className="text-xs font-semibold uppercase tracking-wide text-emerald-800 dark:text-emerald-300">
+													Email the report to the brand
+												</label>
+												<input
+													type="email"
+													value={emailTo}
+													onChange={(event) => setEmailTo(event.target.value)}
+													placeholder="brand@company.com"
+													maxLength={320}
+													className="w-full rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-900 dark:bg-zinc-950 dark:text-zinc-100"
+												/>
+												<input
+													value={contactName}
+													onChange={(event) => setContactName(event.target.value)}
+													placeholder="Contact name (optional)"
+													maxLength={120}
+													className="w-full rounded-xl border border-emerald-200 bg-white px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 dark:border-emerald-900 dark:bg-zinc-950 dark:text-zinc-100"
+												/>
+												<button
+													onClick={handleEmailReport}
+													disabled={isEmailing || emailTo.trim() === ""}
+													className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+												>
+													{isEmailing ? (
+														<Loader2 className="h-4 w-4 animate-spin" />
+													) : (
+														<Mail className="h-4 w-4" />
+													)}
+													Send report
+												</button>
+												<p className="text-[11px] leading-relaxed text-emerald-800 dark:text-emerald-400">
+													We email a secure link that expires in 14 days. Revoke it any time from
+													the list below.
+												</p>
+											</div>
+										)}
+
+										{isReport && (
+											<p className="pt-1 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+												or copy a link yourself
+											</p>
+										)}
 									<div>
 										<label className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-zinc-400">
-											Who is reviewing? (optional)
+											{isReport ? "Who is this for? (optional)" : "Who is reviewing? (optional)"}
 										</label>
 										<input
 											value={label}

@@ -9,6 +9,10 @@ export interface ReviewLink {
   expires_at: string;
 }
 
+export interface ReportEmailResult extends ReviewLink {
+  sent_to: string;
+}
+
 export interface ReviewLinkRecord {
   id: string;
   campaign_id: string;
@@ -99,6 +103,17 @@ class ReviewService {
 
   async revokeReviewLink(campaignId: string, linkId: string): Promise<void> {
     await apiClient.delete(ENDPOINTS.CAMPAIGNS.REVIEW_LINK_BY_ID(campaignId, linkId));
+  }
+
+  async emailReport(
+    campaignId: string,
+    payload: { email: string; name?: string }
+  ): Promise<ReportEmailResult> {
+    const response = await apiClient.post<ReportEmailResult>(
+      ENDPOINTS.CAMPAIGNS.REPORT_EMAIL(campaignId),
+      payload
+    );
+    return response.data;
   }
 
   async getPublicReview(token: string): Promise<PublicReview> {

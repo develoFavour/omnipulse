@@ -52,9 +52,10 @@ export const ENDPOINTS = {
 		REVIEW_LINKS: (id: string) => `${API_VERSION}/campaigns/${id}/review-links`,
 		REVIEW_LINK_BY_ID: (id: string, linkId: string) =>
 			`${API_VERSION}/campaigns/${id}/review-links/${linkId}`,
+		REPORT_EMAIL: (id: string) => `${API_VERSION}/campaigns/${id}/report-email`,
 	},
 
-	// Public client review portal (bearer token is the credential)
+	// Public brand review portal (bearer token is the credential)
 	PUBLIC_REVIEWS: {
 		BY_TOKEN: (token: string) => `${API_VERSION}/public/reviews/${token}`,
 		DECISION: (token: string) => `${API_VERSION}/public/reviews/${token}/decision`,
