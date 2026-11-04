@@ -95,11 +95,22 @@ class TeamService {
     return response.data as unknown as InvitationPreview;
   }
 
-  /** Accepts an invitation and joins the target workspace. */
-  async acceptInvitation(token: string): Promise<{ message: string; tenant: any }> {
+  /**
+   * Accepts an invitation and joins the target workspace. The optional name is
+   * persisted so campaign review trails show a person instead of a fallback.
+   */
+  async acceptInvitation(
+    token: string,
+    firstName?: string,
+    lastName?: string
+  ): Promise<{ message: string; tenant: any }> {
     const response = await apiClient.post<ApiResponse<{ message: string; tenant: any }>>(
       ENDPOINTS.INVITATIONS.ACCEPT,
-      { token }
+      {
+        token,
+        ...(firstName ? { first_name: firstName } : {}),
+        ...(lastName ? { last_name: lastName } : {}),
+      }
     );
     return response.data as unknown as { message: string; tenant: any };
   }

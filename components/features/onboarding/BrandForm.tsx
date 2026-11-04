@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -15,6 +16,16 @@ const brandFormSchema = z.object({
     .string()
     .min(2, "Must be at least 2 characters.")
     .max(50, "Must be under 50 characters."),
+  first_name: z
+    .string()
+    .trim()
+    .min(1, "Your first name is required.")
+    .max(100, "Must be under 100 characters."),
+  last_name: z
+    .string()
+    .trim()
+    .max(100, "Must be under 100 characters.")
+    .optional(),
 });
 
 type BrandFormValues = z.infer<typeof brandFormSchema>;
@@ -30,10 +41,25 @@ export function BrandForm({ onSubmit, isLoading }: BrandFormProps) {
     resolver: zodResolver(brandFormSchema),
     defaultValues: {
       workspace_name: "",
+      first_name: user?.firstName || "",
+      last_name: user?.lastName || "",
     },
   });
 
+  // Clerk's user object can resolve after the form mounts; fill the name once
+  // it arrives without clobbering anything the user has already typed.
+  useEffect(() => {
+    if (!user) return;
+    if (!form.getValues("first_name") && user.firstName) {
+      form.setValue("first_name", user.firstName);
+    }
+    if (!form.getValues("last_name") && user.lastName) {
+      form.setValue("last_name", user.lastName);
+    }
+  }, [user, form]);
+
   const watchedName = form.watch("workspace_name");
+  const watchedFirstName = form.watch("first_name");
   const email = user?.primaryEmailAddress?.emailAddress || "your email";
 
   return (
@@ -54,6 +80,34 @@ export function BrandForm({ onSubmit, isLoading }: BrandFormProps) {
         />
         <p className="text-xs font-medium text-[#868685]">
           This will be displayed in your multi-channel broadcast header and studio.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label
+          htmlFor="first_name"
+          className="text-xs font-bold uppercase tracking-wider text-[#163300]"
+        >
+          Your Name
+        </Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Input
+            id="first_name"
+            placeholder="First name"
+            autoComplete="given-name"
+            className="h-12 bg-[#f4f5f2] border-[#e8ebe6] text-[#0e0f0c] placeholder:text-[#868685] rounded-xl focus-visible:ring-2 focus-visible:ring-[#9fe870]/50 focus-visible:border-[#163300] focus:bg-white text-sm font-medium transition-all shadow-none"
+            {...form.register("first_name")}
+          />
+          <Input
+            id="last_name"
+            placeholder="Last name (optional)"
+            autoComplete="family-name"
+            className="h-12 bg-[#f4f5f2] border-[#e8ebe6] text-[#0e0f0c] placeholder:text-[#868685] rounded-xl focus-visible:ring-2 focus-visible:ring-[#9fe870]/50 focus-visible:border-[#163300] focus:bg-white text-sm font-medium transition-all shadow-none"
+            {...form.register("last_name")}
+          />
+        </div>
+        <p className="text-xs font-medium text-[#868685]">
+          Shown on campaign review trails when you sign off for your agency.
         </p>
       </div>
 
@@ -103,7 +157,7 @@ export function BrandForm({ onSubmit, isLoading }: BrandFormProps) {
       <Button
         type="submit"
         className="w-full h-12 rounded-full bg-[#9fe870] hover:bg-[#8ee05c] text-[#163300] font-black text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
-        disabled={isLoading || !watchedName.trim()}
+        disabled={isLoading || !watchedName.trim() || !watchedFirstName?.trim()}
       >
         {isLoading ? (
           <>

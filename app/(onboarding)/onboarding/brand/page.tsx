@@ -15,10 +15,14 @@ export default function BrandSetupPage() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const updateBrand = useAppStore((state) => state.updateBrand);
 
-	const handleBrandSubmit = async (data: { workspace_name: string }) => {
+	const handleBrandSubmit = async (data: {
+		workspace_name: string;
+		first_name: string;
+		last_name?: string;
+	}) => {
 		setIsSubmitting(true);
 		try {
-			await updateBrand(data.workspace_name);
+			await updateBrand(data.workspace_name, data.first_name, data.last_name);
 
 			toast.success("Workspace provisioned", {
 				description: `"${data.workspace_name}" is ready.`,

@@ -20,6 +20,8 @@ import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useAppStore } from "@/lib/store";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function InviteContent() {
   const searchParams = useSearchParams();
@@ -34,6 +36,12 @@ function InviteContent() {
   const [preview, setPreview] = useState<InvitationPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [accepting, setAccepting] = useState(false);
+  // null means "not edited yet" so the signed-in Clerk name can prefill
+  // whenever it resolves, without an effect or clobbering typed input.
+  const [firstNameInput, setFirstNameInput] = useState<string | null>(null);
+  const [lastNameInput, setLastNameInput] = useState<string | null>(null);
+  const firstName = firstNameInput ?? user?.firstName ?? "";
+  const lastName = lastNameInput ?? user?.lastName ?? "";
 
   useEffect(() => {
     if (!token) {
@@ -66,9 +74,18 @@ function InviteContent() {
       return;
     }
 
+    if (!firstName.trim()) {
+      toast.error("Add your first name before joining");
+      return;
+    }
+
     setAccepting(true);
     try {
-      const res = await teamService.acceptInvitation(token);
+      const res = await teamService.acceptInvitation(
+        token,
+        firstName.trim(),
+        lastName.trim() || undefined
+      );
 	  // Refresh the active tenant in the client store before entering the
 	  // dashboard so tenant-scoped resources (including channels) use the
 	  // workspace that was just joined.
@@ -184,6 +201,36 @@ function InviteContent() {
             </span>
           </div>
         </div>
+
+        {/* Name capture — keeps the review trail human-readable */}
+        {isSignedIn && (
+          <div className="space-y-2">
+            <Label htmlFor="first_name" className="text-xs font-semibold text-gray-700">
+              Your name
+            </Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Input
+                id="first_name"
+                placeholder="First name"
+                autoComplete="given-name"
+                value={firstName}
+                onChange={(e) => setFirstNameInput(e.target.value)}
+                className="h-11 rounded-xl border-gray-200 bg-white text-sm"
+              />
+              <Input
+                id="last_name"
+                placeholder="Last name (optional)"
+                autoComplete="family-name"
+                value={lastName}
+                onChange={(e) => setLastNameInput(e.target.value)}
+                className="h-11 rounded-xl border-gray-200 bg-white text-sm"
+              />
+            </div>
+            <p className="text-[11px] text-gray-500">
+              Shown on campaign review trails when you sign off for this workspace.
+            </p>
+          </div>
+        )}
 
         {/* User state message */}
         {isSignedIn ? (

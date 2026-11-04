@@ -6,6 +6,8 @@ export interface SyncResponse {
     id: string;
     clerk_id: string;
     email: string;
+    first_name?: string;
+    last_name?: string;
     role: string;
   };
   tenant: {
@@ -30,12 +32,21 @@ class AuthService {
   }
 
   /**
-   * Updates the company/workspace name during onboarding.
+   * Updates the company/workspace name during onboarding, optionally saving
+   * the owner's name so campaign review trails show a real person.
    */
-  async updateBrand(companyName: string): Promise<{ message: string }> {
+  async updateBrand(
+    companyName: string,
+    firstName?: string,
+    lastName?: string
+  ): Promise<{ message: string }> {
     const response = await apiClient.patch<{ message: string }>(
       ENDPOINTS.ONBOARDING.BRAND,
-      { company_name: companyName }
+      {
+        company_name: companyName,
+        ...(firstName ? { first_name: firstName } : {}),
+        ...(lastName ? { last_name: lastName } : {}),
+      }
     );
     return response.data;
   }
