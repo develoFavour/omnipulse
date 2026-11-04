@@ -19,6 +19,7 @@ import {
 import { FaTelegram, FaWhatsapp } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { usePermissions } from "@/lib/hooks/usePermissions";
 
 interface ScheduledPostCardProps {
   campaign: ScheduledCampaignItem;
@@ -44,6 +45,8 @@ export function ScheduledPostCard({
   isDispatching,
 }: ScheduledPostCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { role } = usePermissions();
+  const canReview = role === "owner" || role === "admin";
 
   const scheduledDate = campaign.scheduled_at ? new Date(campaign.scheduled_at) : null;
   const isDraft = variant === "draft";
@@ -66,7 +69,9 @@ export function ScheduledPostCard({
     : isRejected
     ? "Rejected"
     : isPendingApproval
-    ? "Awaiting approval"
+    ? canReview
+      ? "Awaiting your approval"
+      : "Awaiting approval"
     : isApproved
     ? "Approved"
     : campaign.isPastDue
@@ -108,7 +113,9 @@ export function ScheduledPostCard({
     : brandRequestedChanges
     ? "Changes requested"
     : isPendingApproval
-    ? "Awaiting approval"
+    ? canReview
+      ? "Awaiting your approval"
+      : "Awaiting approval"
     : "Approval required";
 
   return (

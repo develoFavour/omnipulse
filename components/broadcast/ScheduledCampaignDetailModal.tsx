@@ -125,7 +125,7 @@ export function ScheduledCampaignDetailModal({
     };
   } else if (status === "pending_approval") {
     banner = {
-      title: "Awaiting approval",
+      title: canReview ? "Awaiting your approval" : "Awaiting approval",
       body: canReview
         ? "Review the message and audience, then approve or reject it below."
         : "An Owner or Admin must approve this campaign before it can be scheduled or sent.",
@@ -166,9 +166,9 @@ export function ScheduledCampaignDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[min(92vw,960px)] !max-w-none max-h-[calc(100vh-2rem)] min-w-0 bg-white border border-gray-200/90 shadow-2xl rounded-3xl p-0 overflow-hidden">
+      <DialogContent className="!flex w-[min(92vw,960px)] !max-w-none max-h-[calc(100dvh-1.5rem)] min-w-0 flex-col !gap-0 overflow-hidden bg-white border border-gray-200/90 shadow-2xl rounded-3xl p-0">
         {/* Header Ribbon */}
-        <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-[#9fe870]/20 border-b border-amber-200/50 p-6 pb-5">
+        <div className="shrink-0 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-[#9fe870]/20 border-b border-amber-200/50 p-6 pb-5">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${headerBadgeTone}`}>
@@ -176,7 +176,9 @@ export function ScheduledCampaignDetailModal({
                 {isDraft
                   ? "Saved Draft"
                   : status === "pending_approval"
-                  ? "Awaiting Approval"
+                  ? canReview
+                    ? "Awaiting Your Approval"
+                    : "Awaiting Approval"
                   : status === "approved"
                   ? "Approved Campaign"
                   : isRejected
@@ -205,7 +207,7 @@ export function ScheduledCampaignDetailModal({
         </div>
 
         {/* Content Body */}
-        <div className="min-w-0 p-6 space-y-6 max-h-[68vh] overflow-x-hidden overflow-y-auto">
+        <div className="min-h-0 flex-1 min-w-0 p-6 space-y-6 overflow-x-hidden overflow-y-auto">
           {/* Schedule Timing Card */}
           <div className="bg-amber-50/60 border border-amber-200/70 rounded-2xl p-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -453,7 +455,7 @@ export function ScheduledCampaignDetailModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+        <div className="shrink-0 p-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
           {status === "scheduled" && (
             <Button
               type="button"

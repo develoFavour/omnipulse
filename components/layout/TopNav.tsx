@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { 
   Bell, ExternalLink, ChevronDown, 
   CheckCircle2, Circle, Send,
   CheckCheck, AlertTriangle, Radio, UserMinus, Users,
-  Building2, Plus, Loader2, Crown, Shield, User as UserIcon,
+  Building2, Plus, Loader2, Crown, Shield, ShieldCheck, User as UserIcon,
   Check, ChevronsUpDown, Menu
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
@@ -25,6 +26,7 @@ interface TopNavProps {
 }
 
 export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
+  const router = useRouter();
   const tenant = useAppStore((state) => state.tenant);
   const workspaces = useAppStore((state) => state.workspaces);
   const loadWorkspaces = useAppStore((state) => state.loadWorkspaces);
@@ -600,13 +602,21 @@ export function TopNav({ onMobileMenuClick }: TopNavProps = {}) {
                             if (!item.is_read) {
                               markRead(item.id);
                             }
+                            if (item.type === "campaign_pending_approval") {
+                              setShowNotifications(false);
+                              router.push(APP_ROUTES.DASHBOARD.SCHEDULED);
+                            }
                           }}
                           className={`py-2.5 px-2 flex items-start gap-3 rounded-lg transition-colors cursor-pointer ${
                             !item.is_read ? "bg-[#e2f6d5]/40 hover:bg-[#e2f6d5]/70" : "hover:bg-gray-50"
                           }`}
                         >
                           <div className="mt-0.5">
-                            {item.type === "campaign_completed" ? (
+                            {item.type === "campaign_pending_approval" ? (
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+                                <ShieldCheck className="h-4 w-4" />
+                              </div>
+                            ) : item.type === "campaign_completed" ? (
                               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
                                 <CheckCircle2 className="h-4 w-4" />
                               </div>
