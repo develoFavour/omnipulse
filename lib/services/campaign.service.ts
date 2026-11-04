@@ -28,6 +28,7 @@ export interface CampaignResponse {
   approved_by?: string;
   approved_at?: string;
   rejection_reason?: string;
+  latest_review_decision?: string;
   total_targets: number;
   processed_targets: number;
   created_at: string;
@@ -97,6 +98,24 @@ export interface RetryDeliveriesResponse {
   message: string;
   retried: number;
   total_tasks: number;
+}
+
+export interface PreflightReason {
+  code: string;
+  count: number;
+  message: string;
+}
+
+export interface CampaignPreflight {
+  campaign_id: string;
+  status: string;
+  total_targets: number;
+  sendable: number;
+  opted_out: number;
+  no_consent: number;
+  quiet_hours: number;
+  blocked: number;
+  reasons: PreflightReason[];
 }
 
 class CampaignService {
@@ -232,6 +251,27 @@ class CampaignService {
       ENDPOINTS.CAMPAIGNS.HEALTH(campaignId)
     );
     return response.data as unknown as CampaignHealth;
+  }
+
+  async getPreflight(campaignId: string): Promise<CampaignPreflight> {
+    const response = await apiClient.post<ApiResponse<CampaignPreflight>>(
+      ENDPOINTS.CAMPAIGNS.PREFLIGHT(campaignId)
+    );
+    return response.data as unknown as CampaignPreflight;
+  }
+
+  async exportConsentBundle(campaignId: string): Promise<void> {
+    const response = await apiClient.get(ENDPOINTS.CAMPAIGNS.CONSENT_EXPORT(campaignId), {
+      responseType: "blob",
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data as BlobPart], { type: "text/csv" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `campaign-consent-${campaignId.slice(0, 8)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   }
 
   async retryDeliveries(campaignId: string, deliveryIds?: string[]): Promise<RetryDeliveriesResponse> {

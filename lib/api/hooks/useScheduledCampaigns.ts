@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { campaignService, CampaignResponse } from "@/lib/services/campaign.service";
+import { approvalSettingsService } from "@/lib/services/approval-settings.service";
+import { apiMessage } from "@/lib/api/axios-error";
 import { toast } from "sonner";
 
 export interface ScheduledCampaignItem extends CampaignResponse {
@@ -90,19 +92,29 @@ export function useScheduledCampaigns() {
   const [deletingDraftId, setDeletingDraftId] = useState<string | null>(null);
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
   const [dispatchingId, setDispatchingId] = useState<string | null>(null);
+  const [approvalRequired, setApprovalRequired] = useState(false);
+  const [submittingApprovalId, setSubmittingApprovalId] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
 
   const fetchScheduled = useCallback(async (isSilent = false) => {
     if (!isSilent) setIsRefreshing(true);
     setError(null);
     try {
-      const [scheduledData, pendingData, draftData] = await Promise.all([
+      const [scheduledData, pendingData, draftData, approvedData, rejectedData, settings] = await Promise.all([
         campaignService.getCampaigns("scheduled", 1, 100),
         campaignService.getCampaigns("pending_approval", 1, 100).catch(() => []),
         campaignService.getCampaigns("draft", 1, 100).catch(() => []),
+        campaignService.getCampaigns("approved", 1, 100).catch(() => []),
+        campaignService.getCampaigns("rejected", 1, 100).catch(() => []),
+        approvalSettingsService.get().catch(() => null),
       ]);
+      setApprovalRequired(Boolean(settings?.require_campaign_approval));
       const combined = [
         ...(draftData || []),
+        ...(rejectedData || []),
         ...(pendingData || []),
+        ...(approvedData || []),
         ...(scheduledData || []),
       ];
       const enriched = combined.map(enrichCampaign);
@@ -231,33 +243,54 @@ export function useScheduledCampaigns() {
     }
   };
 
+  const submitForApproval = async (campaignId: string) => {
+    setSubmittingApprovalId(campaignId);
+    try {
+      await campaignService.submitForApproval(campaignId);
+      await fetchScheduled(true);
+      toast.success("Submitted for approval", {
+        description: "An Owner or Admin must approve this campaign before it can be scheduled or sent.",
+      });
+      return true;
+    } catch (err: unknown) {
+      toast.error(apiMessage(err, "Failed to submit campaign for approval"));
+      return false;
+    } finally {
+      setSubmittingApprovalId(null);
+    }
+  };
+
   const approveCampaign = async (campaignId: string) => {
+    setApprovingId(campaignId);
     try {
       await campaignService.approveCampaign(campaignId);
+      await fetchScheduled(true);
       toast.success("Campaign approved successfully!", {
         description: "Campaign status updated to approved.",
       });
-      fetchScheduled(true);
       return true;
-    } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || "Failed to approve campaign";
-      toast.error(msg);
+    } catch (err: unknown) {
+      toast.error(apiMessage(err, "Failed to approve campaign"));
       return false;
+    } finally {
+      setApprovingId(null);
     }
   };
 
   const rejectCampaign = async (campaignId: string, reason: string) => {
+    setRejectingId(campaignId);
     try {
       await campaignService.rejectCampaign(campaignId, reason);
+      await fetchScheduled(true);
       toast.success("Campaign rejected", {
         description: "The campaign draft has been marked as rejected with reason.",
       });
-      fetchScheduled(true);
       return true;
-    } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || "Failed to reject campaign";
-      toast.error(msg);
+    } catch (err: unknown) {
+      toast.error(apiMessage(err, "Failed to reject campaign"));
       return false;
+    } finally {
+      setRejectingId(null);
     }
   };
 
@@ -266,17 +299,22 @@ export function useScheduledCampaigns() {
     isLoading,
     isRefreshing,
     error,
+    approvalRequired,
     cancellingId,
     permanentlyCancellingId,
     deletingDraftId,
     schedulingId,
     dispatchingId,
+    submittingApprovalId,
+    approvingId,
+    rejectingId,
     refetch: () => fetchScheduled(false),
     cancelSchedule,
     cancelCampaignPermanently,
     deleteDraft,
     scheduleDraft,
     dispatchNow,
+    submitForApproval,
     approveCampaign,
     rejectCampaign,
   };

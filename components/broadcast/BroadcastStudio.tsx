@@ -31,6 +31,9 @@ import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
 import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
 import { useCampaigns } from "@/lib/api/hooks/useCampaigns";
 import { channelService } from "@/lib/services/channel.service";
+import { campaignService, type CampaignPreflight } from "@/lib/services/campaign.service";
+import { approvalSettingsService } from "@/lib/services/approval-settings.service";
+import { DispatchPreflightModal } from "./DispatchPreflightModal";
 import { WhatsAppQRModal } from "@/components/channels/WhatsAppQRModal";
 import { TelegramConnectionForm } from "@/components/features/onboarding/TelegramConnectionForm";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
@@ -120,6 +123,22 @@ export function BroadcastStudio() {
 	const [title, setTitle] = useState("");
 	const [messageBody, setMessageBody] = useState("");
 	const [mediaUrl, setMediaUrl] = useState("");
+	const [approvalRequired, setApprovalRequired] = useState(false);
+
+	useEffect(() => {
+		let cancelled = false;
+		approvalSettingsService
+			.get()
+			.then((settings) => {
+				if (!cancelled) setApprovalRequired(settings.require_campaign_approval);
+			})
+			.catch(() => {
+				if (!cancelled) setApprovalRequired(false);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, []);
 	const [selectedPlacements, setSelectedPlacements] = useState<
 		ChannelPlacement[]
 	>(["telegram_dm", "telegram_channel"]);
@@ -129,6 +148,10 @@ export function BroadcastStudio() {
 	// Contact-specific targeting: empty array = send to all eligible contacts
 	const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
 	const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+	const [isPreflightOpen, setIsPreflightOpen] = useState(false);
+	const [isPreflightLoading, setIsPreflightLoading] = useState(false);
+	const [preflight, setPreflight] = useState<CampaignPreflight | null>(null);
+	const [pendingCampaignId, setPendingCampaignId] = useState<string | null>(null);
 	const [dispatched, setDispatched] = useState(false);
 	const [dispatchedCampaignId, setDispatchedCampaignId] = useState<string>("");
 
@@ -503,9 +526,63 @@ export function BroadcastStudio() {
 		try {
 			const campaign = await createCampaign(buildCampaignPayload());
 
-			await dispatchCampaign(campaign.id);
-			setDispatchedCampaignId(campaign.id);
+			if (approvalRequired) {
+				await campaignService.submitForApproval(campaign.id);
+				toast.success("Campaign submitted for approval", {
+					description:
+						"An Owner or Admin must approve it before it can be scheduled or sent. Track it in the Scheduled Queue.",
+				});
+				router.push(APP_ROUTES.DASHBOARD.SCHEDULED);
+				return;
+			}
+
+			// Nothing is sent until the operator reviews the preflight breakdown.
+			setPendingCampaignId(campaign.id);
+			setPreflight(null);
+			setIsPreflightOpen(true);
+			setIsPreflightLoading(true);
+			try {
+				setPreflight(await campaignService.getPreflight(campaign.id));
+			} catch (preflightErr: any) {
+				setIsPreflightOpen(false);
+				setPendingCampaignId(null);
+				toast.error("Saved as draft — pre-send check failed", {
+					description:
+						preflightErr.response?.data?.error ||
+						"Dispatch it from the Scheduled Queue once the check succeeds.",
+				});
+			} finally {
+				setIsPreflightLoading(false);
+			}
+		} catch (err: any) {
+			const msg =
+				err.response?.data?.error ||
+				err.message ||
+				"Failed to dispatch broadcast";
+			if (
+				err.response?.status === 402 ||
+				msg.toLowerCase().includes("monthly broadcast limit") ||
+				msg.toLowerCase().includes("quota")
+			) {
+				openUpgradeModal({
+					featureName: "Monthly Broadcast Quota",
+					title: "Monthly Broadcast Limit Exceeded",
+					description: msg,
+					recommendedTier: "growth",
+				});
+			}
+			toast.error(msg);
+		}
+	};
+
+	const handleConfirmDispatch = async () => {
+		if (!pendingCampaignId) return;
+		try {
+			await dispatchCampaign(pendingCampaignId);
+			setDispatchedCampaignId(pendingCampaignId);
 			setDispatched(true);
+			setIsPreflightOpen(false);
+			setPendingCampaignId(null);
 			toast.success("Broadcast dispatched successfully!");
 
 			// If user also targeted WhatsApp Story, prompt them to post it
@@ -531,6 +608,15 @@ export function BroadcastStudio() {
 			}
 			toast.error(msg);
 		}
+	};
+
+	const handleCancelPreflight = () => {
+		setIsPreflightOpen(false);
+		setPendingCampaignId(null);
+		setPreflight(null);
+		toast.success("Broadcast saved as draft", {
+			description: "Dispatch it from the Scheduled Queue when you're ready.",
+		});
 	};
 
 	const handleSchedule = async () => {
@@ -581,6 +667,17 @@ export function BroadcastStudio() {
 
 		try {
 			const campaign = await createCampaign(buildCampaignPayload());
+
+			if (approvalRequired) {
+				await campaignService.submitForApproval(campaign.id);
+				setIsScheduleModalOpen(false);
+				toast.success("Campaign submitted for approval", {
+					description:
+						"An Owner or Admin must approve it before it can be scheduled. You can set the send time from the Scheduled Queue afterwards.",
+				});
+				router.push(APP_ROUTES.DASHBOARD.SCHEDULED);
+				return;
+			}
 
 			await scheduleCampaign(campaign.id, scheduledDate);
 			setScheduledCampaignTitle(title.trim());
@@ -705,8 +802,13 @@ export function BroadcastStudio() {
 					<button
 						type="button"
 						onClick={() => setIsScheduleModalOpen(true)}
-						title="Schedule for later"
-						className="h-10 inline-flex items-center gap-2 px-3.5 rounded-xl border border-gray-200 bg-white font-semibold text-xs text-gray-700 hover:border-amber-300 hover:bg-amber-50/50 hover:text-amber-800 transition-all whitespace-nowrap shadow-2xs"
+						disabled={approvalRequired}
+						title={
+							approvalRequired
+								? "This workspace requires approval before a campaign can be scheduled"
+								: "Schedule for later"
+						}
+						className="h-10 inline-flex items-center gap-2 px-3.5 rounded-xl border border-gray-200 bg-white font-semibold text-xs text-gray-700 hover:border-amber-300 hover:bg-amber-50/50 hover:text-amber-800 transition-all whitespace-nowrap shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:bg-white disabled:hover:text-gray-700"
 					>
 						<CalendarClock className="h-3.5 w-3.5 text-gray-500" />
 						Schedule
@@ -748,12 +850,14 @@ export function BroadcastStudio() {
 						{isDispatching || isCreating ? (
 							<>
 								<Loader2 className="h-3.5 w-3.5 animate-spin" />
-								Transmitting...
+								{approvalRequired ? "Submitting..." : "Transmitting..."}
 							</>
 						) : (
 							<>
 								<Rocket className="h-3.5 w-3.5" />
-								Launch Broadcast ({targetCount.toLocaleString()})
+								{approvalRequired
+									? `Submit for Approval (${targetCount.toLocaleString()})`
+									: `Launch Broadcast (${targetCount.toLocaleString()})`}
 							</>
 						)}
 					</button>
@@ -1082,6 +1186,15 @@ export function BroadcastStudio() {
 					setIsWhatsAppQRModalOpen(false);
 					await refetchChannels();
 				}}
+			/>
+
+			<DispatchPreflightModal
+				isOpen={isPreflightOpen}
+				preflight={preflight}
+				isLoading={isPreflightLoading}
+				isDispatching={isDispatching}
+				onConfirm={handleConfirmDispatch}
+				onCancel={handleCancelPreflight}
 			/>
 
 			{/* In-Studio Telegram Bot Modal */}

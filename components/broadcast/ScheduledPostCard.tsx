@@ -14,6 +14,7 @@ import {
   Radio,
   Sparkles,
   AlertCircle,
+  Lock,
 } from "lucide-react";
 import { FaTelegram, FaWhatsapp } from "react-icons/fa";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button";
 interface ScheduledPostCardProps {
   campaign: ScheduledCampaignItem;
   variant?: "scheduled" | "draft";
+  approvalRequired?: boolean;
   onInspect: (campaign: ScheduledCampaignItem) => void;
   onRequestCancel: (campaign: ScheduledCampaignItem) => void;
   onRequestDispatch: (campaign: ScheduledCampaignItem) => void;
@@ -33,6 +35,7 @@ interface ScheduledPostCardProps {
 export function ScheduledPostCard({
   campaign,
   variant = "scheduled",
+  approvalRequired = false,
   onInspect,
   onRequestCancel,
   onRequestDispatch,
@@ -46,6 +49,67 @@ export function ScheduledPostCard({
   const isDraft = variant === "draft";
   const isUrgent = campaign.timeRemainingMs > 0 && campaign.timeRemainingMs < 1000 * 60 * 60; // < 1 hour
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+
+  const status = campaign.status;
+  const isRejected = status === "rejected";
+  const isPendingApproval = status === "pending_approval";
+  const isApproved = status === "approved";
+  const brandRequestedChanges = campaign.latest_review_decision === "changes_requested";
+  const awaitingApproval =
+    approvalRequired && status !== "approved" && status !== "scheduled";
+  const actionsBlocked = isRejected || brandRequestedChanges || awaitingApproval;
+
+  const statusLabel = isDraft
+    ? "Draft"
+    : brandRequestedChanges
+    ? "Changes requested"
+    : isRejected
+    ? "Rejected"
+    : isPendingApproval
+    ? "Awaiting approval"
+    : isApproved
+    ? "Approved"
+    : campaign.isPastDue
+    ? "Due Now"
+    : "Scheduled";
+
+  const badgeTone =
+    isDraft
+      ? "bg-gray-100 text-gray-700 border border-gray-200"
+      : isRejected || brandRequestedChanges
+      ? "bg-rose-50 text-rose-700 border border-rose-200"
+      : isPendingApproval
+      ? "bg-amber-100 text-amber-800 border border-amber-300"
+      : isApproved
+      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+      : campaign.isPastDue
+      ? "bg-rose-50 text-rose-700 border border-rose-200"
+      : isUrgent
+      ? "bg-amber-100 text-amber-800 border border-amber-300"
+      : "bg-amber-50 text-amber-700 border border-amber-200";
+
+  const dotTone =
+    isDraft
+      ? "bg-gray-500"
+      : isRejected || brandRequestedChanges
+      ? "bg-rose-500 animate-pulse"
+      : isPendingApproval
+      ? "bg-amber-600 animate-ping"
+      : isApproved
+      ? "bg-emerald-500"
+      : campaign.isPastDue
+      ? "bg-rose-500 animate-pulse"
+      : isUrgent
+      ? "bg-amber-600 animate-ping"
+      : "bg-amber-500";
+
+  const blockedLabel = isRejected
+    ? "Rejected"
+    : brandRequestedChanges
+    ? "Changes requested"
+    : isPendingApproval
+    ? "Awaiting approval"
+    : "Approval required";
 
   return (
     <div
@@ -64,28 +128,11 @@ export function ScheduledPostCard({
           <span
             className={cn(
               "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase",
-              isDraft
-                ? "bg-gray-100 text-gray-700 border border-gray-200"
-                : campaign.isPastDue
-                ? "bg-rose-50 text-rose-700 border border-rose-200"
-                : isUrgent
-                ? "bg-amber-100 text-amber-800 border border-amber-300"
-                : "bg-amber-50 text-amber-700 border border-amber-200"
+              badgeTone
             )}
           >
-            <span
-              className={cn(
-                "h-2 w-2 rounded-full",
-                isDraft
-                  ? "bg-gray-500"
-                  : campaign.isPastDue
-                  ? "bg-rose-500 animate-pulse"
-                  : isUrgent
-                  ? "bg-amber-600 animate-ping"
-                  : "bg-amber-500"
-              )}
-            />
-            {isDraft ? "Draft" : campaign.isPastDue ? "Due Now" : "Scheduled"}
+            <span className={cn("h-2 w-2 rounded-full", dotTone)} />
+            {statusLabel}
           </span>
 
           {/* Countdown Pill */}
@@ -220,7 +267,20 @@ export function ScheduledPostCard({
           Inspect Details
         </Button>
 
-        {isDraft ? (
+        {actionsBlocked ? (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold",
+              isRejected || brandRequestedChanges
+                ? "border-rose-200 bg-rose-50 text-rose-700"
+                : "border-amber-200 bg-amber-50 text-amber-800"
+            )}
+            title="Open details to submit or approve this campaign"
+          >
+            <Lock className="h-3 w-3" />
+            {blockedLabel}
+          </span>
+        ) : isDraft ? (
           <div className="relative">
             <Button
               type="button"
