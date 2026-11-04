@@ -5,7 +5,7 @@ import { AuthState } from "./authSlice";
 export interface OnboardingState {
   isOnboarding: boolean;
   onboardingError: string | null;
-  updateBrand: (name: string) => Promise<void>;
+  updateBrand: (name: string, firstName?: string, lastName?: string) => Promise<void>;
   completeOnboarding: () => Promise<void>;
 }
 
@@ -13,15 +13,19 @@ export const createOnboardingSlice: StateCreator<OnboardingState & AuthState, []
   isOnboarding: false,
   onboardingError: null,
 
-  updateBrand: async (name: string) => {
+  updateBrand: async (name: string, firstName?: string, lastName?: string) => {
     set({ isOnboarding: true, onboardingError: null });
     try {
-      await authService.updateBrand(name);
-      // Patch the tenant name in the auth slice immediately so the UI
+      await authService.updateBrand(name, firstName, lastName);
+      // Patch the tenant and user in the auth slice immediately so the UI
       // reflects the real workspace name without requiring a page reload.
       set((state: any) => ({
         isOnboarding: false,
         tenant: state.tenant ? { ...state.tenant, company_name: name } : state.tenant,
+        user:
+          state.user && firstName
+            ? { ...state.user, first_name: firstName, last_name: lastName ?? "" }
+            : state.user,
         workspaces: (state.workspaces ?? []).map((w: any) =>
           w.is_active ? { ...w, company_name: name } : w
         ),
