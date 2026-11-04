@@ -32,7 +32,7 @@ function linkState(link: ReviewLinkRecord) {
 	if (new Date(link.expires_at).getTime() < Date.now())
 		return { label: "Expired", tone: "muted" as const };
 	if (link.last_viewed_at) return { label: "Viewed", tone: "sky" as const };
-	return { label: "Awaiting client", tone: "neutral" as const };
+	return { label: "Awaiting brand", tone: "neutral" as const };
 }
 
 export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewPanelProps) {
@@ -145,7 +145,7 @@ export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewP
 				}
 			>
 				<Users className={compact ? "h-3.5 w-3.5" : "h-4 w-4 text-violet-600 dark:text-violet-400"} />
-				Client Review
+				Brand Review
 			</button>
 
 			<AnimatePresence>
@@ -154,7 +154,7 @@ export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewP
 						className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
 						role="dialog"
 						aria-modal="true"
-						aria-labelledby="client-review-title"
+						aria-labelledby="brand-review-title"
 					>
 						<motion.div
 							initial={{ opacity: 0, scale: 0.96 }}
@@ -169,13 +169,13 @@ export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewP
 									</div>
 									<div>
 										<h3
-											id="client-review-title"
+											id="brand-review-title"
 											className="text-lg font-bold text-gray-900 dark:text-zinc-50"
 										>
-											Client review link
+											Brand review link
 										</h3>
 										<p className="text-xs text-gray-500 dark:text-zinc-400">
-											Share a read-only preview. Clients see the message and audience counts — never
+											Share a read-only preview. Brands see the message and audience counts — never
 											names or phone numbers.
 										</p>
 									</div>
@@ -278,7 +278,7 @@ export function ClientReviewPanel({ campaignId, compact = false }: ClientReviewP
 										Generate review link
 									</button>
 									<p className="text-[11px] leading-relaxed text-gray-500 dark:text-zinc-400">
-										The client sees the message and audience counts, never contact details. Their
+										The brand sees the message and audience counts, never contact details. Their
 										decision is recorded here. If the campaign is awaiting internal approval, approval
 										also moves it to approved; a change request never changes the status.
 									</p>

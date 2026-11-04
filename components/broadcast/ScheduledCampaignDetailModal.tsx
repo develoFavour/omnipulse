@@ -486,17 +486,18 @@ export function ScheduledCampaignDetailModal({
             {["draft", "pending_approval", "approved"].includes(campaign.status) && (
               <ClientReviewPanel campaignId={campaign.id} compact />
             )}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onSchedule(campaign.id)}
-              disabled={isCancelling || isDispatching || isPermanentlyCancelling || actionsBlocked}
-              title={actionsBlocked ? "This campaign must be approved before it can be scheduled." : undefined}
-              className="flex-1 sm:flex-initial min-w-[92px] text-xs font-bold text-amber-700 border-amber-200 hover:bg-amber-50 disabled:opacity-50"
-            >
-              <Calendar className="h-4 w-4 mr-1.5" />
-              Schedule
-            </Button>
+            {!actionsBlocked && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onSchedule(campaign.id)}
+                disabled={isCancelling || isDispatching || isPermanentlyCancelling}
+                className="flex-1 sm:flex-initial min-w-[92px] text-xs font-bold text-amber-700 border-amber-200 hover:bg-amber-50 disabled:opacity-50"
+              >
+                <Calendar className="h-4 w-4 mr-1.5" />
+                Schedule
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
@@ -505,16 +506,17 @@ export function ScheduledCampaignDetailModal({
             >
               Close
             </Button>
-            <Button
-              type="button"
-              onClick={() => onDispatchNow(campaign.id)}
-              disabled={isCancelling || isDispatching || actionsBlocked}
-              title={actionsBlocked ? "This campaign must be approved before it can be dispatched." : undefined}
-              className="flex-1 sm:flex-initial min-w-[112px] bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white font-bold text-xs shadow-md shadow-[#163300]/20 disabled:opacity-50"
-            >
-              <Rocket className="h-4 w-4 mr-1.5" />
-              {isDispatching ? "Launching..." : "Dispatch Now"}
-            </Button>
+            {!actionsBlocked && (
+              <Button
+                type="button"
+                onClick={() => onDispatchNow(campaign.id)}
+                disabled={isCancelling || isDispatching}
+                className="flex-1 sm:flex-initial min-w-[112px] bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white font-bold text-xs shadow-md shadow-[#163300]/20 disabled:opacity-50"
+              >
+                <Rocket className="h-4 w-4 mr-1.5" />
+                {isDispatching ? "Launching..." : "Dispatch Now"}
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>
