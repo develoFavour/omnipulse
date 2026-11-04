@@ -16,6 +16,7 @@ import {
   ShieldAlert,
   ArrowRight,
   Download,
+  FileCheck2,
   Pause,
   Play,
 } from "lucide-react";
@@ -684,6 +685,22 @@ export function LiveMissionTracker({
           >
             <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             Export Client Report (CSV)
+          </button>
+
+          <button
+            onClick={async () => {
+              try {
+                await campaignService.exportConsentBundle(campaignId);
+                toast.success("Consent evidence bundle downloaded");
+              } catch (err: any) {
+                const msg = err.response?.data?.error || "Failed to export consent bundle";
+                toast.error(msg);
+              }
+            }}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl border border-sky-300 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/40 text-sky-800 dark:text-sky-300 font-bold text-sm transition-all shadow-xs cursor-pointer"
+          >
+            <FileCheck2 className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+            Export Consent Evidence (CSV)
           </button>
         </div>
 

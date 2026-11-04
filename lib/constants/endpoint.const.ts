@@ -46,6 +46,19 @@ export const ENDPOINTS = {
 		DELIVERIES: (id: string) => `${API_VERSION}/campaigns/${id}/deliveries`,
 		HEALTH: (id: string) => `${API_VERSION}/campaigns/${id}/health`,
 		RETRY_DELIVERIES: (id: string) => `${API_VERSION}/campaigns/${id}/deliveries/retry`,
+		PREFLIGHT: (id: string) => `${API_VERSION}/campaigns/${id}/preflight`,
+		CONSENT_EXPORT: (id: string) => `${API_VERSION}/campaigns/${id}/consent-export`,
+		REVIEW_LINK: (id: string) => `${API_VERSION}/campaigns/${id}/review-link`,
+		REVIEW_LINKS: (id: string) => `${API_VERSION}/campaigns/${id}/review-links`,
+		REVIEW_LINK_BY_ID: (id: string, linkId: string) =>
+			`${API_VERSION}/campaigns/${id}/review-links/${linkId}`,
+	},
+
+	// Public client review portal (bearer token is the credential)
+	PUBLIC_REVIEWS: {
+		BY_TOKEN: (token: string) => `${API_VERSION}/public/reviews/${token}`,
+		DECISION: (token: string) => `${API_VERSION}/public/reviews/${token}/decision`,
+		OUTCOME_CSV: (token: string) => `${API_VERSION}/public/reviews/${token}/outcome.csv`,
 	},
 
 	// Dashboard

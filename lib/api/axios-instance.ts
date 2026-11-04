@@ -1,7 +1,9 @@
 import axios from 'axios';
 import type { ApiEnvelope } from './response';
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+const baseURL = API_BASE_URL;
 
 export const apiClient = axios.create({
   baseURL,

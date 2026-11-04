@@ -50,17 +50,24 @@ export function ScheduledBroadcastsView() {
     campaigns,
     isLoading,
     isRefreshing,
+    approvalRequired,
     cancellingId,
     permanentlyCancellingId,
     deletingDraftId,
     schedulingId,
     dispatchingId,
+    submittingApprovalId,
+    approvingId,
+    rejectingId,
     refetch,
     cancelSchedule,
     cancelCampaignPermanently,
     deleteDraft,
     scheduleDraft,
     dispatchNow,
+    submitForApproval,
+    approveCampaign,
+    rejectCampaign,
   } = useScheduledCampaigns();
   const { contacts } = useContacts({ pageSize: 500 });
   const visibleCampaigns = useMemo(
@@ -83,6 +90,14 @@ export function ScheduledBroadcastsView() {
 
   // Inspection Modal State
   const [inspectedCampaign, setInspectedCampaign] = useState<ScheduledCampaignItem | null>(null);
+  // Keep the modal in step with the refreshed list so approval changes show immediately.
+  const inspected = useMemo(
+    () =>
+      inspectedCampaign
+        ? campaigns.find((c) => c.id === inspectedCampaign.id) ?? inspectedCampaign
+        : null,
+    [campaigns, inspectedCampaign],
+  );
 
   // Confirmation Alert Dialog States
   const [campaignToCancel, setCampaignToCancel] = useState<ScheduledCampaignItem | null>(null);
@@ -467,6 +482,7 @@ export function ScheduledBroadcastsView() {
                 <ScheduledPostCard
                   campaign={campaign}
                   variant={isDraftsView ? "draft" : "scheduled"}
+                  approvalRequired={approvalRequired}
                   onInspect={(c) => setInspectedCampaign(c)}
                   onRequestCancel={(c) => isDraftsView ? setCampaignToCancelPermanently(c) : setCampaignToCancel(c)}
                   onRequestDispatch={(c) => setCampaignToDispatch(c)}
@@ -485,8 +501,9 @@ export function ScheduledBroadcastsView() {
 
       {/* Inspect Campaign Modal */}
       <ScheduledCampaignDetailModal
-        campaign={inspectedCampaign}
-        isOpen={!!inspectedCampaign}
+        key={inspected?.id}
+        campaign={inspected}
+        isOpen={!!inspected}
         onClose={() => setInspectedCampaign(null)}
         onCancelSchedule={(id) => {
           const item = campaigns.find((c) => c.id === id);
@@ -509,9 +526,16 @@ export function ScheduledBroadcastsView() {
         }}
         contactLabels={contactLabels}
         isDraft={isDraftsView}
-        isCancelling={cancellingId === inspectedCampaign?.id}
-        isDispatching={dispatchingId === inspectedCampaign?.id}
-        isPermanentlyCancelling={permanentlyCancellingId === inspectedCampaign?.id || deletingDraftId === inspectedCampaign?.id}
+        approvalRequired={approvalRequired}
+        onSubmitForApproval={submitForApproval}
+        onApprove={approveCampaign}
+        onReject={rejectCampaign}
+        isSubmittingApproval={submittingApprovalId === inspected?.id}
+        isApproving={approvingId === inspected?.id}
+        isRejecting={rejectingId === inspected?.id}
+        isCancelling={cancellingId === inspected?.id}
+        isDispatching={dispatchingId === inspected?.id}
+        isPermanentlyCancelling={permanentlyCancellingId === inspected?.id || deletingDraftId === inspected?.id}
       />
 
       <ScheduleCampaignModal
