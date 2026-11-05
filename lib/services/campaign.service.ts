@@ -119,6 +119,8 @@ export interface CampaignPreflight {
   no_consent: number;
   quiet_hours: number;
   blocked: number;
+  unreachable: number;
+  whatsapp_connected: boolean;
   reasons: PreflightReason[];
 }
 
