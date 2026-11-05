@@ -21,6 +21,10 @@ import { FaTelegram, FaWhatsapp } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/lib/hooks/usePermissions";
+import {
+  brandChangesOutstanding,
+  brandReviewPending,
+} from "@/lib/campaign-review";
 
 interface ScheduledPostCardProps {
   campaign: ScheduledCampaignItem;
@@ -60,10 +64,13 @@ export function ScheduledPostCard({
   const isRejected = status === "rejected";
   const isPendingApproval = status === "pending_approval";
   const isApproved = status === "approved";
-  const brandRequestedChanges = campaign.latest_review_decision === "changes_requested";
+  const isScheduled = status === "scheduled";
+  const brandRequestedChanges = brandChangesOutstanding(campaign);
+  const awaitingBrandReview = brandReviewPending(campaign);
   const awaitingApproval =
     approvalRequired && status !== "approved" && status !== "scheduled";
-  const actionsBlocked = isRejected || brandRequestedChanges || awaitingApproval;
+  const actionsBlocked =
+    isRejected || brandRequestedChanges || awaitingBrandReview || awaitingApproval;
 
   const statusLabel = isDraft
     ? "Draft"
@@ -75,6 +82,8 @@ export function ScheduledPostCard({
     ? canReview
       ? "Awaiting your approval"
       : "Awaiting approval"
+    : awaitingBrandReview
+    ? "Awaiting brand review"
     : isApproved
     ? "Approved"
     : campaign.isPastDue
@@ -86,7 +95,7 @@ export function ScheduledPostCard({
       ? "bg-gray-100 text-gray-700 border border-gray-200"
       : isRejected || brandRequestedChanges
       ? "bg-rose-50 text-rose-700 border border-rose-200"
-      : isPendingApproval
+      : isPendingApproval || awaitingBrandReview
       ? "bg-amber-100 text-amber-800 border border-amber-300"
       : isApproved
       ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
@@ -101,7 +110,7 @@ export function ScheduledPostCard({
       ? "bg-gray-500"
       : isRejected || brandRequestedChanges
       ? "bg-rose-500 animate-pulse"
-      : isPendingApproval
+      : isPendingApproval || awaitingBrandReview
       ? "bg-amber-600 animate-ping"
       : isApproved
       ? "bg-emerald-500"
@@ -119,6 +128,8 @@ export function ScheduledPostCard({
     ? canReview
       ? "Awaiting your approval"
       : "Awaiting approval"
+    : awaitingBrandReview
+    ? "Awaiting brand review"
     : "Approval required";
 
   return (
@@ -339,16 +350,18 @@ export function ScheduledPostCard({
           </div>
         ) : (
           <div className="ml-auto flex items-center gap-1.5">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onRequestCancel(campaign)}
-              disabled={isCancelling || isDispatching}
-              className="h-8 px-2.5 text-xs font-bold text-rose-600 border-rose-200/80 hover:bg-rose-50 hover:text-rose-700"
-            >
-              Cancel
-            </Button>
+            {isScheduled && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onRequestCancel(campaign)}
+                disabled={isCancelling || isDispatching}
+                className="h-8 px-2.5 text-xs font-bold text-rose-600 border-rose-200/80 hover:bg-rose-50 hover:text-rose-700"
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               type="button"
               size="sm"

@@ -30,6 +30,8 @@ export interface CampaignResponse {
   rejection_reason?: string;
   latest_review_decision?: string;
   latest_review_note?: string;
+  latest_review_at?: string;
+  content_revised_at?: string;
   total_targets: number;
   processed_targets: number;
   created_at: string;

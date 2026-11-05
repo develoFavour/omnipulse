@@ -573,7 +573,7 @@ export function BroadcastStudio() {
 				await campaignService.submitForApproval(editingCampaignId);
 				toast.success("Changes saved and resubmitted", {
 					description:
-						"An Owner or Admin must approve the updated campaign, then share a fresh brand link before sending.",
+						"An Owner or Admin must approve the updated campaign. The brand's review link already shows this version.",
 				});
 				router.push(
 					`${APP_ROUTES.DASHBOARD.SCHEDULED}?campaign=${encodeURIComponent(editingCampaignId)}`,
@@ -581,7 +581,7 @@ export function BroadcastStudio() {
 			} else {
 				toast.success("Changes saved", {
 					description:
-						"Share a fresh brand link before scheduling — the previous link has already been used.",
+						"The brand's review link now shows your changes. Ask them to review the latest version before scheduling.",
 				});
 				router.push(
 					`${APP_ROUTES.DASHBOARD.SCHEDULED}?view=drafts&campaign=${encodeURIComponent(editingCampaignId)}`,

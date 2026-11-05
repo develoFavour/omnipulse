@@ -111,7 +111,7 @@ export default function ClientReviewPage() {
   }, [token]);
 
   const canDecide = useMemo(() => {
-    if (!review || review.decision) return false;
+    if (!review) return false;
     return DECIDABLE_STATUSES.has(review.status);
   }, [review]);
 
@@ -125,9 +125,7 @@ export default function ClientReviewPage() {
       setShowChanges(false);
     } catch (err: unknown) {
       setActionError(
-        apiStatus(err) === 409
-          ? "This review was already submitted."
-          : apiMessage(err, "We could not submit your review. Please try again.")
+        apiMessage(err, "We could not submit your review. Please try again.")
       );
     } finally {
       setDeciding(false);
@@ -321,7 +319,7 @@ export default function ClientReviewPage() {
           </section>
         )}
 
-        {decided ? (
+        {decided && (
           <section
             className={`rounded-3xl border p-6 shadow-sm ${
               decided.decision === "approved"
@@ -347,10 +345,19 @@ export default function ClientReviewPage() {
                 {decided.note}
               </p>
             )}
+            {review.revised_since_decision && canDecide && (
+              <p className="mt-3 rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-200">
+                Your agency has updated this campaign since this decision. Review the latest version below.
+              </p>
+            )}
           </section>
-        ) : canDecide ? (
+        )}
+
+        {canDecide ? (
           <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Your decision</h2>
+            <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
+              {decided ? "Update your decision" : "Your decision"}
+            </h2>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{decisionLead}</p>
 
             {actionError && (
@@ -411,11 +418,11 @@ export default function ClientReviewPage() {
               </div>
             )}
           </section>
-        ) : isReport ? null : (
+        ) : !decided && !isReport ? (
           <section className="rounded-3xl border border-gray-200 bg-white p-6 text-sm text-zinc-500 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
             This campaign has moved past brand review, so no action is needed.
           </section>
-        )}
+        ) : null}
 
         {review.report && (
           <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
