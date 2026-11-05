@@ -70,7 +70,9 @@ export function DispatchPreflightModal({
 	const blockedTotal = preflight
 		? preflight.opted_out + preflight.blocked + preflight.quiet_hours
 		: 0;
-	const cannotSend = !!preflight && preflight.sendable === 0;
+	const nobodyToSend = !!preflight && preflight.sendable === 0;
+	const cannotSend =
+		!!preflight && (preflight.sendable === 0 || !preflight.whatsapp_connected);
 
 	return (
 		<AnimatePresence>
@@ -131,14 +133,40 @@ export function DispatchPreflightModal({
 										value={preflight.no_consent}
 										tone={preflight.no_consent > 0 ? "warn" : "neutral"}
 									/>
+									<StatCard
+										label="Unreachable"
+										value={preflight.unreachable}
+										tone={preflight.unreachable > 0 ? "danger" : "neutral"}
+									/>
 								</div>
 
-								{cannotSend && (
+								{!preflight.whatsapp_connected && (
+									<div className="flex items-start gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+										<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+										<p>
+											WhatsApp is not connected, so these recipients cannot be reached.
+											Reconnect the WhatsApp channel in Channels before dispatching.
+										</p>
+									</div>
+								)}
+
+								{nobodyToSend && (
 									<div className="flex items-start gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
 										<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
 										<p>
 											There is nobody to send to. Dispatch would be rejected — adjust the
 											audience or re-check your contacts.
+										</p>
+									</div>
+								)}
+
+								{preflight.unreachable > 0 && (
+									<div className="flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+										<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+										<p>
+											{preflight.unreachable.toLocaleString()} Telegram contact
+											{preflight.unreachable === 1 ? "" : "s"} never started a chat with
+											your bot. They will be skipped instead of failing after dispatch.
 										</p>
 									</div>
 								)}
@@ -161,7 +189,7 @@ export function DispatchPreflightModal({
 											{preflight.no_consent.toLocaleString()} contact
 											{preflight.no_consent === 1 ? "" : "s"} have no recorded consent
 											evidence. They will still be messaged, but export a consent bundle if
-											a client needs the audit trail.
+											the brand needs the audit trail.
 										</p>
 									</div>
 								)}
