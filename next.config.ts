@@ -18,10 +18,16 @@ const nextConfig: NextConfig = {
   },
 };
 
+const sentryUploadConfigured = Boolean(
+	process.env.SENTRY_AUTH_TOKEN &&
+		process.env.SENTRY_ORG &&
+		process.env.SENTRY_PROJECT,
+);
+
 export default withSentryConfig(nextConfig, {
 	silent: true,
 	telemetry: false,
-	// Source maps upload only when an auth token is configured; otherwise the
-	// build would fail on a missing token in local and preview environments.
-	sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+	// Source maps upload only when auth token, org, and project are all set;
+	// otherwise the build stays offline instead of failing on a missing value.
+	sourcemaps: { disable: !sentryUploadConfigured },
 });
