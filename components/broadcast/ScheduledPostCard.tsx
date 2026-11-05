@@ -35,6 +35,7 @@ interface ScheduledPostCardProps {
   onRequestDispatch: (campaign: ScheduledCampaignItem) => void;
   onRequestSchedule: (campaign: ScheduledCampaignItem) => void;
   onRevise: (campaign: ScheduledCampaignItem) => void;
+  resolvedAudience?: number;
   isCancelling?: boolean;
   isDispatching?: boolean;
 }
@@ -48,6 +49,7 @@ export function ScheduledPostCard({
   onRequestDispatch,
   onRequestSchedule,
   onRevise,
+  resolvedAudience,
   isCancelling,
   isDispatching,
 }: ScheduledPostCardProps) {
@@ -267,7 +269,11 @@ export function ScheduledPostCard({
           <span>
             {campaign.parsedContacts.length > 0
               ? `${campaign.parsedContacts.length} recipients`
-              : "All active contacts"}
+              : resolvedAudience === 0
+                ? "No recipients yet"
+                : resolvedAudience
+                  ? `All active contacts (${resolvedAudience})`
+                  : "All active contacts"}
           </span>
         </div>
       </div>
@@ -327,6 +333,15 @@ export function ScheduledPostCard({
             </Button>
             {isActionMenuOpen && (
               <div className="absolute right-0 bottom-10 z-20 w-44 rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl">
+                <button
+                  type="button"
+                  onClick={() => { setIsActionMenuOpen(false); onRevise(campaign); }}
+                  disabled={isCancelling || isDispatching}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-[#e2f6d5]/60 hover:text-[#163300] disabled:opacity-50"
+                >
+                  <Pencil className="h-3.5 w-3.5 text-[#163300]" />
+                  Continue editing
+                </button>
                 <button
                   type="button"
                   onClick={() => { setIsActionMenuOpen(false); onRequestSchedule(campaign); }}

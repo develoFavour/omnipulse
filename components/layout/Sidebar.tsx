@@ -301,13 +301,13 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
 						</div>
 						<ul className="space-y-2.5">
 							{[
-								{ title: "Omnichannel Studio", new: true },
-								{ title: "Telegram Groups", new: true },
-								{ title: "Compliance Engine" },
+								{ title: "Omnichannel Studio", href: APP_ROUTES.DASHBOARD.BROADCAST, new: true },
+								{ title: "Brand review links", href: APP_ROUTES.DASHBOARD.SCHEDULED, new: true },
+								{ title: "Connect a channel", href: APP_ROUTES.DASHBOARD.CONNECTIONS },
 							].map((item, idx) => (
 								<li key={idx}>
 									<Link
-										href="#"
+										href={item.href}
 										className="flex items-center justify-between group/link"
 									>
 										<span className="text-xs font-medium text-gray-600 group-hover/link:text-[#163300] transition-colors">

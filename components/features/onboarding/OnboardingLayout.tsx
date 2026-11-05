@@ -152,9 +152,9 @@ export function OnboardingLayout({
           {/* Footer note */}
           <div className="flex items-center justify-center py-8 mt-auto">
             <p className="text-xs font-semibold text-[#868685] tracking-wide flex items-center gap-2">
-              <span>Enterprise-grade encryption</span>
+              <span>Encrypted in transit</span>
               <span className="w-1 h-1 rounded-full bg-[#d0d3cd]" />
-              <span>SOC 2 Type II Certified</span>
+              <span>Revocable review links</span>
             </p>
           </div>
         </div>

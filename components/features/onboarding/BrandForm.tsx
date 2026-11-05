@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Loader2, Link2, Sparkles } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 
 const brandFormSchema = z.object({
@@ -69,17 +69,17 @@ export function BrandForm({ onSubmit, isLoading }: BrandFormProps) {
           htmlFor="workspace_name"
           className="text-xs font-bold uppercase tracking-wider text-[#163300]"
         >
-          Brand or Workspace Name
+          Workspace Name
         </Label>
         <Input
           id="workspace_name"
-          placeholder="e.g. Sarah's Boutique"
+          placeholder="e.g. Northlight Agency"
           className="h-12 bg-[#f4f5f2] border-[#e8ebe6] text-[#0e0f0c] placeholder:text-[#868685] rounded-xl focus-visible:ring-2 focus-visible:ring-[#9fe870]/50 focus-visible:border-[#163300] focus:bg-white text-sm font-medium transition-all shadow-none"
           autoFocus
           {...form.register("workspace_name")}
         />
         <p className="text-xs font-medium text-[#868685]">
-          This will be displayed in your multi-channel broadcast header and studio.
+          This name appears across your dashboard and on campaign review links you share.
         </p>
       </div>
 
@@ -107,7 +107,7 @@ export function BrandForm({ onSubmit, isLoading }: BrandFormProps) {
           />
         </div>
         <p className="text-xs font-medium text-[#868685]">
-          Shown on campaign review trails when you sign off for your agency.
+          Shown on campaign review trails when you sign off.
         </p>
       </div>
 
@@ -121,29 +121,18 @@ export function BrandForm({ onSubmit, isLoading }: BrandFormProps) {
             className="overflow-hidden"
           >
             <div className="p-4 sm:p-5 rounded-2xl border border-[#e8ebe6] bg-[#f8faf7] space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-5 w-5 rounded-md bg-[#163300] flex items-center justify-center text-[#9fe870] font-black text-[9px]">
-                    OP
-                  </div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#163300]">
-                    Domain Routing
-                  </span>
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-5 rounded-md bg-[#163300] flex items-center justify-center text-[#9fe870] font-black text-[9px]">
+                  WS
                 </div>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#163300] bg-[#e2f6d5] border border-[#9fe870]/60 rounded-full px-2 py-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#163300]" />
-                  Instant SSL
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#163300]">
+                  Workspace identity
                 </span>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-base font-bold text-[#0e0f0c]">
-                  {watchedName}
-                </p>
-                <p className="text-xs font-mono font-bold text-[#163300] bg-white border border-[#e8ebe6] px-2.5 py-1 rounded-lg inline-block">
-                  {watchedName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.messagerail.app
-                </p>
-              </div>
+              <p className="text-base font-bold text-[#0e0f0c]">
+                {watchedName}
+              </p>
 
               <div className="pt-2 border-t border-[#e8ebe6] flex items-center justify-between text-[11px] text-[#868685]">
                 <span>Administrator account</span>
@@ -162,11 +151,11 @@ export function BrandForm({ onSubmit, isLoading }: BrandFormProps) {
         {isLoading ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Provisioning Workspace...
+            Creating workspace...
           </>
         ) : (
           <>
-            <span>Provision Workspace</span>
+            <span>Create Workspace</span>
             <ArrowRight className="w-4 h-4 ml-2" />
           </>
         )}

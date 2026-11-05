@@ -35,6 +35,7 @@ interface ScheduleCampaignModalProps {
   isScheduling: boolean;
   onConfirm: () => Promise<void>;
   isExistingDraft?: boolean;
+  hasStoryTarget?: boolean;
 }
 
 export function ScheduleCampaignModal({
@@ -48,6 +49,7 @@ export function ScheduleCampaignModal({
   isScheduling,
   onConfirm,
   isExistingDraft = false,
+  hasStoryTarget = false,
 }: ScheduleCampaignModalProps) {
   const [localError, setLocalError] = useState("");
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -55,9 +57,14 @@ export function ScheduleCampaignModal({
 
   const parsedDate = scheduledAt ? new Date(scheduledAt) : null;
   const isValidDate = parsedDate && parsedDate > new Date();
+  const hasNoTargets = targetCount === 0 && !hasStoryTarget;
 
   const handleConfirm = async () => {
     setLocalError("");
+    if (hasNoTargets) {
+      setLocalError("Add recipients before scheduling this campaign.");
+      return;
+    }
     if (!scheduledAt) {
       setLocalError("Please select a dispatch date and time.");
       return;
@@ -113,7 +120,13 @@ export function ScheduleCampaignModal({
                 <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
                   Audience
                 </p>
-                <p className="text-sm font-bold text-[#163300]">{targetCount} recipients</p>
+                <p className="text-sm font-bold text-[#163300]">
+                  {targetCount > 0
+                    ? `${targetCount} recipients`
+                    : hasStoryTarget
+                      ? "WhatsApp Story"
+                      : "0 recipients"}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-1.5 pt-1 border-t border-gray-200/80">
@@ -121,6 +134,16 @@ export function ScheduleCampaignModal({
               <span className="text-xs font-medium text-gray-500">{channelsSummary}</span>
             </div>
           </div>
+
+          {hasNoTargets && (
+            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex items-start gap-2">
+              <Info className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+              <p className="text-xs font-semibold text-red-700">
+                This campaign has no recipients yet. Open it in the studio, select an
+                audience, and save before scheduling.
+              </p>
+            </div>
+          )}
 
           {/* DateTime Picker Section */}
           <div className="mt-5">
@@ -207,10 +230,10 @@ export function ScheduleCampaignModal({
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={isScheduling || !scheduledAt}
+            disabled={isScheduling || !scheduledAt || hasNoTargets}
             className={cn(
               "flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-md cursor-pointer",
-              isScheduling || !scheduledAt
+              isScheduling || !scheduledAt || hasNoTargets
                 ? "bg-amber-300 cursor-not-allowed shadow-none"
                 : "bg-amber-500 hover:bg-amber-600 shadow-amber-500/25 active:scale-[0.99]"
             )}

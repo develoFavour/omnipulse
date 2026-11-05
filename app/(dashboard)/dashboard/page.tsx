@@ -46,7 +46,7 @@ export default function DashboardPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const userName = clerkUser?.firstName || storeUser?.email?.split("@")[0] || "there";
+  const userName = clerkUser?.firstName || storeUser?.first_name || "there";
 
   const getGreetingData = (date: Date | null) => {
     if (!date) return { greeting: "Good day", Icon: Sun, color: "text-amber-500" };
