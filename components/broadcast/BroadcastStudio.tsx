@@ -560,10 +560,14 @@ export function BroadcastStudio() {
 
 		setIsSavingEdit(true);
 		try {
-			await campaignService.updateCampaign(
+			const saved = await campaignService.updateCampaign(
 				editingCampaignId,
 				buildCampaignPayload(),
 			);
+			const brandEmailed = saved.brand_revision_notified === true;
+			const brandUpdate = brandEmailed
+				? "We emailed the brand about the changes."
+				: "The brand's review link shows the changes — share it with them.";
 
 			// Saving an already-reviewed campaign puts it back into draft, so a
 			// workspace that requires approval resubmits it in the same action.
@@ -572,16 +576,14 @@ export function BroadcastStudio() {
 			if (shouldResubmit) {
 				await campaignService.submitForApproval(editingCampaignId);
 				toast.success("Changes saved and resubmitted", {
-					description:
-						"An Owner or Admin must approve the updated campaign. The brand's review link already shows this version.",
+					description: `An Owner or Admin must approve the updated campaign. ${brandUpdate} They must review the latest version before it can be sent.`,
 				});
 				router.push(
 					`${APP_ROUTES.DASHBOARD.SCHEDULED}?campaign=${encodeURIComponent(editingCampaignId)}`,
 				);
 			} else {
 				toast.success("Changes saved", {
-					description:
-						"The brand's review link now shows your changes. Ask them to review the latest version before scheduling.",
+					description: `${brandUpdate} They must review the latest version before it can be sent.`,
 				});
 				router.push(
 					`${APP_ROUTES.DASHBOARD.SCHEDULED}?view=drafts&campaign=${encodeURIComponent(editingCampaignId)}`,

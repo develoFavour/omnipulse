@@ -313,7 +313,7 @@ export function ClientReviewPanel({ campaignId, compact = false, campaignStatus 
 												<p className="text-[11px] leading-relaxed text-emerald-800 dark:text-emerald-400">
 													{isReport
 														? "We email a secure link that expires in 14 days. Revoke it any time from the list below."
-														: "The brand opens the same review page and can approve or request changes. The link expires in 14 days and you can revoke it below."}
+														: "The brand opens the same review page and can approve or request changes. We remember this address, so future revisions are emailed automatically. The link expires in 14 days and you can revoke it below."}
 												</p>
 											</div>
 										)}

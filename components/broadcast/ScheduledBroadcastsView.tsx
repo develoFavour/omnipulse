@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -77,6 +77,8 @@ export function ScheduledBroadcastsView() {
     () => campaigns.filter((campaign) => isDraftsView ? campaign.status === "draft" : campaign.status !== "draft"),
     [campaigns, isDraftsView],
   );
+  // Refreshing an empty list should keep the skeleton up, not flash an empty state.
+  const showLoading = isLoading || (isRefreshing && campaigns.length === 0);
   const contactLabels = useMemo(() => {
     return Object.fromEntries(
       contacts.map((contact) => [
@@ -123,6 +125,29 @@ export function ScheduledBroadcastsView() {
   const [campaignToCancelPermanently, setCampaignToCancelPermanently] = useState<ScheduledCampaignItem | null>(null);
   const [campaignToSchedule, setCampaignToSchedule] = useState<ScheduledCampaignItem | null>(null);
   const [scheduledAt, setScheduledAt] = useState("");
+
+  // A draft with no hand-picked contacts broadcasts to every active contact on
+  // its channels, so resolve that audience instead of assuming zero recipients.
+  const resolvedAudienceFor = useCallback(
+    (campaign: ScheduledCampaignItem | null) => {
+      if (!campaign) return 0;
+      if (campaign.parsedContacts.length > 0) return campaign.parsedContacts.length;
+      const channels = campaign.parsedChannels.filter(
+        (channel) => channel !== "whatsapp_story",
+      );
+      return contacts.filter(
+        (contact) => contact.status === "active" && channels.includes(contact.channel),
+      ).length;
+    },
+    [contacts],
+  );
+
+  const scheduleTargetCount = useMemo(
+    () =>
+      resolvedAudienceFor(campaignToSchedule) +
+      (campaignToSchedule?.parsedDestinations.length || 0),
+    [campaignToSchedule, resolvedAudienceFor],
+  );
 
   // Compute stats for KPI banner
   const nearestCampaign = useMemo(() => {
@@ -292,7 +317,7 @@ export function ScheduledBroadcastsView() {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-gray-900">
-              {isLoading ? "—" : visibleCampaigns.length}
+              {showLoading ? "—" : visibleCampaigns.length}
             </span>
             <span className="text-xs text-gray-500 font-medium">{isDraftsView ? "saved drafts" : "campaigns pending"}</span>
           </div>
@@ -310,7 +335,7 @@ export function ScheduledBroadcastsView() {
           </div>
           <div className="mt-2">
             <span className="text-base font-extrabold text-gray-900 truncate block">
-              {isLoading ? "—" : isDraftsView ? (nearestCampaign ? new Date(nearestCampaign.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "No drafts") : (nearestCampaign ? nearestCampaign.formattedCountdown : "Queue is empty")}
+              {showLoading ? "—" : isDraftsView ? (nearestCampaign ? new Date(nearestCampaign.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "No drafts") : (nearestCampaign ? nearestCampaign.formattedCountdown : "Queue is empty")}
             </span>
             <p className="text-xs text-gray-500 font-medium truncate mt-0.5">
               {nearestCampaign ? nearestCampaign.title : isDraftsView ? "No drafts saved" : "No posts scheduled"}
@@ -330,7 +355,7 @@ export function ScheduledBroadcastsView() {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-gray-900">
-              {isLoading ? "—" : totalAudienceReach.toLocaleString()}
+              {showLoading ? "—" : totalAudienceReach.toLocaleString()}
             </span>
             <span className="text-xs text-gray-500 font-medium">{isDraftsView ? "planned entities" : "targeted entities"}</span>
           </div>
@@ -348,7 +373,7 @@ export function ScheduledBroadcastsView() {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-2xl font-extrabold text-gray-900">
-              {isLoading ? "—" : activeChannelTypes.length}
+              {showLoading ? "—" : activeChannelTypes.length}
             </span>
             <span className="text-xs text-gray-500 font-medium">pipeline channels</span>
           </div>
@@ -425,7 +450,7 @@ export function ScheduledBroadcastsView() {
       </div>
 
       {/* Main Content: Scheduled Cards Grid */}
-      {isLoading ? (
+      {showLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {[1, 2, 3].map((n) => (
             <div
@@ -513,6 +538,7 @@ export function ScheduledBroadcastsView() {
                       `${APP_ROUTES.DASHBOARD.BROADCAST}?campaign=${encodeURIComponent(c.id)}`,
                     )
                   }
+                  resolvedAudience={resolvedAudienceFor(campaign)}
                   isCancelling={cancellingId === campaign.id || deletingDraftId === campaign.id}
                   isDispatching={dispatchingId === campaign.id}
                 />
@@ -575,11 +601,20 @@ export function ScheduledBroadcastsView() {
           }
         }}
         campaignTitle={campaignToSchedule?.title || ""}
-        targetCount={(campaignToSchedule?.parsedContacts.length || 0) + (campaignToSchedule?.parsedDestinations.length || 0)}
+        targetCount={scheduleTargetCount}
         channelsSummary={[
-          ...(campaignToSchedule?.parsedChannels || []).map((channel) => channel === "whatsapp" ? "WhatsApp DM" : "Telegram DM"),
+          ...(campaignToSchedule?.parsedChannels || []).map((channel) =>
+            channel === "whatsapp"
+              ? "WhatsApp DM"
+              : channel === "whatsapp_story"
+                ? "WhatsApp Story"
+                : channel === "telegram"
+                  ? "Telegram DM"
+                  : channel
+          ),
           ...(campaignToSchedule?.parsedDestinations.length ? [`${campaignToSchedule.parsedDestinations.length} Telegram destination(s)`] : []),
         ].join(", ") || "Configured channels"}
+        hasStoryTarget={!!campaignToSchedule?.parsedChannels.includes("whatsapp_story")}
         scheduledAt={scheduledAt}
         onScheduledAtChange={setScheduledAt}
         isScheduling={schedulingId === campaignToSchedule?.id}

@@ -32,6 +32,7 @@ const CHANNELS = [
 		description: "Link a WhatsApp Business account via Multi-Device",
 		logo: SiWhatsapp,
 		colorClass: "bg-[#25D366]",
+		comingSoon: false,
 	},
 	{
 		id: "telegram",
@@ -39,13 +40,15 @@ const CHANNELS = [
 		description: "High-speed token dispatch & channel broadcasting",
 		logo: SiTelegram,
 		colorClass: "bg-[#229ED9]",
+		comingSoon: false,
 	},
 	{
 		id: "instagram",
 		title: "Instagram DM",
-		description: "Direct community broadcasting & story triggers",
+		description: "Direct messages and story sharing",
 		logo: SiInstagram,
 		colorClass: "bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]",
+		comingSoon: true,
 	},
 	{
 		id: "x",
@@ -53,6 +56,7 @@ const CHANNELS = [
 		description: "Public timeline announcements and engagement",
 		logo: SiX,
 		colorClass: "bg-[#0e0f0c]",
+		comingSoon: true,
 	},
 ];
 
@@ -115,6 +119,20 @@ function ChannelsSetupInner() {
 		}
 	};
 
+	// Skipping must never strand the user inside onboarding, so a failed
+	// completion call still moves them forward.
+	const handleSkip = async () => {
+		setIsSubmitting(true);
+		try {
+			await completeOnboarding();
+		} catch {
+			// Channels can be connected later from Connections.
+		} finally {
+			setIsSubmitting(false);
+			router.push(APP_ROUTES.ONBOARDING.WELCOME);
+		}
+	};
+
 	// ── Decision Gate View ──────────────────────────────────────────────────
 	const DecisionGate = () => (
 		<div className="space-y-6">
@@ -143,8 +161,9 @@ function ChannelsSetupInner() {
 
 				{/* Do this Later */}
 				<button
-					onClick={() => router.push(APP_ROUTES.ONBOARDING.WELCOME)}
-					className="group relative flex flex-col items-start gap-3 p-5 rounded-2xl border-2 border-[#e8ebe6] bg-white text-left hover:border-[#d0d3cd] hover:bg-[#f4f5f2] transition-all active:scale-[0.98]"
+					onClick={handleSkip}
+					disabled={isSubmitting}
+					className="group relative flex flex-col items-start gap-3 p-5 rounded-2xl border-2 border-[#e8ebe6] bg-white text-left hover:border-[#d0d3cd] hover:bg-[#f4f5f2] transition-all active:scale-[0.98] disabled:opacity-60"
 				>
 					<div className="w-9 h-9 rounded-full bg-[#f4f5f2] border border-[#e8ebe6] flex items-center justify-center">
 						<Clock className="w-4 h-4 text-[#454745]" />
@@ -154,7 +173,7 @@ function ChannelsSetupInner() {
 							I'll do this later
 						</p>
 						<p className="text-xs font-medium text-[#868685] mt-0.5 leading-relaxed">
-							Skip for now — connect channels anytime in Settings
+							Skip for now — connect channels anytime in Connections
 						</p>
 					</div>
 					<ArrowRight className="w-4 h-4 text-[#868685]/40 absolute bottom-4 right-4 group-hover:translate-x-0.5 transition-transform" />
@@ -163,7 +182,7 @@ function ChannelsSetupInner() {
 
 			{/* Reassurance note */}
 			<p className="text-center text-xs font-medium text-[#868685]">
-				You can always connect channels later from your workspace settings.
+				You can always connect channels later from Connections.
 			</p>
 		</div>
 	);
@@ -206,6 +225,9 @@ function ChannelsSetupInner() {
 			</AnimatePresence>
 
 			{/* Channel Grid */}
+			<p className="mb-3 text-xs font-medium text-[#868685]">
+				WhatsApp and Telegram are available today. Instagram and X are coming in a later release.
+			</p>
 			<div className="space-y-3.5 mb-7">
 				{CHANNELS.map((channel) => (
 					<ChannelConnectCard
@@ -215,8 +237,10 @@ function ChannelsSetupInner() {
 						logo={channel.logo}
 						colorClass={channel.colorClass}
 						isConnected={isChannelConnected(channel.id)}
+						disabled={channel.comingSoon}
+						badge={channel.comingSoon ? "Coming soon" : undefined}
 						onToggle={() => {
-							if (isChannelConnected(channel.id)) return;
+							if (channel.comingSoon || isChannelConnected(channel.id)) return;
 							resetError();
 							setActiveChannelModal(channel.id);
 						}}
@@ -260,6 +284,16 @@ function ChannelsSetupInner() {
 						</p>
 					)}
 				</div>
+
+				<Button
+					type="button"
+					variant="ghost"
+					onClick={handleSkip}
+					disabled={isSubmitting}
+					className="w-full sm:w-auto h-12 px-4 text-xs font-bold uppercase tracking-wider text-[#454745] hover:text-[#163300] hover:bg-[#f4f5f2] shadow-none"
+				>
+					Skip for now
+				</Button>
 			</div>
 		</div>
 	);
@@ -270,7 +304,7 @@ function ChannelsSetupInner() {
 			title={isConnectorView ? "Connect Channels" : "Channel Setup"}
 			description={
 				isConnectorView
-					? "Link your broadcasting accounts. You can always reconnect or add more from Settings."
+					? "Link your broadcasting accounts. You can always reconnect or add more from Connections."
 					: "Would you like to connect a messaging channel now, or set this up later?"
 			}
 			stepIcon={Link2}

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, Webhook, CheckCircle2, Copy, RefreshCw, Loader2, ExternalLink,
@@ -24,6 +26,7 @@ import { usePermissions } from "@/lib/hooks/usePermissions";
 import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
 import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
 import { PlanQuotaBanner, QuotaPill } from "@/components/features/billing/PlanQuotaBanner";
+import { APP_ROUTES } from "@/lib/constants/routes.const";
 
 const TAG_COLOR_PRESETS = [
   "#6366f1", "#10b981", "#f59e0b", "#ef4444",
@@ -44,7 +47,8 @@ export default function AudiencePage() {
     modalConfig,
     openUpgradeModal,
   } = usePlanUsage();
-  const { channels } = useTenantChannels();
+  const router = useRouter();
+  const { channels, isChannelConnected } = useTenantChannels();
   const { tags, createTag, deleteTag, tagContact, untagContact, bulkTagContacts, updateTag } = useTags();
   const tenant = useAppStore((state) => state.tenant);
 
@@ -134,7 +138,21 @@ export default function AudiencePage() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" ? window.location.origin : "");
   const webhookUrl = tenant ? `${apiUrl}/api/v1/webhooks/telegram/${tenant.id}` : "Loading...";
 
+  const promptConnectChannel = (platform: "WhatsApp" | "Telegram") => {
+    toast.info(`Connect ${platform} first`, {
+      description: `Pair a ${platform} account in Connections, then sync its contacts here.`,
+      action: {
+        label: "Open Connections",
+        onClick: () => router.push(APP_ROUTES.DASHBOARD.CONNECTIONS),
+      },
+    });
+  };
+
   const handleSyncWhatsApp = async () => {
+    if (!isChannelConnected("whatsapp")) {
+      promptConnectChannel("WhatsApp");
+      return;
+    }
     setIsSyncingWA(true);
     try {
       const res = await channelService.syncWhatsAppContacts();
@@ -150,6 +168,10 @@ export default function AudiencePage() {
   };
 
   const handleSyncTelegram = async () => {
+    if (!isChannelConnected("telegram")) {
+      promptConnectChannel("Telegram");
+      return;
+    }
     setIsSyncingTG(true);
     try {
       const res = await channelService.syncTelegramContacts();
@@ -640,8 +662,16 @@ export default function AudiencePage() {
                     {selectedTagId ? "No contacts have this tag yet." : searchQuery ? "No contacts match your search." : "No contacts synced yet."}
                   </p>
                   <p className="text-xs font-medium text-gray-500">
-                    {selectedTagId ? "Assign this tag to contacts using '+ Tag'." : searchQuery ? "Try a different search term." : "Sync contacts via WhatsApp or Telegram above."}
+                    {selectedTagId ? "Assign this tag to contacts using '+ Tag'." : searchQuery ? "Try a different search term." : isChannelConnected("whatsapp") || isChannelConnected("telegram") ? "Use the sync buttons above to import contacts." : "Connect WhatsApp or Telegram first, then import their contacts."}
                   </p>
+                  {!selectedTagId && !searchQuery && (
+                    <Link
+                      href={APP_ROUTES.DASHBOARD.CONNECTIONS}
+                      className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#163300] hover:bg-[#0d2000] px-3.5 py-2 text-xs font-bold text-[#9fe870] transition-colors"
+                    >
+                      Connect a channel
+                    </Link>
+                  )}
                 </td></tr>
               ) : (
                 safeContacts.map((contact) => {

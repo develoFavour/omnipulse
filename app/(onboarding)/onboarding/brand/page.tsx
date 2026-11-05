@@ -24,7 +24,7 @@ export default function BrandSetupPage() {
 		try {
 			await updateBrand(data.workspace_name, data.first_name, data.last_name);
 
-			toast.success("Workspace provisioned", {
+			toast.success("Workspace created", {
 				description: `"${data.workspace_name}" is ready.`,
 			});
 			router.push(APP_ROUTES.ONBOARDING.CHANNELS);
@@ -46,7 +46,7 @@ export default function BrandSetupPage() {
 		<OnboardingLayout
 			currentStep={1}
 			title="Set Up Your Workspace"
-			description="Name your brand or organization to initialize your multi-channel broadcast pipeline."
+			description="Name your agency workspace, then connect the channels you broadcast on."
 			stepIcon={Sparkles}
 			stepLabel="Step 1 of 3"
 		>
@@ -60,13 +60,13 @@ export default function BrandSetupPage() {
 				className="mt-8 pt-6 border-t border-[#e8ebe6]"
 			>
 				<p className="text-xs font-bold uppercase tracking-wider text-[#163300] mb-3">
-					Pipeline Deployment Sequence
+					What happens next
 				</p>
 				<ul className="space-y-2.5">
 					{[
-						"Instant multi-tenant workspace & domain routing",
-						"Direct connector sync (Telegram BotFather & WhatsApp Cloud API)",
-						"Unified studio broadcast console access",
+						"Your workspace is created instantly",
+						"Connect Telegram or WhatsApp next",
+						"Broadcast to every channel from one studio",
 					].map((item, idx) => (
 						<li key={idx} className="flex items-center gap-2.5 text-xs font-medium text-[#454745]">
 							<span className="text-[10px] font-mono font-bold text-[#163300] bg-[#f4f5f2] border border-[#e8ebe6] px-1.5 py-0.5 rounded">

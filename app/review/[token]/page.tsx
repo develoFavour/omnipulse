@@ -26,35 +26,51 @@ function trailEntryMeta(stage: ReviewTrailStage) {
   switch (stage) {
     case "submitted":
       return {
-        title: "Submitted for internal sign-off",
+        title: "Prepared for your review",
         tone: "bg-gray-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300",
         Icon: Send,
       };
     case "approved":
       return {
-        title: "Signed off by your agency",
+        title: "Signed off by the agency",
         tone: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
         Icon: ShieldCheck,
       };
     case "rejected":
       return {
-        title: "Not signed off",
+        title: "Not approved by the agency",
         tone: "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400",
         Icon: AlertTriangle,
       };
     case "brand_approved":
       return {
-        title: "Approved by brand",
+        title: "Approved by you",
         tone: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
         Icon: CheckCircle2,
       };
     default:
       return {
-        title: "Changes requested by brand",
+        title: "Changes requested by you",
         tone: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400",
         Icon: AlertTriangle,
       };
   }
+}
+
+// Internal campaign states mean nothing to a brand reading the share link.
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    draft: "In preparation",
+    pending_approval: "Awaiting approval",
+    approved: "Approved",
+    scheduled: "Scheduled",
+    processing: "Sending",
+    completed: "Sent",
+    paused: "Paused",
+    cancelled: "Cancelled",
+    rejected: "Not proceeding",
+  };
+  return labels[status] ?? status.replace(/_/g, " ");
 }
 
 function formatDate(value?: string) {
@@ -174,9 +190,9 @@ export default function ClientReviewPage() {
   const isReport = SENT_STATUSES.has(review.status);
   const decisionLead =
     review.status === "approved"
-      ? "Your agency has already signed off. Approve it to confirm, or request changes before it is scheduled."
+      ? "This campaign has already been signed off by the agency. Approve it to confirm, or request changes before it is scheduled."
       : review.status === "pending_approval"
-        ? "Approve to let your agency send this campaign, or ask for changes first."
+        ? "Approve to let the agency send this campaign, or ask for changes first."
         : "Approve this campaign as ready to send, or ask for changes first.";
 
   return (
@@ -226,7 +242,7 @@ export default function ClientReviewPage() {
               </p>
             </div>
             <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-              {review.status.replace(/_/g, " ")}
+              {statusLabel(review.status)}
             </span>
           </div>
 
@@ -288,7 +304,7 @@ export default function ClientReviewPage() {
           <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-8">
             <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Review trail</h2>
             <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-              Who prepared this campaign and who signed it off inside your agency.
+              Who prepared this campaign and who signed it off.
             </p>
             <ol className="mt-5 space-y-4">
               {review.approval_trail.map((entry, index) => {
@@ -347,7 +363,7 @@ export default function ClientReviewPage() {
             )}
             {review.revised_since_decision && canDecide && (
               <p className="mt-3 rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-200">
-                Your agency has updated this campaign since this decision. Review the latest version below.
+                This campaign was updated since your decision. Review the latest version above.
               </p>
             )}
           </section>

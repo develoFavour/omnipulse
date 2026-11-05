@@ -8,11 +8,13 @@ import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { useUser } from "@clerk/nextjs";
+import { useAppStore } from "@/lib/store";
 import { ParticleGrid } from "@/components/landing/ParticleGrid";
 
 export default function WelcomePage() {
 	const router = useRouter();
 	const { user } = useUser();
+	const tenant = useAppStore((state) => state.tenant);
 	const [mounted, setMounted] = useState(false);
 
 	useEffect(() => {
@@ -20,9 +22,7 @@ export default function WelcomePage() {
 	}, []);
 
 	const brandName =
-		user?.firstName ||
-		user?.primaryEmailAddress?.emailAddress?.split("@")[0] ||
-		"your workspace";
+		user?.firstName || tenant?.company_name || "your workspace";
 
 	return (
 		<div className="relative min-h-screen flex flex-col items-center justify-center bg-[#fafbf8] text-[#0e0f0c] px-4 py-12 overflow-hidden selection:bg-[#9fe870] selection:text-[#163300]">
@@ -119,8 +119,8 @@ export default function WelcomePage() {
 								Welcome, <span className="text-[#0e0f0c]">{brandName}</span>
 							</h1>
 							<p className="text-base sm:text-lg text-[#454745] font-medium leading-relaxed max-w-lg mx-auto">
-								Your multi-channel broadcast engine is fully provisioned and
-								ready for high-speed transmission.
+								Your workspace is set up. Connect a channel whenever you are
+								ready to start broadcasting.
 							</p>
 						</motion.div>
 
@@ -140,7 +140,7 @@ export default function WelcomePage() {
 								{
 									number: "03",
 									title: "Telemetry",
-									desc: "Monitor sub-120ms delivery confirmations in real time",
+									desc: "Track delivery status for every channel in real time",
 								},
 							].map((item) => (
 								<motion.div

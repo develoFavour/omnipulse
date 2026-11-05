@@ -49,6 +49,16 @@ function computeCountdown(scheduledAtStr?: string): {
   return { timeRemainingMs: diff, formattedCountdown: formatted, isPastDue: false };
 }
 
+// Backend rejections like "campaign execution rejected: no active targets
+// matched this campaign" mean nothing to a first-time operator.
+function campaignErrorMessage(err: any, fallback: string): string {
+  const raw = err.response?.data?.error || err.message || fallback;
+  if (String(raw).toLowerCase().includes("no active targets")) {
+    return "This campaign has no recipients yet. Connect a channel, sync your audience, then select recipients in the studio.";
+  }
+  return raw;
+}
+
 function enrichCampaign(c: CampaignResponse): ScheduledCampaignItem {
   let parsedChannels: string[] = [];
   try {
@@ -181,8 +191,7 @@ export function useScheduledCampaigns() {
       });
       return true;
     } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || "Failed to dispatch broadcast";
-      toast.error(msg);
+      toast.error(campaignErrorMessage(err, "Failed to dispatch broadcast"));
       return false;
     } finally {
       setDispatchingId(null);
@@ -235,8 +244,7 @@ export function useScheduledCampaigns() {
       });
       return true;
     } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || "Failed to schedule draft";
-      toast.error(msg);
+      toast.error(campaignErrorMessage(err, "Failed to schedule draft"));
       return false;
     } finally {
       setSchedulingId(null);
