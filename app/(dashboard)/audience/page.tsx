@@ -7,7 +7,7 @@ import {
   Users, Webhook, CheckCircle2, Copy, RefreshCw, Loader2, ExternalLink,
   Bot, Tag as TagIcon, Plus, X, Filter, Trash2, Search, ChevronDown,
   CheckSquare, Square, Pencil, Tags, ArrowUpDown, ChevronLeft, ChevronRight,
-  ChevronsLeft, ChevronsRight, Check, Download,
+  ChevronsLeft, ChevronsRight, Check, Download, Upload,
 } from "lucide-react";
 import { FaWhatsapp, FaTelegram } from "react-icons/fa";
 import { useContacts } from "@/lib/api/hooks/useContacts";
@@ -26,6 +26,7 @@ import { usePermissions } from "@/lib/hooks/usePermissions";
 import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
 import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
 import { PlanQuotaBanner, QuotaPill } from "@/components/features/billing/PlanQuotaBanner";
+import { ImportContactsModal } from "@/components/features/audience/ImportContactsModal";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 
 const TAG_COLOR_PRESETS = [
@@ -46,6 +47,7 @@ export default function AudiencePage() {
     setUpgradeModalOpen,
     modalConfig,
     openUpgradeModal,
+    refetch: refetchPlanUsage,
   } = usePlanUsage();
   const router = useRouter();
   const { channels, isChannelConnected } = useTenantChannels();
@@ -56,6 +58,7 @@ export default function AudiencePage() {
   const [isSyncingWA, setIsSyncingWA] = useState(false);
   const [isSyncingTG, setIsSyncingTG] = useState(false);
   const [showWebhookDetails, setShowWebhookDetails] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // Filters & Pagination State (Server-Side)
   const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
@@ -426,6 +429,16 @@ export default function AudiencePage() {
               </button>
             </>
           )}
+          {canSyncContacts && (
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-bold text-gray-700 transition-all shadow-xs hover:bg-gray-50 cursor-pointer"
+              title="Paste a list or upload a CSV with a consent decision per recipient"
+            >
+              <Upload className="h-4 w-4" />
+              Import contacts
+            </button>
+          )}
           <button 
             onClick={handleExportAudience} 
             disabled={isExporting || (total === 0 && safeContacts.length === 0)}
@@ -662,15 +675,26 @@ export default function AudiencePage() {
                     {selectedTagId ? "No contacts have this tag yet." : searchQuery ? "No contacts match your search." : "No contacts synced yet."}
                   </p>
                   <p className="text-xs font-medium text-gray-500">
-                    {selectedTagId ? "Assign this tag to contacts using '+ Tag'." : searchQuery ? "Try a different search term." : isChannelConnected("whatsapp") || isChannelConnected("telegram") ? "Use the sync buttons above to import contacts." : "Connect WhatsApp or Telegram first, then import their contacts."}
+                    {selectedTagId ? "Assign this tag to contacts using '+ Tag'." : searchQuery ? "Try a different search term." : isChannelConnected("whatsapp") || isChannelConnected("telegram") ? "Sync a connected channel or import a list you already own." : "Connect WhatsApp or Telegram, or import a list you already own."}
                   </p>
                   {!selectedTagId && !searchQuery && (
-                    <Link
-                      href={APP_ROUTES.DASHBOARD.CONNECTIONS}
-                      className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#163300] hover:bg-[#0d2000] px-3.5 py-2 text-xs font-bold text-[#9fe870] transition-colors"
-                    >
-                      Connect a channel
-                    </Link>
+                    <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                      <Link
+                        href={APP_ROUTES.DASHBOARD.CONNECTIONS}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#163300] hover:bg-[#0d2000] px-3.5 py-2 text-xs font-bold text-[#9fe870] transition-colors"
+                      >
+                        Connect a channel
+                      </Link>
+                      {canSyncContacts && (
+                        <button
+                          onClick={() => setShowImportModal(true)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-gray-700 transition-colors hover:bg-gray-50"
+                        >
+                          <Upload className="h-3.5 w-3.5" />
+                          Import contacts
+                        </button>
+                      )}
+                    </div>
                   )}
                 </td></tr>
               ) : (
@@ -1112,6 +1136,16 @@ export default function AudiencePage() {
         onOpenChange={setUpgradeModalOpen}
         {...modalConfig}
       />
+
+      {showImportModal && (
+        <ImportContactsModal
+          onClose={() => setShowImportModal(false)}
+          onImported={() => {
+            refetch();
+            void refetchPlanUsage();
+          }}
+        />
+      )}
 
     </motion.div>
   );

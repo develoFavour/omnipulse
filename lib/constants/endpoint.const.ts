@@ -25,6 +25,7 @@ export const ENDPOINTS = {
 		BASE: `${API_VERSION}/contacts`,
 		BY_ID: (id: string) => `${API_VERSION}/contacts/${id}`,
 		EXPORT: `${API_VERSION}/contacts/export`,
+		IMPORT: `${API_VERSION}/contacts/import`,
 	},
 
 	// Campaigns

@@ -65,7 +65,7 @@ export const FEATURE_ITEMS: FeatureItem[] = [
     headline: "Keep Every Client’s Audience and Conversation Together.",
     body: "Bring replies, contacts, tags, and campaign context into one client workspace so your team can act without searching through disconnected tools.",
     stats: [
-      { value: "0", label: "Manual Spreadsheets" },
+      { value: "1-click", label: "Consent-Aware Import" },
       { value: "100%", label: "Automated Tagging" },
     ],
   },
@@ -95,7 +95,7 @@ export const BENCHMARK_STATS: BenchmarkStat[] = [
   { value: 2, suffix: " channels", label: "Simultaneous Reach", color: "text-[#9fe870]" },
   { value: 100, suffix: "%", label: "Opt-In Focused", color: "text-white" },
   { value: 3, suffix: " roles", label: "Team Permission Levels", color: "text-[#9fe870]" },
-  { value: 0, suffix: " spreadsheets", label: "Zero Manual Imports", color: "text-white" },
+  { value: 0, suffix: " spreadsheets", label: "Live Audience Sync", color: "text-white" },
 ];
 
 export const COMPARISON_ROWS: ComparisonRow[] = [
@@ -106,8 +106,8 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
   },
   {
     feature: "Inbound Audience Capture",
-    omni: "✓ Automatic capture from /start and replies",
-    legacy: "✕ Manual CSV exports & messy imports",
+    omni: "✓ Automatic capture from /start and replies, plus consent-aware imports",
+    legacy: "✕ Spreadsheet imports with no consent trail",
   },
   {
     feature: "Multi-Client Workspace Isolation",

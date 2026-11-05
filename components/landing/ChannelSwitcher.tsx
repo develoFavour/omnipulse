@@ -170,10 +170,10 @@ export function ChannelSwitcher() {
                     <Bot className="h-4 w-4" /> Inbound Webhook Flywheel
                   </div>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-[#0e0f0c] font-heading mb-4">
-                    Zero Manual CSV Imports. Contacts Flow In Live.
+                    Contacts Flow In Live — Or Import Once, With Consent.
                   </h3>
                   <p className="text-base text-[#454745] leading-relaxed mb-6">
-                    Bring inbound contacts and replies into the right client workspace so your team can keep audience context and follow-up together.
+                    Inbound contacts, replies, and tags land in the right workspace automatically. Already own a list? Import it with a consent decision per recipient, not a blind spreadsheet dump.
                   </p>
                   <div className="p-3.5 rounded-xl bg-[#f4f5f2] border border-[#e8ebe6] flex items-center justify-between gap-2">
                     <code className="text-xs font-mono font-bold text-[#163300] truncate">
