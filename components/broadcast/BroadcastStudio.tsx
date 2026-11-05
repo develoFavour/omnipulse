@@ -21,6 +21,9 @@ import {
 	ShieldCheck,
 	Smartphone,
 	X,
+	AlertTriangle,
+	Pencil,
+	ArrowLeft,
 } from "lucide-react";
 import { FaWhatsapp, FaTelegram } from "react-icons/fa";
 import { toast } from "sonner";
@@ -31,7 +34,8 @@ import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
 import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
 import { useCampaigns } from "@/lib/api/hooks/useCampaigns";
 import { channelService } from "@/lib/services/channel.service";
-import { campaignService, type CampaignPreflight } from "@/lib/services/campaign.service";
+import { campaignService, type CampaignPreflight, type CampaignResponse } from "@/lib/services/campaign.service";
+import { apiMessage } from "@/lib/api/axios-error";
 import { approvalSettingsService } from "@/lib/services/approval-settings.service";
 import { DispatchPreflightModal } from "./DispatchPreflightModal";
 import { WhatsAppQRModal } from "@/components/channels/WhatsAppQRModal";
@@ -72,6 +76,18 @@ function formatSenderIdentity(identity: string | undefined, fallback: string): s
 		}
 	}
 	return trimmed;
+}
+
+function parseStoredList(raw?: string): string[] {
+	if (!raw) return [];
+	try {
+		const parsed = JSON.parse(raw);
+		return Array.isArray(parsed)
+			? parsed.filter((value): value is string => typeof value === "string")
+			: [];
+	} catch {
+		return [];
+	}
 }
 
 export function BroadcastStudio() {
@@ -125,6 +141,13 @@ export function BroadcastStudio() {
 	const [mediaUrl, setMediaUrl] = useState("");
 	const [approvalRequired, setApprovalRequired] = useState(false);
 
+	// Edit mode: ?campaign=<id> revises an existing campaign instead of creating
+	const editingCampaignId = searchParams.get("campaign");
+	const isEditing = !!editingCampaignId;
+	const [editingCampaign, setEditingCampaign] = useState<CampaignResponse | null>(null);
+	const [editLoadFailed, setEditLoadFailed] = useState(false);
+	const [isSavingEdit, setIsSavingEdit] = useState(false);
+
 	useEffect(() => {
 		let cancelled = false;
 		approvalSettingsService
@@ -170,6 +193,50 @@ export function BroadcastStudio() {
 	const [isSyncingWhatsApp, setIsSyncingWhatsApp] = useState(false);
 	const [isSyncingTelegram, setIsSyncingTelegram] = useState(false);
 
+	// Prefill the studio when revising an existing campaign
+	useEffect(() => {
+		if (!editingCampaignId) return;
+		let cancelled = false;
+
+		campaignService
+			.getCampaignById(editingCampaignId)
+			.then((campaign) => {
+				if (cancelled) return;
+
+				// selected_channels only records platforms, so rebuild placements:
+				// telegram DM comes from the channel list, the channel placement
+				// from the selected destinations.
+				const storedChannels = parseStoredList(campaign.selected_channels);
+				const destinationIds = parseStoredList(
+					campaign.selected_telegram_destination_ids,
+				);
+				const placements: ChannelPlacement[] = [];
+				if (storedChannels.includes("telegram")) placements.push("telegram_dm");
+				if (destinationIds.length > 0) placements.push("telegram_channel");
+				if (storedChannels.includes("whatsapp")) placements.push("whatsapp_dm");
+				if (placements.length === 0) {
+					placements.push("telegram_dm", "telegram_channel");
+				}
+
+				setEditingCampaign(campaign);
+				setTitle(campaign.title);
+				setMessageBody(campaign.message_body);
+				setMediaUrl(campaign.media_url ?? "");
+				setSelectedPlacements(placements);
+				setSelectedDestinationIds(destinationIds);
+				setSelectedContactIds(parseStoredList(campaign.selected_contact_ids));
+			})
+			.catch((err: unknown) => {
+				if (cancelled) return;
+				setEditLoadFailed(true);
+				toast.error(apiMessage(err, "Failed to load this campaign"));
+			});
+
+		return () => {
+			cancelled = true;
+		};
+	}, [editingCampaignId]);
+
 	// Channel & Audience Context
 	const activeContacts = contacts.filter((c) => c.status === "active");
 	const telegramContacts = activeContacts.filter(
@@ -202,13 +269,16 @@ export function BroadcastStudio() {
 
 	// Automatically enable WhatsApp DM if WhatsApp channel is connected
 	useEffect(() => {
+		if (editingCampaignId) return;
 		if (isWhatsAppConnected && !selectedPlacements.includes("whatsapp_dm")) {
 			setSelectedPlacements((prev) => [...prev, "whatsapp_dm"]);
 		}
-	}, [isWhatsAppConnected]);
+	}, [isWhatsAppConnected, editingCampaignId]);
 
 	// Handle template preloading from /templates route or query param
 	useEffect(() => {
+		// A campaign being revised keeps its own content.
+		if (editingCampaignId) return;
 		// 1. Check if cached template is in session storage
 		if (typeof window !== "undefined") {
 			const stored = sessionStorage.getItem("messagerail_active_template");
@@ -258,7 +328,7 @@ export function BroadcastStudio() {
 				description: `Loaded "${found.title}" into the message composer.`,
 			});
 		}
-	}, [templateIdParam, dbTemplates]);
+	}, [templateIdParam, dbTemplates, editingCampaignId]);
 
 	// Contact Sync Handlers
 	const handleSyncWhatsApp = async () => {
@@ -341,7 +411,7 @@ export function BroadcastStudio() {
 		return count;
 	}, [targetContacts.length, isTelegramChannel, selectedDestinationIds.length]);
 
-	const isProcessing = isCreating || isDispatching || isScheduling;
+	const isProcessing = isCreating || isDispatching || isScheduling || isSavingEdit;
 
 	// Human-readable summary of active placements for the schedule modal
 	const channelsSummary = useMemo(() => {
@@ -469,6 +539,58 @@ export function BroadcastStudio() {
 		} catch (err: any) {
 			const msg = err.response?.data?.error || err.message || "Failed to save broadcast draft";
 			toast.error(msg);
+		}
+	};
+
+	const handleSaveChanges = async () => {
+		if (!editingCampaignId) return;
+
+		if (!title.trim()) {
+			toast.error("Campaign Title is required", {
+				description: "Add a name so the team can identify this broadcast.",
+			});
+			return;
+		}
+		if (!messageBody.trim()) {
+			toast.error("Message content is empty", {
+				description: "Compose the message before saving your changes.",
+			});
+			return;
+		}
+
+		setIsSavingEdit(true);
+		try {
+			await campaignService.updateCampaign(
+				editingCampaignId,
+				buildCampaignPayload(),
+			);
+
+			// Saving an already-reviewed campaign puts it back into draft, so a
+			// workspace that requires approval resubmits it in the same action.
+			const shouldResubmit =
+				approvalRequired && editingCampaign?.status !== "draft";
+			if (shouldResubmit) {
+				await campaignService.submitForApproval(editingCampaignId);
+				toast.success("Changes saved and resubmitted", {
+					description:
+						"An Owner or Admin must approve the updated campaign, then share a fresh brand link before sending.",
+				});
+				router.push(
+					`${APP_ROUTES.DASHBOARD.SCHEDULED}?campaign=${encodeURIComponent(editingCampaignId)}`,
+				);
+			} else {
+				toast.success("Changes saved", {
+					description:
+						"Share a fresh brand link before scheduling — the previous link has already been used.",
+				});
+				router.push(
+					`${APP_ROUTES.DASHBOARD.SCHEDULED}?view=drafts&campaign=${encodeURIComponent(editingCampaignId)}`,
+				);
+			}
+		} catch (err: unknown) {
+			toast.error(apiMessage(err, "Failed to save campaign changes"));
+		} finally {
+			setIsSavingEdit(false);
 		}
 	};
 
@@ -748,10 +870,77 @@ export function BroadcastStudio() {
 		);
 	}
 
+	if (isEditing && !editingCampaign) {
+		return (
+			<div className="max-w-[1440px] mx-auto py-24 text-center">
+				{editLoadFailed ? (
+					<>
+						<AlertTriangle className="mx-auto h-8 w-8 text-rose-500" />
+						<p className="mt-3 text-sm font-bold text-gray-900">
+							This campaign could not be loaded
+						</p>
+						<p className="mt-1 text-xs text-gray-500">
+							It may have been sent or removed. Open the queue to check its
+							status.
+						</p>
+						<Link
+							href={APP_ROUTES.DASHBOARD.SCHEDULED}
+							className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-[#163300] hover:underline"
+						>
+							<ArrowLeft className="h-3.5 w-3.5" />
+							Back to Scheduled Queue
+						</Link>
+					</>
+				) : (
+					<>
+						<Loader2 className="mx-auto h-6 w-6 animate-spin text-[#163300]" />
+						<p className="mt-3 text-xs font-semibold text-gray-500">
+							Loading campaign…
+						</p>
+					</>
+				)}
+			</div>
+		);
+	}
+
 	return (
 		<div className="max-w-[1440px] mx-auto pb-16">
 			{/* Sub-Navigation Switcher */}
 			<BroadcastSubNav />
+
+			{isEditing && editingCampaign && (
+				<div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+					<div className="flex items-start gap-3">
+						<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-amber-100 text-amber-700">
+							<Pencil className="h-4 w-4" />
+						</div>
+						<div className="min-w-0 flex-1">
+							<p className="text-xs font-bold uppercase tracking-wider text-amber-800">
+								{editingCampaign.latest_review_decision === "changes_requested"
+									? "Revising after brand review"
+									: "Editing campaign"}
+							</p>
+							{editingCampaign.latest_review_decision ===
+								"changes_requested" && (
+								<p className="mt-1 text-xs text-gray-700 leading-relaxed">
+									<span className="font-bold">Brand note: </span>
+									<span className="italic">
+										{`“${editingCampaign.latest_review_note?.trim() || "Changes requested without a note."}”`}
+									</span>
+								</p>
+							)}
+							<p className="mt-1 text-xs text-gray-600">
+								Saving returns this campaign to draft
+								{approvalRequired
+									? " and resubmits it for internal approval"
+									: ""}
+								. The brand must approve the revised version before it can be
+								sent.
+							</p>
+						</div>
+					</div>
+				</div>
+			)}
 
 			{/* Studio Command Header */}
 			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-gray-200/80">
@@ -759,18 +948,56 @@ export function BroadcastStudio() {
 					<div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
 						<span>Campaigns</span>
 						<span>/</span>
-						<span className="text-[#163300] font-bold">Broadcast Studio</span>
+						<span className="text-[#163300] font-bold">
+							{isEditing ? "Revise Broadcast" : "Broadcast Studio"}
+						</span>
 					</div>
 					<h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight font-heading">
-						Omnichannel Broadcast Studio
+						{isEditing ? "Revise Broadcast" : "Omnichannel Broadcast Studio"}
 					</h1>
 					<p className="text-sm font-medium text-gray-500 mt-1">
-						Agency-grade multi-channel distribution engine with live native
-						simulation.
+						{isEditing
+							? `Updating “${editingCampaign?.title ?? "campaign"}”. Edits clear the previous approval so it is reviewed again before sending.`
+							: "Agency-grade multi-channel distribution engine with live native simulation."}
 					</p>
 				</div>
 
 				<div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+					{isEditing ? (
+						<>
+							<button
+								type="button"
+								onClick={() =>
+									router.push(
+										`${APP_ROUTES.DASHBOARD.SCHEDULED}?campaign=${encodeURIComponent(editingCampaignId ?? "")}`,
+									)
+								}
+								className="h-10 inline-flex items-center gap-2 px-3.5 rounded-xl border border-gray-200 bg-white font-semibold text-xs text-gray-700 hover:border-gray-300 hover:bg-gray-50/80 hover:text-gray-900 transition-all whitespace-nowrap shadow-2xs"
+							>
+								<ArrowLeft className="h-3.5 w-3.5 text-gray-500" />
+								Back to Queue
+							</button>
+
+							<button
+								type="button"
+								onClick={handleSaveChanges}
+								disabled={isSavingEdit}
+								className="h-10 inline-flex items-center gap-2 px-5 rounded-xl font-bold text-xs bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white shadow-sm shadow-[#163300]/20 transition-all whitespace-nowrap disabled:opacity-60"
+							>
+								{isSavingEdit ? (
+									<Loader2 className="h-3.5 w-3.5 animate-spin" />
+								) : (
+									<CheckCircle2 className="h-3.5 w-3.5" />
+								)}
+								{isSavingEdit
+									? "Saving..."
+									: approvalRequired && editingCampaign?.status !== "draft"
+										? "Save & Resubmit"
+										: "Save Changes"}
+							</button>
+						</>
+					) : (
+						<>
 					{isWhatsAppStory && (
 						<button
 							type="button"
@@ -861,6 +1088,8 @@ export function BroadcastStudio() {
 							</>
 						)}
 					</button>
+						</>
+					)}
 				</div>
 			</div>
 

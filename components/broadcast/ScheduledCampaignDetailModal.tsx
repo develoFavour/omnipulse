@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   ExternalLink,
   ImageIcon,
+  Pencil,
 } from "lucide-react";
 import { FaTelegram, FaWhatsapp } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ interface ScheduledCampaignDetailModalProps {
   onCancelPermanently: (id: string) => void;
   onDispatchNow: (id: string) => void;
   onSchedule: (id: string) => void;
+  onRevise?: (id: string) => void;
   onSubmitForApproval?: (id: string) => Promise<boolean>;
   onApprove?: (id: string) => Promise<boolean>;
   onReject?: (id: string, reason: string) => Promise<boolean>;
@@ -62,6 +64,7 @@ export function ScheduledCampaignDetailModal({
   isPermanentlyCancelling,
   isDispatching,
   onSchedule,
+  onRevise,
   onSubmitForApproval,
   onApprove,
   onReject,
@@ -112,9 +115,12 @@ export function ScheduledCampaignDetailModal({
 
   let banner: { title: string; body: string } | null = null;
   if (brandRequestedChanges) {
+    const brandNote = campaign.latest_review_note?.trim();
     banner = {
       title: "Changes requested by the brand",
-      body: "The brand asked for changes on this campaign. Revise the broadcast in the studio, then share a new review link before sending.",
+      body: brandNote
+        ? `The brand asked for: “${brandNote}” Revise the broadcast in the studio, then share a fresh review link before sending.`
+        : "The brand asked for changes on this campaign. Revise the broadcast in the studio, then share a new review link before sending.",
     };
   } else if (isRejected) {
     banner = {
@@ -252,8 +258,18 @@ export function ScheduledCampaignDetailModal({
                 </div>
               </div>
 
-              {(canSubmit || canApprove) && !showRejectForm && (
+              {(canSubmit || canApprove || brandRequestedChanges || isRejected) && !showRejectForm && (
                 <div className="flex flex-wrap items-center gap-2 pl-8">
+                  {(brandRequestedChanges || isRejected) && onRevise && (
+                    <Button
+                      type="button"
+                      onClick={() => onRevise(campaign.id)}
+                      className="h-8 px-3 text-xs font-bold bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white"
+                    >
+                      <Pencil className="h-3.5 w-3.5 mr-1" />
+                      Revise campaign
+                    </Button>
+                  )}
                   {canSubmit && (
                     <Button
                       type="button"

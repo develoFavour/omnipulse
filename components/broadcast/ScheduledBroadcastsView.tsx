@@ -508,6 +508,11 @@ export function ScheduledBroadcastsView() {
                     setScheduledAt("");
                     setCampaignToSchedule(c);
                   }}
+                  onRevise={(c) =>
+                    router.push(
+                      `${APP_ROUTES.DASHBOARD.BROADCAST}?campaign=${encodeURIComponent(c.id)}`,
+                    )
+                  }
                   isCancelling={cancellingId === campaign.id || deletingDraftId === campaign.id}
                   isDispatching={dispatchingId === campaign.id}
                 />
@@ -538,6 +543,11 @@ export function ScheduledBroadcastsView() {
             setCampaignToSchedule(item);
           }
         }}
+        onRevise={(id) =>
+          router.push(
+            `${APP_ROUTES.DASHBOARD.BROADCAST}?campaign=${encodeURIComponent(id)}`,
+          )
+        }
         onCancelPermanently={(id) => {
           const item = campaigns.find((c) => c.id === id);
           if (item) setCampaignToCancelPermanently(item);

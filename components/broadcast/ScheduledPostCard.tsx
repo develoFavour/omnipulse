@@ -15,6 +15,7 @@ import {
   Sparkles,
   AlertCircle,
   Lock,
+  Pencil,
 } from "lucide-react";
 import { FaTelegram, FaWhatsapp } from "react-icons/fa";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ interface ScheduledPostCardProps {
   onRequestCancel: (campaign: ScheduledCampaignItem) => void;
   onRequestDispatch: (campaign: ScheduledCampaignItem) => void;
   onRequestSchedule: (campaign: ScheduledCampaignItem) => void;
+  onRevise: (campaign: ScheduledCampaignItem) => void;
   isCancelling?: boolean;
   isDispatching?: boolean;
 }
@@ -41,6 +43,7 @@ export function ScheduledPostCard({
   onRequestCancel,
   onRequestDispatch,
   onRequestSchedule,
+  onRevise,
   isCancelling,
   isDispatching,
 }: ScheduledPostCardProps) {
@@ -274,7 +277,17 @@ export function ScheduledPostCard({
           Inspect Details
         </Button>
 
-        {actionsBlocked ? (
+        {brandRequestedChanges || isRejected ? (
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => onRevise(campaign)}
+            className="ml-auto h-8 px-3 text-xs font-bold bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white"
+          >
+            <Pencil className="h-3.5 w-3.5 mr-1" />
+            Revise Campaign
+          </Button>
+        ) : actionsBlocked ? (
           <span
             className={cn(
               "ml-auto inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold",
