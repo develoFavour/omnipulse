@@ -78,6 +78,7 @@ export interface PublicReview {
   brand: { name: string; logo_url?: string };
   expires_at: string;
   decision?: PublicReviewDecision;
+  revised_since_decision?: boolean;
   approval_trail: PublicReviewTrailEntry[];
   report?: PublicOutcomeReport;
 }

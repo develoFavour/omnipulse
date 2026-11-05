@@ -27,6 +27,10 @@ import {
 } from "lucide-react";
 import { FaTelegram, FaWhatsapp } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
+import {
+  brandChangesOutstanding,
+  brandReviewPending,
+} from "@/lib/campaign-review";
 import { usePermissions } from "@/lib/hooks/usePermissions";
 import { ClientReviewPanel } from "./ClientReviewPanel";
 
@@ -87,11 +91,14 @@ export function ScheduledCampaignDetailModal({
   const status = campaign.status;
   const canReview = role === "owner" || role === "admin";
   const isRejected = status === "rejected";
-  const brandRequestedChanges = campaign.latest_review_decision === "changes_requested";
+  const brandChangesCurrent = brandChangesOutstanding(campaign);
+  const brandAwaitingReview = brandReviewPending(campaign);
   const awaitingApproval =
     approvalRequired && status !== "approved" && status !== "scheduled";
-  const actionsBlocked = isRejected || brandRequestedChanges || awaitingApproval;
-  const canApprove = canReview && status === "pending_approval" && !brandRequestedChanges;
+  const actionsBlocked =
+    isRejected || brandChangesCurrent || brandAwaitingReview || awaitingApproval;
+  // A change request on an earlier version must not block approving the revision.
+  const canApprove = canReview && status === "pending_approval" && !brandChangesCurrent;
   const canSubmit = (status === "draft" && approvalRequired) || isRejected;
 
   const handleSubmit = async () => {
@@ -114,13 +121,13 @@ export function ScheduledCampaignDetailModal({
   };
 
   let banner: { title: string; body: string } | null = null;
-  if (brandRequestedChanges) {
+  if (brandChangesCurrent) {
     const brandNote = campaign.latest_review_note?.trim();
     banner = {
       title: "Changes requested by the brand",
       body: brandNote
-        ? `The brand asked for: “${brandNote}” Revise the broadcast in the studio, then share a fresh review link before sending.`
-        : "The brand asked for changes on this campaign. Revise the broadcast in the studio, then share a new review link before sending.",
+        ? `The brand asked for: “${brandNote}” Revise the broadcast in the studio; the brand's review link will show the updated version.`
+        : "The brand asked for changes on this campaign. Revise the broadcast in the studio; the brand's review link will show the updated version.",
     };
   } else if (isRejected) {
     banner = {
@@ -132,9 +139,16 @@ export function ScheduledCampaignDetailModal({
   } else if (status === "pending_approval") {
     banner = {
       title: canReview ? "Awaiting your approval" : "Awaiting approval",
-      body: canReview
+      body: brandAwaitingReview
+        ? "Review the revised message and audience, then approve or reject it below. The brand still needs to approve the latest version before it can be sent."
+        : canReview
         ? "Review the message and audience, then approve or reject it below."
         : "An Owner or Admin must approve this campaign before it can be scheduled or sent.",
+    };
+  } else if (brandAwaitingReview) {
+    banner = {
+      title: "Awaiting brand review",
+      body: "This campaign is approved internally. The brand's review link shows the latest version — ask them to approve it before scheduling or sending.",
     };
   } else if (approvalRequired && status === "approved") {
     banner = {
@@ -143,30 +157,34 @@ export function ScheduledCampaignDetailModal({
     };
   }
 
-  const bannerTone = brandRequestedChanges || isRejected
+  const bannerTone = brandChangesCurrent || isRejected
     ? "border-rose-200 bg-rose-50"
+    : brandAwaitingReview || status === "pending_approval"
+    ? "border-amber-200 bg-amber-50"
     : status === "approved"
     ? "border-emerald-200 bg-emerald-50"
     : "border-amber-200 bg-amber-50";
-  const bannerIconTone = brandRequestedChanges || isRejected
+  const bannerIconTone = brandChangesCurrent || isRejected
     ? "text-rose-600"
+    : brandAwaitingReview || status === "pending_approval"
+    ? "text-amber-600"
     : status === "approved"
     ? "text-emerald-600"
     : "text-amber-600";
-  const BannerIcon = brandRequestedChanges || isRejected
+  const BannerIcon = brandChangesCurrent || isRejected
     ? AlertTriangle
-    : status === "approved"
+    : status === "approved" && !brandAwaitingReview
     ? CheckCircle2
     : Clock;
 
-  const headerBadgeTone = brandRequestedChanges || isRejected
+  const headerBadgeTone = brandChangesCurrent || isRejected
     ? "bg-rose-100 text-rose-800 border-rose-300"
-    : status === "approved"
+    : status === "approved" && !brandAwaitingReview
     ? "bg-emerald-100 text-emerald-800 border-emerald-300"
     : "bg-amber-100 text-amber-800 border-amber-300";
-  const headerDotTone = brandRequestedChanges || isRejected
+  const headerDotTone = brandChangesCurrent || isRejected
     ? "bg-rose-500"
-    : status === "approved"
+    : status === "approved" && !brandAwaitingReview
     ? "bg-emerald-500"
     : "bg-amber-500 animate-ping";
 
@@ -186,7 +204,11 @@ export function ScheduledCampaignDetailModal({
                     ? "Awaiting Your Approval"
                     : "Awaiting Approval"
                   : status === "approved"
-                  ? "Approved Campaign"
+                  ? brandAwaitingReview
+                    ? "Approved — Awaiting Brand Review"
+                    : "Approved Campaign"
+                  : brandAwaitingReview
+                  ? "Awaiting Brand Review"
                   : isRejected
                   ? "Rejected"
                   : "Scheduled Dispatch"}
@@ -258,9 +280,9 @@ export function ScheduledCampaignDetailModal({
                 </div>
               </div>
 
-              {(canSubmit || canApprove || brandRequestedChanges || isRejected) && !showRejectForm && (
+              {(canSubmit || canApprove || brandChangesCurrent || isRejected) && !showRejectForm && (
                 <div className="flex flex-wrap items-center gap-2 pl-8">
-                  {(brandRequestedChanges || isRejected) && onRevise && (
+                  {(brandChangesCurrent || isRejected) && onRevise && (
                     <Button
                       type="button"
                       onClick={() => onRevise(campaign.id)}
