@@ -34,6 +34,41 @@ export interface PaginatedContactsResponse {
   totalPages: number;
 }
 
+export interface ContactImportRowPayload {
+  first_name: string;
+  last_name: string;
+  channel: string;
+  routing_value: string;
+  consent: "granted" | "revoked" | "";
+  consent_note?: string;
+}
+
+export interface ContactImportPayload {
+  default_channel?: string;
+  default_consent?: "granted" | "revoked" | "";
+  consent_note?: string;
+  rows: ContactImportRowPayload[];
+}
+
+export interface ContactImportError {
+  row: number;
+  routing_value?: string;
+  message: string;
+}
+
+export interface ContactImportSummary {
+  total: number;
+  created: number;
+  existing: number;
+  duplicates: number;
+  invalid: number;
+  consent_granted: number;
+  consent_revoked: number;
+  no_consent: number;
+  errors: ContactImportError[];
+  truncated_errors?: boolean;
+}
+
 class ContactService {
   async getContacts(
     paramsOrChannel?: string | ContactQueryParams
@@ -116,6 +151,14 @@ class ContactService {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(downloadUrl);
+  }
+
+  async importContacts(payload: ContactImportPayload): Promise<ContactImportSummary> {
+    const response = await apiClient.post<ContactImportSummary>(
+      ENDPOINTS.CONTACTS.IMPORT,
+      payload
+    );
+    return response.data;
   }
 }
 
