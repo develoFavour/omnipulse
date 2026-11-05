@@ -29,6 +29,7 @@ export interface CampaignResponse {
   approved_at?: string;
   rejection_reason?: string;
   latest_review_decision?: string;
+  latest_review_note?: string;
   total_targets: number;
   processed_targets: number;
   created_at: string;
@@ -121,6 +122,11 @@ export interface CampaignPreflight {
 class CampaignService {
   async createCampaign(payload: CampaignPayload): Promise<CampaignResponse> {
     const response = await apiClient.post<ApiResponse<CampaignResponse>>(ENDPOINTS.CAMPAIGNS.BASE, payload);
+    return response.data as unknown as CampaignResponse;
+  }
+
+  async updateCampaign(campaignId: string, payload: CampaignPayload): Promise<CampaignResponse> {
+    const response = await apiClient.put<ApiResponse<CampaignResponse>>(ENDPOINTS.CAMPAIGNS.BY_ID(campaignId), payload);
     return response.data as unknown as CampaignResponse;
   }
 

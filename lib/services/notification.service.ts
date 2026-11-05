@@ -8,7 +8,9 @@ export type NotificationType =
   | "new_opt_out"
   | "contact_import_finished"
   | "channel_disconnected"
-  | "campaign_pending_approval";
+  | "campaign_pending_approval"
+  | "campaign_brand_approved"
+  | "campaign_brand_changes_requested";
 
 export interface Notification {
   id: string;
