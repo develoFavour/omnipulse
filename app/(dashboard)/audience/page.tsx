@@ -7,10 +7,10 @@ import {
   Users, Webhook, CheckCircle2, Copy, RefreshCw, Loader2, ExternalLink,
   Bot, Tag as TagIcon, Plus, X, Filter, Trash2, Search, ChevronDown,
   CheckSquare, Square, Pencil, Tags, ArrowUpDown, ChevronLeft, ChevronRight,
-  ChevronsLeft, ChevronsRight, Check, Download, Upload,
+  ChevronsLeft, ChevronsRight, Check, Download, Upload, Clock,
 } from "lucide-react";
 import { FaWhatsapp, FaTelegram } from "react-icons/fa";
-import { useContacts } from "@/lib/api/hooks/useContacts";
+import { useContacts, Contact } from "@/lib/api/hooks/useContacts";
 import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
 import { useTags } from "@/lib/api/hooks/useTags";
 import { useAppStore } from "@/lib/store";
@@ -117,6 +117,51 @@ export default function AudiencePage() {
   const [isBulkTagging, setIsBulkTagging] = useState(false);
   const [showBulkTagDropdown, setShowBulkTagDropdown] = useState(false);
   const bulkDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Recipient erasure
+  const [deletingContact, setDeletingContact] = useState<Contact | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Clock for the permanent-deletion countdown. Kept in state (ticked every
+  // minute) because deriving it during render trips React's purity rules; the
+  // first tick is deferred so no setState runs synchronously in the effect.
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    const tick = () => setNow(Date.now());
+    const initial = setTimeout(tick, 0);
+    const timer = setInterval(tick, 60_000);
+    return () => {
+      clearTimeout(initial);
+      clearInterval(timer);
+    };
+  }, []);
+
+  // Days until the retention sweep permanently deletes an erased recipient.
+  const daysUntilPermanentDeletion = (iso?: string | null) => {
+    if (!iso || !now) return "30 days";
+    const days = Math.ceil((new Date(iso).getTime() - now) / 86_400_000);
+    if (days <= 0) return "any moment now";
+    if (days === 1) return "1 day";
+    return `${days} days`;
+  };
+
+  const handleEraseRecipient = async () => {
+    if (!deletingContact) return;
+    setIsDeleting(true);
+    try {
+      const erased = await contactService.deleteRecipient(deletingContact.id);
+      toast.success("Recipient erased", {
+        description: `Personal details anonymized now — permanently deleted in ${daysUntilPermanentDeletion(erased.delete_after_at)}. Delivery history is kept.`,
+      });
+      setDeletingContact(null);
+      await refetch();
+    } catch (error) {
+      const err = error as { response?: { data?: { error?: string } } };
+      toast.error(err.response?.data?.error || "Failed to erase recipient");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -396,6 +441,7 @@ export default function AudiencePage() {
 
   const allSelected = safeContacts.length > 0 && selectedContactIds.size === safeContacts.length;
   const partiallySelected = selectedContactIds.size > 0 && !allSelected;
+  const columnCount = canDeleteAudience ? 8 : 7;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="max-w-7xl mx-auto pb-24">
@@ -660,16 +706,17 @@ export default function AudiencePage() {
                 <th className="px-4 py-4 cursor-pointer hover:text-gray-700" onClick={() => handleSort("created_at")}>
                   <div className="flex items-center gap-1">Status<ArrowUpDown className="h-3 w-3 opacity-60" /></div>
                 </th>
+                {canDeleteAudience && <th className="pl-2 pr-6 py-4 w-12" />}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
               {isLoading ? (
-                <tr><td colSpan={7} className="px-6 py-12 text-center text-gray-500 font-medium">
+                <tr><td colSpan={columnCount} className="px-6 py-12 text-center text-gray-500 font-medium">
                   <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2 text-[#163300]" />
                   Loading contacts...
                 </td></tr>
               ) : safeContacts.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-12 text-center">
+                <tr><td colSpan={columnCount} className="px-6 py-12 text-center">
                   <Users className="h-8 w-8 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-900 font-bold mb-1">
                     {selectedTagId ? "No contacts have this tag yet." : searchQuery ? "No contacts match your search." : "No contacts synced yet."}
@@ -763,8 +810,30 @@ export default function AudiencePage() {
                       </td>
                       <td className="px-4 py-3.5 capitalize font-medium text-gray-600">{contact.source.replace("_", " ")}</td>
                       <td className="px-4 py-3.5">
-                        <span className="inline-flex items-center gap-1.5 font-bold text-emerald-600"><CheckCircle2 className="h-4 w-4" /><span className="capitalize">{contact.status}</span></span>
+                        {contact.anonymized_at ? (
+                          <span
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-bold text-amber-700"
+                            title="This recipient's personal details were erased. The anonymized record is kept for delivery history until the date shown, then permanently deleted."
+                          >
+                            <Clock className="h-3.5 w-3.5" />
+                            Permanent deletion in {daysUntilPermanentDeletion(contact.delete_after_at)}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 font-bold text-emerald-600"><CheckCircle2 className="h-4 w-4" /><span className="capitalize">{contact.status}</span></span>
+                        )}
                       </td>
+                      {canDeleteAudience && (
+                        <td className="pl-2 pr-6 py-3.5 text-right">
+                          <button
+                            onClick={() => setDeletingContact(contact)}
+                            disabled={Boolean(contact.anonymized_at)}
+                            className="rounded-lg p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:hover:text-gray-300 disabled:hover:bg-transparent"
+                            title={contact.anonymized_at ? "This recipient is already erased" : "Erase recipient"}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })
@@ -1125,6 +1194,78 @@ export default function AudiencePage() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Erase Recipient Confirmation */}
+      <AnimatePresence>
+        {deletingContact && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={() => !isDeleting && setDeletingContact(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-gray-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-red-100 flex items-center justify-center"><Trash2 className="h-4 w-4 text-red-600" /></div>
+                  <h3 className="text-base font-bold text-gray-900">Erase this recipient?</h3>
+                </div>
+                <button onClick={() => !isDeleting && setDeletingContact(null)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100"><X className="h-4 w-4" /></button>
+              </div>
+
+              <p className="text-sm font-bold text-gray-900 mb-1">
+                {deletingContact.first_name} {deletingContact.last_name}
+              </p>
+              <p className="text-xs font-mono text-gray-400 mb-4">
+                {deletingContact.routing_value} · <span className="capitalize">{deletingContact.channel}</span>
+              </p>
+
+              <ul className="space-y-2.5 mb-6">
+                <li className="flex items-start gap-2.5 text-xs font-medium text-gray-600 leading-relaxed">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  Their name and address are anonymized immediately, and they are opted out of all future sends.
+                </li>
+                <li className="flex items-start gap-2.5 text-xs font-medium text-gray-600 leading-relaxed">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                  Delivery history for past campaigns is kept, so reports stay accurate.
+                </li>
+                <li className="flex items-start gap-2.5 text-xs font-medium text-gray-600 leading-relaxed">
+                  <Clock className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                  The anonymized record is permanently deleted in 30 days. This cannot be undone.
+                </li>
+              </ul>
+
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeletingContact(null)}
+                  disabled={isDeleting}
+                  className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEraseRecipient}
+                  disabled={isDeleting}
+                  className="flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 shadow-sm disabled:opacity-50"
+                >
+                  {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                  {isDeleting ? "Erasing..." : "Erase recipient"}
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
