@@ -13,6 +13,8 @@ export interface Contact {
   status: string;
   tags?: Tag[];
   created_at: string;
+  anonymized_at?: string | null;
+  delete_after_at?: string | null;
 }
 
 export function useContacts(paramsOrChannel?: string | ContactQueryParams) {

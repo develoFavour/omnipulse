@@ -14,6 +14,8 @@ export interface ContactResponse {
   status: string;
   tags?: Tag[];
   created_at: string;
+  anonymized_at?: string | null;
+  delete_after_at?: string | null;
 }
 
 export interface ContactQueryParams {
@@ -157,6 +159,16 @@ class ContactService {
     const response = await apiClient.post<ContactImportSummary>(
       ENDPOINTS.CONTACTS.IMPORT,
       payload
+    );
+    return response.data;
+  }
+
+  // Erasure is anonymize-now, hard-delete-later: the backend blanks the
+  // recipient's PII immediately and stamps delete_after_at (~30 days out),
+  // which the UI surfaces as a countdown until the retention sweep runs.
+  async deleteRecipient(id: string): Promise<ContactResponse> {
+    const response = await apiClient.delete<ContactResponse>(
+      ENDPOINTS.CONTACTS.BY_ID(id)
     );
     return response.data;
   }

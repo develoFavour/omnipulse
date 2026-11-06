@@ -29,3 +29,11 @@ jobs:
       # --quiet gates on errors only; new warnings stay advisory.
       - name: Lint
         run: npx eslint --quiet
+
+      # npm audit is advisory: the current tree carries known advisories
+      # (including Next.js criticals queued for a dedicated upgrade slice), and
+      # blocking every push on an unfixable-in-place advisory would train
+      # people to ignore CI. The log stays the forcing function.
+      - name: Dependency audit (advisory)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true

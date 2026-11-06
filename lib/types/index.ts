@@ -38,6 +38,8 @@ export interface Contact {
   status: 'active' | 'opted_out';
   created_at?: string;
   updated_at?: string;
+  anonymized_at?: string | null;
+  delete_after_at?: string | null;
 }
 
 export interface Campaign {
