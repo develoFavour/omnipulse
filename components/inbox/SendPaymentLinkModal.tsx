@@ -25,6 +25,7 @@ export function SendPaymentLinkModal({
 }: SendPaymentLinkModalProps) {
 	const [amountNaira, setAmountNaira] = useState("");
 	const [description, setDescription] = useState("");
+	const [customerEmail, setCustomerEmail] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const parsedAmount = parseFloat(amountNaira.replace(/,/g, "")) || 0;
@@ -51,6 +52,7 @@ export function SendPaymentLinkModal({
 			const tx = await commerceService.createPaymentLink(conversationId, {
 				amount: amountKobo,
 				description: description.trim(),
+				...(customerEmail.trim() ? { customer_email: customerEmail.trim() } : {}),
 			});
 
 			toast.success("Payment link generated and sent to customer!");
@@ -58,6 +60,7 @@ export function SendPaymentLinkModal({
 			onClose();
 			setAmountNaira("");
 			setDescription("");
+			setCustomerEmail("");
 		} catch (err: unknown) {
 			toast.error(apiMessage(err, "Failed to generate payment link"));
 		} finally {
@@ -143,6 +146,20 @@ export function SendPaymentLinkModal({
 									onChange={(e) => setDescription(e.target.value)}
 									placeholder="e.g. Vintage Black Jacket - Size M"
 									maxLength={120}
+									disabled={isSubmitting}
+									className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300]"
+								/>
+							</div>
+
+							<div>
+								<label className="block text-xs font-semibold text-gray-700 mb-1.5">
+									Customer Email <span className="text-gray-400 font-normal">(Optional)</span>
+								</label>
+								<input
+									type="email"
+									value={customerEmail}
+									onChange={(e) => setCustomerEmail(e.target.value)}
+									placeholder="e.g. buyer@example.com (for Paystack receipt)"
 									disabled={isSubmitting}
 									className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3.5 py-2.5 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300]"
 								/>
