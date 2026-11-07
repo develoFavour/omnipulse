@@ -47,6 +47,8 @@ export interface PublicOutcomeReport {
   delivered: number;
   failed: number;
   delivery_rate: number;
+  revenue_kobo?: number;
+  paid_orders_count?: number;
   generated_at: string;
 }
 

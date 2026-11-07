@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   UserX,
   Users,
+  Zap,
 } from "lucide-react";
 import { apiMessage, apiStatus } from "@/lib/api/axios-error";
 import { reviewService, PublicReview, ReviewTrailStage } from "@/lib/services/review.service";
@@ -452,6 +453,29 @@ export default function ClientReviewPage() {
                 Download report (CSV)
               </a>
             </div>
+            {/* Verified Closed Revenue Banner */}
+            {review.report.revenue_kobo != null && review.report.revenue_kobo > 0 && (
+              <div className="mt-4 rounded-2xl bg-gradient-to-r from-emerald-900 to-zinc-900 p-5 text-white shadow-md border border-emerald-500/30">
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+                  <Zap className="h-4 w-4 fill-emerald-400" />
+                  Verified Revenue Generated
+                </div>
+                <div className="mt-2 flex flex-wrap items-baseline gap-3">
+                  <span className="font-mono text-3xl font-extrabold text-white">
+                    ₦{((review.report.revenue_kobo || 0) / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                  </span>
+                  {review.report.paid_orders_count != null && review.report.paid_orders_count > 0 && (
+                    <span className="text-xs font-semibold text-emerald-300 bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-800">
+                      {review.report.paid_orders_count} closed order{review.report.paid_orders_count === 1 ? "" : "s"}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-zinc-300">
+                  Payments completed via Paystack conversational checkout links.
+                </p>
+              </div>
+            )}
+
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
                 { label: "Targets", value: review.report.total_targets },
@@ -491,15 +515,26 @@ export default function ClientReviewPage() {
           </section>
         )}
 
-        <footer className="flex flex-col items-center gap-2 pb-6 pt-2 text-center text-xs text-zinc-400">
+        <footer className="flex flex-col items-center gap-3 pb-8 pt-4 text-center text-xs text-zinc-500 dark:text-zinc-400 border-t border-gray-100 dark:border-zinc-800">
           <p className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
             This link expires {formatDate(review.expires_at)}
           </p>
-          <p className="flex items-center gap-1.5">
-            <Building2 className="h-3.5 w-3.5" />
-            Powered by MessageRail
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 mt-1">
+            <span className="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300">
+              <Building2 className="h-3.5 w-3.5" />
+              Powered by MessageRail · The WhatsApp Revenue OS
+            </span>
+            <span className="hidden sm:inline text-zinc-300">·</span>
+            <a
+              href="https://omnipulseng.vercel.app"
+              target="_blank"
+              rel="noreferrer"
+              className="font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 underline underline-offset-2 transition-colors"
+            >
+              Start Free Agency Workspace →
+            </a>
+          </div>
         </footer>
       </motion.div>
     </main>
