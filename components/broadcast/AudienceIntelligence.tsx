@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { 
   Users, 
   Search, 
@@ -24,6 +25,7 @@ import { ChannelPlacement } from "./ChannelPlacementSelector";
 interface AudienceIntelligenceProps {
   selectedPlacements: ChannelPlacement[];
   contacts: Contact[];
+  isLoadingContacts?: boolean;
   destinations: TelegramDestination[];
   selectedDestinationIds: string[];
   onToggleDestination: (id: string) => void;
@@ -39,6 +41,7 @@ interface AudienceIntelligenceProps {
 export function AudienceIntelligence({
   selectedPlacements,
   contacts,
+  isLoadingContacts = false,
   destinations,
   selectedDestinationIds,
   onToggleDestination,
@@ -62,13 +65,14 @@ export function AudienceIntelligence({
   const isWhatsAppDM = selectedPlacements.includes("whatsapp_dm");
   const isWhatsAppStory = selectedPlacements.includes("whatsapp_story");
 
-  const activeContacts = contacts.filter((c) => c.status === "active");
+  const activeContacts = contacts.filter((c) => (c.status ?? "").toLowerCase() === "active");
 
   // Contacts eligible for the current placements
   const eligibleContacts = useMemo(() => {
     return activeContacts.filter((c) => {
-      if (isTelegramDM && c.channel === "telegram") return true;
-      if (isWhatsAppDM && c.channel === "whatsapp") return true;
+      const ch = (c.channel ?? "").toLowerCase();
+      if (isTelegramDM && ch === "telegram") return true;
+      if (isWhatsAppDM && ch === "whatsapp") return true;
       return false;
     });
   }, [activeContacts, isTelegramDM, isWhatsAppDM]);
@@ -175,11 +179,11 @@ export function AudienceIntelligence({
               <span className="h-2 w-2 rounded-full bg-[#0088cc]" />
               Telegram DMs:{" "}
               <strong className="font-mono">
-                {targetContacts.filter((c) => c.channel === "telegram").length}
+                {targetContacts.filter((c) => (c.channel ?? "").toLowerCase() === "telegram").length}
               </strong>
               {isFilteringContacts && (
                 <span className="text-[10px] text-amber-600">
-                  /{eligibleContacts.filter((c) => c.channel === "telegram").length}
+                  /{eligibleContacts.filter((c) => (c.channel ?? "").toLowerCase() === "telegram").length}
                 </span>
               )}
             </span>
@@ -196,11 +200,11 @@ export function AudienceIntelligence({
               <span className="h-2 w-2 rounded-full bg-[#25D366]" />
               WhatsApp DMs:{" "}
               <strong className="font-mono">
-                {targetContacts.filter((c) => c.channel === "whatsapp").length}
+                {targetContacts.filter((c) => (c.channel ?? "").toLowerCase() === "whatsapp").length}
               </strong>
               {isFilteringContacts && (
                 <span className="text-[10px] text-amber-600">
-                  /{eligibleContacts.filter((c) => c.channel === "whatsapp").length}
+                  /{eligibleContacts.filter((c) => (c.channel ?? "").toLowerCase() === "whatsapp").length}
                 </span>
               )}
             </span>
@@ -215,7 +219,34 @@ export function AudienceIntelligence({
       </div>
 
       {/* ── Contact Targeting (Private DM Placements) ─────────────────── */}
-      {hasPrivatePlacements && eligibleContacts.length > 0 && (
+      {hasPrivatePlacements && (
+        isLoadingContacts ? (
+          <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-6 flex items-center justify-center gap-3 text-gray-500 text-xs">
+            <div className="h-4 w-4 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+            Loading audience contacts from directory...
+          </div>
+        ) : eligibleContacts.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/60 p-6 text-center space-y-2">
+            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-400">
+              <UserX className="h-5 w-5" />
+            </div>
+            <p className="text-xs font-semibold text-gray-700">
+              No active contacts found for your selected channels ({[isTelegramDM && "Telegram", isWhatsAppDM && "WhatsApp"].filter(Boolean).join(", ")}).
+            </p>
+            <p className="text-[11px] text-gray-500 max-w-sm mx-auto">
+              Contacts must have an active status in your Audience Directory to receive direct broadcasts.
+            </p>
+            <div className="pt-1">
+              <Link
+                href="/audience"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-gray-800 transition-colors shadow-xs"
+              >
+                <Users className="h-3.5 w-3.5" />
+                Manage Audience Directory
+              </Link>
+            </div>
+          </div>
+        ) : (
         <div className="rounded-2xl border border-[#9fe870]/60 bg-[#e2f6d5]/15 p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -423,7 +454,7 @@ export function AudienceIntelligence({
                           <span
                             className={cn(
                               "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shrink-0",
-                              contact.channel === "telegram"
+                              (contact.channel ?? "").toLowerCase() === "telegram"
                                 ? "bg-sky-100 text-sky-800"
                                 : "bg-emerald-100 text-emerald-800"
                             )}
@@ -445,6 +476,7 @@ export function AudienceIntelligence({
             </div>
           )}
         </div>
+        )
       )}
 
       {/* ── Telegram Group Destination Picker ──────────────────────────── */}

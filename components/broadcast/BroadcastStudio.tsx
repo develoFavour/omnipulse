@@ -238,12 +238,14 @@ export function BroadcastStudio() {
 	}, [editingCampaignId]);
 
 	// Channel & Audience Context
-	const activeContacts = contacts.filter((c) => c.status === "active");
+	const activeContacts = contacts.filter(
+		(c) => (c.status ?? "").toLowerCase() === "active",
+	);
 	const telegramContacts = activeContacts.filter(
-		(c) => c.channel === "telegram",
+		(c) => (c.channel ?? "").toLowerCase() === "telegram",
 	);
 	const whatsappContacts = activeContacts.filter(
-		(c) => c.channel === "whatsapp",
+		(c) => (c.channel ?? "").toLowerCase() === "whatsapp",
 	);
 	const activeDestinations = destinations.filter((d) => d.status === "active");
 
@@ -388,8 +390,9 @@ export function BroadcastStudio() {
 	// Contacts eligible for currently selected private-DM placements
 	const eligibleContacts = useMemo(() => {
 		return activeContacts.filter((c) => {
-			if (isTelegramDM && c.channel === "telegram") return true;
-			if (isWhatsAppDM && c.channel === "whatsapp") return true;
+			const ch = (c.channel ?? "").toLowerCase();
+			if (isTelegramDM && ch === "telegram") return true;
+			if (isWhatsAppDM && ch === "whatsapp") return true;
 			return false;
 		});
 	}, [activeContacts, isTelegramDM, isWhatsAppDM]);
@@ -1357,6 +1360,7 @@ export function BroadcastStudio() {
 						<AudienceIntelligence
 							selectedPlacements={selectedPlacements}
 							contacts={contacts}
+							isLoadingContacts={isLoadingContacts}
 							destinations={activeDestinations}
 							selectedDestinationIds={selectedDestinationIds}
 							onToggleDestination={handleToggleDestination}
