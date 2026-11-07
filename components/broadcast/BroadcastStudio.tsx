@@ -33,6 +33,7 @@ import { useTelegramDestinations } from "@/lib/api/hooks/useTelegramDestinations
 import { useTenantChannels } from "@/lib/api/hooks/useTenantChannels";
 import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
 import { useCampaigns } from "@/lib/api/hooks/useCampaigns";
+import { usePermissions } from "@/lib/hooks/usePermissions";
 import { channelService } from "@/lib/services/channel.service";
 import { campaignService, type CampaignPreflight, type CampaignResponse } from "@/lib/services/campaign.service";
 import { apiMessage } from "@/lib/api/axios-error";
@@ -126,6 +127,7 @@ export function BroadcastStudio() {
 		isDispatching,
 		isScheduling,
 	} = useCampaigns();
+	const { isOwner, isAdmin } = usePermissions();
 	const {
 		tier,
 		messages: messagesQuota,
@@ -140,6 +142,10 @@ export function BroadcastStudio() {
 	const [messageBody, setMessageBody] = useState("");
 	const [mediaUrl, setMediaUrl] = useState("");
 	const [approvalRequired, setApprovalRequired] = useState(false);
+
+	// Owners and admins bypass the approval gate — they ARE the approvers.
+	// Only members (junior roles) go through the submit-for-approval flow.
+	const needsApproval = approvalRequired && !isOwner && !isAdmin;
 
 	// Edit mode: ?campaign=<id> revises an existing campaign instead of creating
 	const editingCampaignId = searchParams.get("campaign");
@@ -575,7 +581,7 @@ export function BroadcastStudio() {
 			// Saving an already-reviewed campaign puts it back into draft, so a
 			// workspace that requires approval resubmits it in the same action.
 			const shouldResubmit =
-				approvalRequired && editingCampaign?.status !== "draft";
+				needsApproval && editingCampaign?.status !== "draft";
 			if (shouldResubmit) {
 				await campaignService.submitForApproval(editingCampaignId);
 				toast.success("Changes saved and resubmitted", {
@@ -653,7 +659,7 @@ export function BroadcastStudio() {
 		try {
 			const campaign = await createCampaign(buildCampaignPayload());
 
-			if (approvalRequired) {
+			if (needsApproval) {
 				await campaignService.submitForApproval(campaign.id);
 				toast.success("Campaign submitted for approval", {
 					description:
@@ -795,7 +801,7 @@ export function BroadcastStudio() {
 		try {
 			const campaign = await createCampaign(buildCampaignPayload());
 
-			if (approvalRequired) {
+			if (needsApproval) {
 				await campaignService.submitForApproval(campaign.id);
 				setIsScheduleModalOpen(false);
 				toast.success("Campaign submitted for approval", {
@@ -936,7 +942,7 @@ export function BroadcastStudio() {
 							)}
 							<p className="mt-1 text-xs text-gray-600">
 								Saving returns this campaign to draft
-								{approvalRequired
+								{needsApproval
 									? " and resubmits it for internal approval"
 									: ""}
 								. The brand must approve the revised version before it can be
@@ -996,7 +1002,7 @@ export function BroadcastStudio() {
 								)}
 								{isSavingEdit
 									? "Saving..."
-									: approvalRequired && editingCampaign?.status !== "draft"
+									: needsApproval && editingCampaign?.status !== "draft"
 										? "Save & Resubmit"
 										: "Save Changes"}
 							</button>
@@ -1034,9 +1040,9 @@ export function BroadcastStudio() {
 					<button
 						type="button"
 						onClick={() => setIsScheduleModalOpen(true)}
-						disabled={approvalRequired}
+						disabled={needsApproval}
 						title={
-							approvalRequired
+							needsApproval
 								? "This workspace requires approval before a campaign can be scheduled"
 								: "Schedule for later"
 						}
@@ -1082,12 +1088,12 @@ export function BroadcastStudio() {
 						{isDispatching || isCreating ? (
 							<>
 								<Loader2 className="h-3.5 w-3.5 animate-spin" />
-								{approvalRequired ? "Submitting..." : "Transmitting..."}
+								{needsApproval ? "Submitting..." : "Transmitting..."}
 							</>
 						) : (
 							<>
 								<Rocket className="h-3.5 w-3.5" />
-								{approvalRequired
+								{needsApproval
 									? `Submit for Approval (${targetCount.toLocaleString()})`
 									: `Launch Broadcast (${targetCount.toLocaleString()})`}
 							</>
