@@ -45,6 +45,8 @@ export interface CampaignReport {
   deliveries?: CampaignDeliveryItem[];
   read_rate: number;
   delivery_rate: number;
+  revenue_kobo?: number;
+  paid_orders_count?: number;
 }
 
 export interface CampaignStats {
@@ -56,6 +58,8 @@ export interface CampaignStats {
   delivered: number;
   failed: number;
   progress_percent?: number;
+  revenue_kobo?: number;
+  paid_orders_count?: number;
 }
 
 export type CampaignFailureCode =

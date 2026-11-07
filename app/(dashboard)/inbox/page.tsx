@@ -28,7 +28,10 @@ import {
   Pause,
   Bot,
   Mic,
+  Zap,
+  CreditCard,
 } from "lucide-react";
+import { SendPaymentLinkModal } from "@/components/inbox/SendPaymentLinkModal";
 import { cn } from "@/lib/utils";
 import {
   useInboxConversations,
@@ -548,6 +551,18 @@ function MessageBubble({
             <Bot className="h-3 w-3" /> AI Assistant
           </div>
         )}
+        {message.body.includes("Payment Received:") && (
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-xl border border-emerald-200">
+            <Zap className="h-4 w-4 fill-emerald-600 text-emerald-600 shrink-0" />
+            <span>Paystack Payment Confirmed</span>
+          </div>
+        )}
+        {message.body.includes("Payment Request:") && (
+          <div className={cn("mb-2 flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg", isOutbound ? "bg-white/15 text-[#bce99b]" : "bg-emerald-50 text-emerald-800 border border-emerald-200")}>
+            <CreditCard className="h-3.5 w-3.5 shrink-0" />
+            <span>Paystack Checkout Link</span>
+          </div>
+        )}
         {/* Voicenote / Audio Message */}
         {isAudio ? (
           <VoiceNotePlayer url={message.media_url} isOutbound={isOutbound} />
@@ -622,10 +637,12 @@ function ComposeBar({
   onSend,
   isSending,
   disabled,
+  onOpenPaymentModal,
 }: {
   onSend: (body: string) => void;
   isSending: boolean;
   disabled: boolean;
+  onOpenPaymentModal?: () => void;
 }) {
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -676,6 +693,18 @@ function ComposeBar({
             className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300]/40 transition-all disabled:opacity-50"
           />
         </div>
+        {onOpenPaymentModal && (
+          <button
+            type="button"
+            onClick={onOpenPaymentModal}
+            disabled={disabled}
+            title="Send Paystack payment link"
+            className="h-10 px-3 rounded-xl border border-emerald-200 bg-emerald-50/80 text-emerald-800 hover:bg-emerald-100 flex items-center gap-1.5 text-xs font-semibold transition-all duration-200 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
+          >
+            <Zap className="h-3.5 w-3.5 fill-emerald-600 text-emerald-600" />
+            <span className="hidden sm:inline">Paystack Link</span>
+          </button>
+        )}
         <button
           onClick={handleSubmit}
           disabled={!message.trim() || isSending || disabled}
@@ -707,6 +736,7 @@ function ConversationDetail({
 	members,
   isUpdating,
 	workspaceAIEnabled,
+  onOpenPaymentModal,
 }: {
   conversation: Conversation;
   onStatusChange: (status: ConversationStatus) => void;
@@ -715,6 +745,7 @@ function ConversationDetail({
 	members: TenantMember[];
   isUpdating: boolean;
 	workspaceAIEnabled: boolean;
+  onOpenPaymentModal?: () => void;
 }) {
   const contactName = conversation.contact
     ? `${conversation.contact.first_name} ${conversation.contact.last_name}`.trim()
@@ -797,6 +828,17 @@ function ConversationDetail({
       <div className="px-5 py-4 border-t border-gray-100 space-y-2">
         <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Actions</h4>
 
+        {onOpenPaymentModal && conversation.status !== "closed" && (
+          <button
+            type="button"
+            onClick={onOpenPaymentModal}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition-colors shadow-2xs"
+          >
+            <Zap className="h-3.5 w-3.5 fill-emerald-600 text-emerald-600" />
+            Send Paystack Link
+          </button>
+        )}
+
         <button
           type="button"
           onClick={onToggleAI}
@@ -859,6 +901,7 @@ export default function InboxPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileThread, setShowMobileThread] = useState(false);
   const [showDetailPanel, setShowDetailPanel] = useState(true);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 	const { config: aiConfig } = useAIAssistantConfig();
 	const currentUserId = useAppStore((state) => state.user?.id || "");
 
@@ -1274,6 +1317,7 @@ export default function InboxPage() {
               onSend={handleSendReply}
               isSending={isSending}
               disabled={activeConversation.status === "closed"}
+              onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
             />
           </>
         ) : (
@@ -1299,10 +1343,29 @@ export default function InboxPage() {
 			  members={members}
               isUpdating={isUpdating}
 				workspaceAIEnabled={aiConfig?.is_enabled === true}
+              onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
             />
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Paystack Payment Link Modal */}
+      {activeConversation && (
+        <SendPaymentLinkModal
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          conversationId={activeConversation.id}
+          contactName={
+            activeConversation.contact
+              ? `${activeConversation.contact.first_name || ""} ${activeConversation.contact.last_name || ""}`.trim() || activeConversation.contact.routing_value
+              : undefined
+          }
+          onSuccess={() => {
+            refetchMessages();
+            refetchConversations();
+          }}
+        />
+      )}
     </div>
   );
 }

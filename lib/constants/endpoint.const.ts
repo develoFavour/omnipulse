@@ -138,6 +138,13 @@ export const ENDPOINTS = {
 		DELETE_MESSAGE: (msgID: string) => `${API_VERSION}/inbox/messages/${msgID}`,
 	},
 
+	// Conversational Commerce & Payment Links
+	COMMERCE: {
+		PAYMENT_LINK: (conversationId: string) => `${API_VERSION}/conversations/${conversationId}/payment-link`,
+		CONVERSATION_LINKS: (conversationId: string) => `${API_VERSION}/conversations/${conversationId}/payment-links`,
+		CONTACT_LINKS: (contactId: string) => `${API_VERSION}/contacts/${contactId}/payment-links`,
+	},
+
 	// Team Management & RBAC
 	TEAM: {
 		MEMBERS: `${API_VERSION}/team/members`,
