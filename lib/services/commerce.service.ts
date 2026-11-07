@@ -23,6 +23,7 @@ export interface PaymentTransaction {
 export interface CreatePaymentLinkPayload {
 	amount: number; // in kobo
 	description: string;
+	customer_email?: string;
 	campaign_id?: string;
 }
 
