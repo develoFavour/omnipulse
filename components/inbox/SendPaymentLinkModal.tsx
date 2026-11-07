@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CreditCard, Loader2, X, Zap, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { apiMessage } from "@/lib/api/axios-error";
 import { commerceService, type PaymentTransaction } from "@/lib/services/commerce.service";
 import { cn } from "@/lib/utils";
 
@@ -57,12 +58,8 @@ export function SendPaymentLinkModal({
 			onClose();
 			setAmountNaira("");
 			setDescription("");
-		} catch (err: any) {
-			toast.error(
-				err.response?.data?.error ||
-					err.message ||
-					"Failed to generate payment link",
-			);
+		} catch (err: unknown) {
+			toast.error(apiMessage(err, "Failed to generate payment link"));
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -156,7 +153,7 @@ export function SendPaymentLinkModal({
 								<ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
 								<div className="leading-relaxed text-[11px]">
 									When paid, the customer will be automatically tagged{" "}
-									<span className="font-bold text-emerald-800">"Customer - Paid"</span> and
+									<span className="font-bold text-emerald-800">&quot;Customer - Paid&quot;</span> and
 									revenue will be attributed to this campaign.
 								</div>
 							</div>
