@@ -9,61 +9,155 @@ import {
   FileText,
   Tag,
   ArrowRight,
-  Plus,
-  Check,
-  Layers,
-  Image as ImageIcon,
+  ShieldCheck,
 } from "lucide-react";
 import { useTemplates } from "@/lib/api/hooks/useTemplates";
 import { MessageTemplate } from "@/lib/services/template.service";
 import { cn } from "@/lib/utils";
 
-export const STARTER_TEMPLATES: Omit<MessageTemplate, "id" | "tenant_id" | "created_at" | "updated_at">[] = [
+export interface StarterPlaybook {
+  title: string;
+  category: "commerce" | "promotions" | "reminders" | "re_engagement" | "urgent";
+  body: string;
+  variables: string[];
+  badge?: string;
+  media_url?: string;
+  recommendedThrottle?: string;
+}
+
+export const STARTER_PLAYBOOKS: StarterPlaybook[] = [
   {
-    title: "⚡ Flash 24H Exclusive Deal",
+    title: "⚡ 24-Hour Flash Sale & Exclusive Voucher",
     category: "promotions",
-    body: "Hey {first_name}! ⚡ For the next 24 hours only, unlock 30% off our premier service bundle with code FLASH30.\n\nClaim your spot here before seats fill up: https://messagerail.link/flash\n\nReply STOP to opt out.",
+    badge: "🔥 High Conversion",
+    recommendedThrottle: "Human Speed (1 msg / 4s)",
+    body: "Hey {first_name}! ⚡ For the next 24 hours only, get 25% off our entire catalog with private code FLASH25.\n\nShop the private vault here: https://messagerail.link/flash\n\nStock is strictly limited. Reply to this chat if you have any questions!\n\nReply STOP to unsubscribe.",
     variables: ["first_name"],
   },
   {
-    title: "⭐ VIP Early Access Invitation",
+    title: "💬 Order Hold & Instant Checkout Closer",
+    category: "commerce",
+    badge: "⚡ Revenue Closer",
+    recommendedThrottle: "Direct Send",
+    body: "Hi {first_name}! 👋 We’ve reserved the item you inquired about for the next 4 hours so it doesn't sell out.\n\nComplete your checkout securely via Card, Bank Transfer, or USSD using this direct link:\nhttps://messagerail.link/pay\n\nOnce completed, reply \"PAID\" here and our dispatch team will assign your tracking number immediately!",
+    variables: ["first_name"],
+  },
+  {
+    title: "⭐ VIP Private Drop — 48H Advance Access",
     category: "promotions",
-    body: "Hello {first_name}, as one of our top-tier partners, you get exclusive private access to our upcoming release 48 hours before the public.\n\nExplore the catalog here: https://messagerail.link/vip-early\n\nNeed assistance? Reply directly to this chat!",
+    badge: "⭐ VIP Retention",
+    recommendedThrottle: "Safe Pace (1 msg / 5s)",
+    body: "Hello {first_name}, as one of our top-tier VIP clients, you get exclusive private access to our upcoming release 48 hours before the public.\n\nExplore the secret catalog & reserve your pieces:\nhttps://messagerail.link/vip-access\n\nNeed personal concierge styling? Reply directly to this chat!",
     variables: ["first_name"],
   },
   {
-    title: "👋 Welcome to the Community",
-    category: "onboarding",
-    body: "Hi {first_name}! Welcome to our inner circle. 🎉\n\nHere is everything you need to get the most value right away:\n1. Community Guidelines & FAQ\n2. Schedule your 1-on-1 strategy briefing\n\nStay tuned for weekly updates right here on Telegram & WhatsApp!",
-    variables: ["first_name"],
-  },
-  {
-    title: "💔 We Miss You — Special Comeback Offer",
-    category: "re_engagement",
-    body: "Hey {first_name}, we noticed it's been a while! We've made huge improvements to our platform and want to welcome you back.\n\nUse voucher WELCOMEBACK for a free credit on your next campaign: https://messagerail.link/return\n\nLet us know if you need anything!",
-    variables: ["first_name"],
-  },
-  {
-    title: "⏰ Event Starts in 1 Hour",
+    title: "⏰ Live Masterclass / Event Starts in 1 Hour",
     category: "reminders",
-    body: "Quick reminder {first_name}: Our live masterclass starts in exactly 60 minutes! 🎙️\n\nHave your questions ready and join the live stream using your secure link:\nhttps://messagerail.link/room\n\nSee you inside!",
+    badge: "📢 85% Attendance",
+    recommendedThrottle: "Burst (1 msg / 2s)",
+    body: "Quick heads-up {first_name}: Our live session begins in exactly 60 minutes! 🎙️\n\nGrab your notepad, test your audio, and enter the live room here:\nhttps://messagerail.link/live-room\n\nSee you inside!",
     variables: ["first_name"],
   },
   {
-    title: "📢 Important Service Notice",
+    title: "🙏 Special Service & Gathering Invitation",
+    category: "reminders",
+    badge: "🤝 Community",
+    recommendedThrottle: "Safe Pace (1 msg / 4s)",
+    body: "Hello {first_name}! We warmly invite you to join us this Sunday for our gathering at 9:00 AM.\n\n📍 In-Person: Main Auditorium\n🌐 Live Stream: https://messagerail.link/live\n\nInvite your family and friends—we look forward to welcoming you!",
+    variables: ["first_name"],
+  },
+  {
+    title: "🔥 Restock Alert: Limited Inventory Remaining",
+    category: "commerce",
+    badge: "⚡ Urgency Scarcity",
+    recommendedThrottle: "Human Speed (1 msg / 4s)",
+    body: "Great news {first_name}! 🎉 The item you were eyeing is officially BACK IN STOCK, but we only received a shipment of 35 units.\n\nClaim yours before it sells out again: https://messagerail.link/restock\n\nExpress dispatch guaranteed on all orders placed today!",
+    variables: ["first_name"],
+  },
+  {
+    title: "💔 We Miss You — Exclusive Comeback Credit",
+    category: "re_engagement",
+    badge: "🎯 Win-Back",
+    recommendedThrottle: "Safe Pace (1 msg / 6s)",
+    body: "Hey {first_name}, we noticed it's been a while! We've made massive upgrades to our products and services and would love to welcome you back.\n\nEnjoy a complimentary credit on your next order with voucher WELCOMEBACK: https://messagerail.link/welcome-back\n\nTell us what you think—we read every reply right here in WhatsApp.",
+    variables: ["first_name"],
+  },
+  {
+    title: "🛡️ Verified Consent & VIP Channel Re-Confirmation",
     category: "urgent",
-    body: "Hello {first_name}, please note that our service will undergo scheduled maintenance tonight between 2:00 AM and 4:00 AM UTC. No action is required on your part. Thank you for your continued partnership.",
+    badge: "🛡️ 100% Compliant",
+    recommendedThrottle: "Safe Pace (1 msg / 5s)",
+    body: "Hello {first_name}! In accordance with global privacy & NDPA consent standards, we want to make sure you still want to receive our VIP broadcasts and exclusive offers.\n\nIf you love our updates, no action is needed! ✨\nIf you prefer to pause broadcasts, simply reply \"STOP\" at any time to instantly unsubscribe.",
+    variables: ["first_name"],
+  },
+  {
+    title: "💰 Payday Weekend Special — 48H Bundle Drop",
+    category: "promotions",
+    badge: "💳 High Volume",
+    recommendedThrottle: "Human Speed (1 msg / 4s)",
+    body: "Payday is here {first_name}! 💰 Treat yourself this weekend with our exclusive bundle deals, only available to our private subscriber list.\n\nView the weekend bundles: https://messagerail.link/payday\n\nIncludes free shipping nationwide on orders completed before Sunday midnight!",
+    variables: ["first_name"],
+  },
+  {
+    title: "🚀 Major Feature Launch & Agency Case Study",
+    category: "promotions",
+    badge: "🚀 B2B & SaaS",
+    recommendedThrottle: "Human Speed (1 msg / 5s)",
+    body: "Hey {first_name}, big news! 🚀 We just rolled out our most requested upgrade, engineered to help you 10x your client results with zero manual friction.\n\nRead the full release notes and see the live demo:\nhttps://messagerail.link/announcement\n\nReply \"DEMO\" to hop on a 5-minute walkthrough with our team.",
     variables: ["first_name"],
   },
 ];
 
+// Backwards-compatibility alias
+export const STARTER_TEMPLATES = STARTER_PLAYBOOKS;
+
 export const TEMPLATE_CATEGORIES = [
-  { id: "all", label: "All Templates", color: "bg-gray-100 text-gray-700" },
-  { id: "promotions", label: "Promotions", color: "bg-[#e2f6d5] text-[#163300]" },
-  { id: "onboarding", label: "Onboarding", color: "bg-emerald-100 text-emerald-700" },
-  { id: "re_engagement", label: "Re-engagement", color: "bg-amber-100 text-amber-700" },
-  { id: "reminders", label: "Reminders", color: "bg-sky-100 text-sky-700" },
-  { id: "urgent", label: "Urgent & Notices", color: "bg-rose-100 text-rose-700" },
+  { id: "all", label: "All Playbooks", color: "bg-gray-100 text-gray-700" },
+  { id: "commerce", label: "Conversational & DMs", color: "bg-emerald-100 text-emerald-800" },
+  { id: "promotions", label: "Flash Drops & Sales", color: "bg-[#e2f6d5] text-[#163300]" },
+  { id: "reminders", label: "Events & Gatherings", color: "bg-sky-100 text-sky-800" },
+  { id: "re_engagement", label: "Retention & Winback", color: "bg-amber-100 text-amber-800" },
+  { id: "urgent", label: "Compliance & Notices", color: "bg-rose-100 text-rose-800" },
+];
+
+export interface QuickPlaybookShortcut {
+  label: string;
+  icon: string;
+  title: string;
+  body: string;
+}
+
+export const QUICK_PLAYBOOK_SHORTCUTS: QuickPlaybookShortcut[] = [
+  {
+    label: "Flash Deal",
+    icon: "⚡",
+    title: "⚡ 24-Hour Flash Sale & Exclusive Voucher",
+    body: "Hey {first_name}! ⚡ For the next 24 hours only, get 25% off our entire catalog with private code FLASH25.\n\nShop the private vault here: https://messagerail.link/flash\n\nStock is strictly limited. Reply to this chat if you have any questions!\n\nReply STOP to unsubscribe.",
+  },
+  {
+    label: "DM Closer & Payment",
+    icon: "💬",
+    title: "💬 Order Hold & Instant Checkout Closer",
+    body: "Hi {first_name}! 👋 We’ve reserved the item you inquired about for the next 4 hours so it doesn't sell out.\n\nComplete your checkout securely via Card, Bank Transfer, or USSD using this direct link:\nhttps://messagerail.link/pay\n\nOnce completed, reply \"PAID\" here and our dispatch team will assign your tracking number immediately!",
+  },
+  {
+    label: "VIP Early Access",
+    icon: "⭐",
+    title: "⭐ VIP Private Drop — 48H Advance Access",
+    body: "Hello {first_name}, as one of our top-tier VIP clients, you get exclusive private access to our upcoming release 48 hours before the public.\n\nExplore the secret catalog & reserve your pieces:\nhttps://messagerail.link/vip-access\n\nNeed personal concierge styling? Reply directly to this chat!",
+  },
+  {
+    label: "Event in 1 Hour",
+    icon: "⏰",
+    title: "⏰ Live Masterclass / Event Starts in 1 Hour",
+    body: "Quick heads-up {first_name}: Our live session begins in exactly 60 minutes! 🎙️\n\nGrab your notepad, test your audio, and enter the live room here:\nhttps://messagerail.link/live-room\n\nSee you inside!",
+  },
+  {
+    label: "Opt-in Reconfirm",
+    icon: "🛡️",
+    title: "🛡️ Verified Consent & VIP Channel Re-Confirmation",
+    body: "Hello {first_name}! In accordance with global privacy & NDPA consent standards, we want to make sure you still want to receive our VIP broadcasts and exclusive offers.\n\nIf you love our updates, no action is needed! ✨\nIf you prefer to pause broadcasts, simply reply \"STOP\" at any time to instantly unsubscribe.",
+  },
 ];
 
 interface TemplatePickerModalProps {
@@ -77,12 +171,30 @@ export function TemplatePickerModal({
   onClose,
   onSelectTemplate,
 }: TemplatePickerModalProps) {
-  const { templates: dbTemplates, isLoading } = useTemplates();
+  const { templates: dbTemplates } = useTemplates();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  const allTemplates = useMemo(() => {
+    const starterFormatted: (Omit<MessageTemplate, "created_at" | "updated_at"> & {
+      badge?: string;
+      isPlaybook?: boolean;
+    })[] = STARTER_PLAYBOOKS.map((p, idx) => ({
+      id: `playbook-${idx + 1}`,
+      tenant_id: "global",
+      title: p.title,
+      category: p.category,
+      body: p.body,
+      variables: p.variables,
+      badge: p.badge,
+      isPlaybook: true,
+    }));
+
+    return [...starterFormatted, ...dbTemplates];
+  }, [dbTemplates]);
+
   const filteredTemplates = useMemo(() => {
-    return dbTemplates.filter((t) => {
+    return allTemplates.filter((t) => {
       const matchesCategory =
         selectedCategory === "all" ||
         t.category.toLowerCase() === selectedCategory.toLowerCase();
@@ -94,7 +206,7 @@ export function TemplatePickerModal({
         t.category.toLowerCase().includes(q);
       return matchesCategory && matchesQuery;
     });
-  }, [dbTemplates, selectedCategory, searchQuery]);
+  }, [allTemplates, selectedCategory, searchQuery]);
 
   const getCategoryBadge = (category: string) => {
     const found = TEMPLATE_CATEGORIES.find((c) => c.id === category);
@@ -130,17 +242,17 @@ export function TemplatePickerModal({
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50/50">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-2xl bg-[#163300] flex items-center justify-center shadow-md shadow-[#163300]/10 text-[#9fe870]">
-                  
+                  <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                    Template Library
+                    Campaign Playbooks & Templates
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/40">
                       {filteredTemplates.length} available
                     </span>
                   </h2>
                   <p className="text-xs text-gray-500">
-                    Select a high-converting message template to load directly into the Broadcast Studio.
+                    Battle-tested, high-conversion playbooks designed for immediate launch across global markets.
                   </p>
                 </div>
               </div>
@@ -162,7 +274,7 @@ export function TemplatePickerModal({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search templates by title, keywords, or variable..."
+                  placeholder="Search playbooks by title, keywords, or variables..."
                   className="w-full pl-10 pr-4 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300] focus:bg-white transition-all text-gray-900 placeholder:text-gray-400"
                 />
               </div>
@@ -179,7 +291,7 @@ export function TemplatePickerModal({
                       className={cn(
                         "px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all",
                         isActive
-                          ? "bg-gray-900 text-white shadow-xs"
+                          ? "bg-[#163300] text-[#9fe870] shadow-xs font-bold"
                           : "bg-gray-100 text-gray-600 hover:bg-gray-200/70"
                       )}
                     >
@@ -195,7 +307,7 @@ export function TemplatePickerModal({
               {filteredTemplates.length === 0 ? (
                 <div className="text-center py-12">
                   <FileText className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-gray-700">No templates found</p>
+                  <p className="text-sm font-semibold text-gray-700">No playbooks found</p>
                   <p className="text-xs text-gray-500">Try changing your search query or category filter.</p>
                 </div>
               ) : (
@@ -208,17 +320,31 @@ export function TemplatePickerModal({
                     >
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between gap-2">
-                          <span
-                            className={cn(
-                              "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md",
-                              getCategoryBadge(template.category)
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={cn(
+                                "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md",
+                                getCategoryBadge(template.category)
+                              )}
+                            >
+                              {template.category}
+                            </span>
+                            {"badge" in template && template.badge && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/50">
+                                {template.badge}
+                              </span>
                             )}
-                          >
-                            {template.category}
-                          </span>
-                          <span className="text-[10px] font-mono text-gray-400">
-                            {template.variables?.length || 0} vars
-                          </span>
+                          </div>
+                          {"isPlaybook" in template && template.isPlaybook ? (
+                            <span className="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
+                              <ShieldCheck className="h-3 w-3" />
+                              Playbook
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-mono text-gray-400">
+                              Workspace
+                            </span>
+                          )}
                         </div>
 
                         <h3 className="text-sm font-bold text-gray-900 group-hover:text-[#163300] transition-colors line-clamp-1">
@@ -258,7 +384,7 @@ export function TemplatePickerModal({
                           }
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#e2f6d5] text-[#163300] hover:bg-[#163300] hover:text-[#9fe870] font-semibold text-xs transition-all shadow-2xs"
                         >
-                          Use Template
+                          Use Playbook
                           <ArrowRight className="h-3 w-3" />
                         </button>
                       </div>

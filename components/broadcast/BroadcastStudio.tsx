@@ -56,7 +56,13 @@ import { DevicePreviewSimulator } from "./DevicePreviewSimulator";
 import { WhatsAppStoryModal } from "./WhatsAppStoryModal";
 import { LiveMissionTracker } from "./LiveMissionTracker";
 import { ScheduleCampaignModal } from "./ScheduleCampaignModal";
-import { TemplatePickerModal, STARTER_TEMPLATES } from "./TemplatePickerModal";
+import {
+	TemplatePickerModal,
+	STARTER_TEMPLATES,
+	STARTER_PLAYBOOKS,
+	QUICK_PLAYBOOK_SHORTCUTS,
+	type QuickPlaybookShortcut,
+} from "./TemplatePickerModal";
 import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
 import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
 import {
@@ -478,15 +484,21 @@ export function BroadcastStudio() {
 		body: string;
 		media_url?: string;
 	}) => {
-		if (!title.trim()) {
-			setTitle(template.title);
-		}
+		setTitle(template.title);
 		setMessageBody(template.body);
 		if (template.media_url) {
 			setMediaUrl(template.media_url);
 		}
-		toast.success("Template inserted!", {
-			description: `Loaded "${template.title}" into the message composer.`,
+		toast.success("Playbook loaded!", {
+			description: `Loaded "${template.title}" into the broadcast composer.`,
+		});
+	};
+
+	const handleApplyQuickPlaybook = (pb: QuickPlaybookShortcut) => {
+		setTitle(pb.title);
+		setMessageBody(pb.body);
+		toast.success(`Applied "${pb.label}" Playbook`, {
+			description: `Loaded "${pb.title}" into composer.`,
 		});
 	};
 
@@ -1292,6 +1304,40 @@ export function BroadcastStudio() {
 
 					{/* Card 2: Message & Creative Composer */}
 					<div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-xs space-y-5">
+						{/* Quick Campaign Playbooks */}
+						<div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-3">
+							<div className="flex items-center justify-between mb-2">
+								<div className="flex items-center gap-1.5">
+									<Sparkles className="h-3.5 w-3.5 text-[#163300]" />
+									<span className="text-xs font-bold text-gray-900">Campaign Playbooks</span>
+									<span className="text-[11px] text-gray-500 font-medium hidden sm:inline">
+										— 1-click high-conversion blueprints
+									</span>
+								</div>
+								<button
+									type="button"
+									onClick={() => setIsTemplateModalOpen(true)}
+									className="text-[11px] font-bold text-[#163300] hover:underline inline-flex items-center gap-1"
+								>
+									Browse All ({STARTER_PLAYBOOKS.length}) →
+								</button>
+							</div>
+							<div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+								{QUICK_PLAYBOOK_SHORTCUTS.map((pb) => (
+									<button
+										key={pb.label}
+										type="button"
+										onClick={() => handleApplyQuickPlaybook(pb)}
+										className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-200/60 bg-white hover:border-[#163300] hover:bg-[#e2f6d5]/40 text-xs font-semibold text-gray-800 transition-all shadow-2xs group"
+										title={`Load "${pb.title}"`}
+									>
+										<span>{pb.icon}</span>
+										<span className="group-hover:text-[#163300]">{pb.label}</span>
+									</button>
+								))}
+							</div>
+						</div>
+
 						<div>
 							<div className="flex flex-wrap items-center justify-between gap-2 mb-2">
 								<label className="text-xs font-bold uppercase tracking-wider text-gray-700">
