@@ -125,7 +125,7 @@
   },
   "components/broadcast/BroadcastStudio.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 7
+      "count": 6
     },
     "react-hooks/set-state-in-effect": {
       "count": 2
