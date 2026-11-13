@@ -148,6 +148,7 @@ export function BroadcastStudio() {
 	const [messageBody, setMessageBody] = useState("");
 	const [mediaUrl, setMediaUrl] = useState("");
 	const [approvalRequired, setApprovalRequired] = useState(false);
+	const [isLoadingApproval, setIsLoadingApproval] = useState(true);
 
 	// Owners and admins bypass the approval gate — they ARE the approvers.
 	// Only members (junior roles) go through the submit-for-approval flow.
@@ -165,10 +166,16 @@ export function BroadcastStudio() {
 		approvalSettingsService
 			.get()
 			.then((settings) => {
-				if (!cancelled) setApprovalRequired(settings.require_campaign_approval);
+				if (!cancelled) {
+					setApprovalRequired(Boolean(settings?.require_campaign_approval));
+					setIsLoadingApproval(false);
+				}
 			})
 			.catch(() => {
-				if (!cancelled) setApprovalRequired(false);
+				if (!cancelled) {
+					setApprovalRequired(false);
+					setIsLoadingApproval(false);
+				}
 			});
 		return () => {
 			cancelled = true;
@@ -722,6 +729,24 @@ export function BroadcastStudio() {
 
 	const handleConfirmDispatch = async () => {
 		if (!pendingCampaignId) return;
+
+		if (needsApproval) {
+			try {
+				await campaignService.submitForApproval(pendingCampaignId);
+				setIsPreflightOpen(false);
+				setPendingCampaignId(null);
+				toast.success("Campaign submitted for approval", {
+					description:
+						"An Owner or Admin must approve it before it can be scheduled or sent. Track it in the Scheduled Queue.",
+				});
+				router.push(APP_ROUTES.DASHBOARD.SCHEDULED);
+			} catch (err: unknown) {
+				const msg = apiMessage(err, "Failed to submit campaign for approval");
+				toast.error(msg);
+			}
+			return;
+		}
+
 		try {
 			await dispatchCampaign(pendingCampaignId);
 			setDispatchedCampaignId(pendingCampaignId);
@@ -734,13 +759,9 @@ export function BroadcastStudio() {
 			if (isWhatsAppStory) {
 				setTimeout(() => setIsStoryModalOpen(true), 800);
 			}
-		} catch (err: any) {
-			const msg =
-				err.response?.data?.error ||
-				err.message ||
-				"Failed to dispatch broadcast";
+		} catch (err: unknown) {
+			const msg = apiMessage(err, "Failed to dispatch broadcast");
 			if (
-				err.response?.status === 402 ||
 				msg.toLowerCase().includes("monthly broadcast limit") ||
 				msg.toLowerCase().includes("quota")
 			) {
@@ -750,6 +771,30 @@ export function BroadcastStudio() {
 					description: msg,
 					recommendedTier: "growth",
 				});
+			} else if (
+				msg.toLowerCase().includes("campaign approval is required") ||
+				msg.toLowerCase().includes("submit this campaign for approval")
+			) {
+				toast.error("Approval Required", {
+					description: "This workspace requires an Owner or Admin to approve broadcasts before dispatching.",
+					action: {
+						label: "Submit for Approval",
+						onClick: async () => {
+							try {
+								await campaignService.submitForApproval(pendingCampaignId);
+								setIsPreflightOpen(false);
+								setPendingCampaignId(null);
+								toast.success("Campaign submitted for approval", {
+									description: "An Owner or Admin can now approve it in the Scheduled Queue.",
+								});
+								router.push(APP_ROUTES.DASHBOARD.SCHEDULED);
+							} catch (subErr: unknown) {
+								toast.error(apiMessage(subErr, "Failed to submit for approval"));
+							}
+						},
+					},
+				});
+				return;
 			}
 			toast.error(msg);
 		}
@@ -1086,21 +1131,26 @@ export function BroadcastStudio() {
 						disabled={
 							isDispatching ||
 							isCreating ||
+							isLoadingApproval ||
 							(targetCount === 0 && !isWhatsAppStory)
 						}
 						className={cn(
 							"h-10 inline-flex items-center gap-2 px-5 rounded-xl font-bold text-xs transition-all shadow-sm whitespace-nowrap",
-							isDispatching || isCreating
+							isDispatching || isCreating || isLoadingApproval
 								? "bg-[#163300]/70 text-white cursor-wait"
 								: targetCount > 0 || isWhatsAppStory
 									? "bg-[#163300] hover:bg-[#0d2000] text-[#9fe870] hover:text-white shadow-[#163300]/20"
 									: "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none",
 						)}
 					>
-						{isDispatching || isCreating ? (
+						{isDispatching || isCreating || isLoadingApproval ? (
 							<>
 								<Loader2 className="h-3.5 w-3.5 animate-spin" />
-								{needsApproval ? "Submitting..." : "Transmitting..."}
+								{isLoadingApproval
+									? "Checking..."
+									: needsApproval
+										? "Submitting..."
+										: "Transmitting..."}
 							</>
 						) : (
 							<>
@@ -1480,6 +1530,7 @@ export function BroadcastStudio() {
 				preflight={preflight}
 				isLoading={isPreflightLoading}
 				isDispatching={isDispatching}
+				needsApproval={needsApproval}
 				onConfirm={handleConfirmDispatch}
 				onCancel={handleCancelPreflight}
 			/>

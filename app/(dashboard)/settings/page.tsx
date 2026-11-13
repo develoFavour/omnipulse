@@ -36,6 +36,12 @@ import {
 	dashboardService,
 	type PlanUsageInfo,
 } from "@/lib/services/dashboard.service";
+import {
+	commerceService,
+	type SettlementAccount,
+	type BankInfo,
+} from "@/lib/services/commerce.service";
+import { apiMessage } from "@/lib/api/axios-error";
 import { useCurrency } from "@/lib/hooks/useCurrency";
 import { cn } from "@/lib/utils";
 import {
@@ -81,6 +87,7 @@ type Section =
 	| "team"
 	| "notifications"
 	| "billing"
+	| "payouts"
 	| "integrations"
 	| "security"
 	| "danger";
@@ -97,6 +104,12 @@ const navItems: NavItem[] = [
 	{ id: "team", label: "Team & Roles", icon: Users, adminAndOwner: true },
 	{ id: "notifications", label: "Notifications", icon: Bell },
 	{ id: "billing", label: "Billing & Plan", icon: CreditCard, ownerOnly: true },
+	{
+		id: "payouts",
+		label: "Settlement & Payouts",
+		icon: Zap,
+		adminAndOwner: true,
+	},
 	{
 		id: "integrations",
 		label: "Integrations",
@@ -2431,6 +2444,369 @@ function DangerSection() {
 	);
 }
 
+// ── Payouts & Settlement Section ──────────────────────────────────────────────
+function PayoutsSection() {
+	const [loading, setLoading] = useState(true);
+	const [settlement, setSettlement] = useState<SettlementAccount | null>(null);
+	const [banks, setBanks] = useState<BankInfo[]>([]);
+	const [selectedBank, setSelectedBank] = useState("");
+	const [accountNumber, setAccountNumber] = useState("");
+	const [businessName, setBusinessName] = useState("");
+	const [resolvedAccountName, setResolvedAccountName] = useState("");
+	const [isResolving, setIsResolving] = useState(false);
+	const [resolveError, setResolveError] = useState("");
+	const [isSaving, setIsSaving] = useState(false);
+	const [isEditing, setIsEditing] = useState(false);
+
+	useEffect(() => {
+		let isMounted = true;
+		Promise.all([
+			commerceService.getSettlementAccount(),
+			commerceService.listBanks("nigeria"),
+		])
+			.then(([settleAccount, bankList]) => {
+				if (!isMounted) return;
+				if (settleAccount) {
+					setSettlement(settleAccount);
+					setBusinessName(settleAccount.business_name);
+					setSelectedBank(settleAccount.settlement_bank);
+					setAccountNumber(settleAccount.account_number);
+					setResolvedAccountName(settleAccount.account_name);
+				}
+				if (bankList && bankList.length > 0) {
+					setBanks(bankList);
+				}
+			})
+			.finally(() => {
+				if (isMounted) setLoading(false);
+			});
+
+		return () => {
+			isMounted = false;
+		};
+	}, []);
+
+	// Auto-resolve 10-digit NUBAN
+	useEffect(() => {
+		if (accountNumber.trim().length !== 10 || !selectedBank) {
+			return;
+		}
+
+		let isMounted = true;
+		const timer = setTimeout(() => {
+			setIsResolving(true);
+			setResolveError("");
+			commerceService
+				.resolveAccount(accountNumber.trim(), selectedBank)
+				.then((res) => {
+					if (!isMounted) return;
+					setResolvedAccountName(res.account_name);
+					setResolveError("");
+				})
+				.catch((err: unknown) => {
+					if (!isMounted) return;
+					setResolvedAccountName("");
+					setResolveError(
+						apiMessage(
+							err,
+							"Could not resolve account name. Verify bank and account number.",
+						),
+					);
+				})
+				.finally(() => {
+					if (isMounted) setIsResolving(false);
+				});
+		}, 350);
+
+		return () => {
+			isMounted = false;
+			clearTimeout(timer);
+		};
+	}, [accountNumber, selectedBank]);
+
+	const handleSave = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!businessName.trim()) {
+			toast.error("Please enter your business or agency trading name");
+			return;
+		}
+		if (!selectedBank) {
+			toast.error("Please select a settlement bank");
+			return;
+		}
+		if (accountNumber.trim().length !== 10) {
+			toast.error("Please enter a valid 10-digit NUBAN account number");
+			return;
+		}
+
+		const bankObj = banks.find((b) => b.code === selectedBank);
+		const bankName = bankObj?.name || selectedBank;
+
+		setIsSaving(true);
+		try {
+			const saved = await commerceService.saveSettlementAccount({
+				business_name: businessName.trim(),
+				settlement_bank: selectedBank,
+				bank_name: bankName,
+				account_number: accountNumber.trim(),
+			});
+			setSettlement(saved);
+			setIsEditing(false);
+			toast.success("Settlement account connected successfully!", {
+				description:
+					"Client payments from in-chat links will now settle directly into your bank on next-day payout (T+1).",
+			});
+		} catch (err: unknown) {
+			toast.error(apiMessage(err, "Failed to connect settlement account"));
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
+	if (loading) {
+		return (
+			<div className="flex h-64 items-center justify-center">
+				<Loader2 className="h-6 w-6 animate-spin text-[#163300]" />
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-6">
+			<SectionHeader
+				title="Settlement & Payouts"
+				description="Connect your agency bank account for direct, automated next-day (T+1) settlements when clients pay via in-chat Paystack links."
+			/>
+
+			{/* Transparent Fee & Payout Split Card */}
+			<div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5 shadow-sm">
+				<div className="flex items-start gap-3">
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+						<Zap className="h-5 w-5" />
+					</div>
+					<div className="flex-1 space-y-3">
+						<div>
+							<h3 className="text-sm font-bold text-emerald-950">
+								Paystack Direct Settlement Architecture
+							</h3>
+							<p className="mt-0.5 text-xs text-emerald-800">
+								MessageRail uses Paystack Subaccounts to settle client conversational payments directly into your bank account. No manual withdrawal requests or wallet lockups.
+							</p>
+						</div>
+
+						<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+							<div className="rounded-xl border border-emerald-200/80 bg-white/80 p-3">
+								<p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
+									Agency Payout Share
+								</p>
+								<p className="mt-1 font-mono text-2xl font-bold text-gray-900">
+									98.5%
+								</p>
+								<p className="mt-0.5 text-xs text-gray-600">
+									Settled directly into your bank on next-day (T+1) basis.
+								</p>
+							</div>
+
+							<div className="rounded-xl border border-emerald-200/80 bg-white/80 p-3">
+								<p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
+									Platform Commission
+								</p>
+								<p className="mt-1 font-mono text-2xl font-bold text-gray-900">
+									1.5%
+								</p>
+								<p className="mt-0.5 text-xs text-gray-600">
+									MessageRail commission automatically deducted per transaction.
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Existing Verified Settlement Account Card */}
+			{settlement && !isEditing ? (
+				<Card>
+					<CardSection title="Verified Settlement Account">
+						<div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+							<div className="space-y-1.5">
+								<div className="flex items-center gap-2">
+									<p className="text-base font-bold text-gray-900">
+										{settlement.bank_name || settlement.settlement_bank}
+									</p>
+									<span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+										<CheckCircle2 className="h-3 w-3" />
+										Active & Verified
+									</span>
+								</div>
+
+								<p className="font-mono text-sm text-gray-600">
+									Account Number: •••• {settlement.account_number.slice(-4)}
+								</p>
+
+								{settlement.account_name && (
+									<p className="text-xs font-medium text-gray-700">
+										Account Holder:{" "}
+										<span className="font-bold text-gray-900">
+											{settlement.account_name}
+										</span>
+									</p>
+								)}
+
+								<p className="text-xs text-gray-500">
+									Subaccount Code:{" "}
+									<code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700">
+										{settlement.subaccount_code}
+									</code>
+								</p>
+							</div>
+
+							<button
+								type="button"
+								onClick={() => setIsEditing(true)}
+								className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+							>
+								<Pencil className="h-3.5 w-3.5" />
+								Change Bank Account
+							</button>
+						</div>
+					</CardSection>
+
+					<CardSection noBorder>
+						<div className="flex items-center justify-between text-xs text-gray-500">
+							<span>Trading Business Name: <strong className="text-gray-900">{settlement.business_name}</strong></span>
+							<span>Payout Schedule: <strong className="text-gray-900">Next-Day (T+1) Auto-Settlement</strong></span>
+						</div>
+					</CardSection>
+				</Card>
+			) : (
+				/* Settlement Account Setup / Edit Form */
+				<Card>
+					<form onSubmit={handleSave}>
+						<CardSection title={settlement ? "Update Settlement Account" : "Connect Bank Account"}>
+							<div className="space-y-4">
+								<div>
+									<label className="block text-xs font-semibold text-gray-700">
+										Business / Agency Trading Name
+									</label>
+									<input
+										type="text"
+										required
+										placeholder="e.g. Apex Marketing Agency"
+										value={businessName}
+										onChange={(e) => setBusinessName(e.target.value)}
+										className="mt-1.5 w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+									/>
+									<p className="mt-1 text-[11px] text-gray-500">
+										This name appears on the customer Paystack checkout page.
+									</p>
+								</div>
+
+								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+									<div>
+										<label className="block text-xs font-semibold text-gray-700">
+											Settlement Bank
+										</label>
+										<select
+											required
+											value={selectedBank}
+											onChange={(e) => setSelectedBank(e.target.value)}
+											className="mt-1.5 w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-sm focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+										>
+											<option value="">Select a Nigerian bank…</option>
+											{banks.map((b) => (
+												<option key={b.code} value={b.code}>
+													{b.name}
+												</option>
+											))}
+										</select>
+									</div>
+
+									<div>
+										<label className="block text-xs font-semibold text-gray-700">
+											10-Digit NUBAN Account Number
+										</label>
+										<div className="relative mt-1.5">
+											<input
+												type="text"
+												required
+												maxLength={10}
+												placeholder="0123456789"
+												value={accountNumber}
+												onChange={(e) => {
+													const val = e.target.value
+														.replace(/\D/g, "")
+														.slice(0, 10);
+													setAccountNumber(val);
+													if (val.length !== 10) {
+														setResolvedAccountName("");
+														setResolveError("");
+													}
+												}}
+												className="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 font-mono text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600"
+											/>
+											{isResolving && (
+												<div className="absolute inset-y-0 right-3 flex items-center">
+													<Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+												</div>
+											)}
+										</div>
+									</div>
+								</div>
+
+								{/* Resolved Account Name Banner */}
+								{resolvedAccountName && (
+									<div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs text-emerald-900">
+										<CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+										<span>
+											Account Verified:{" "}
+											<strong className="font-bold uppercase">
+												{resolvedAccountName}
+											</strong>
+										</span>
+									</div>
+								)}
+
+								{resolveError && (
+									<div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs text-rose-800">
+										<AlertTriangle className="h-4 w-4 shrink-0 text-rose-600" />
+										<span>{resolveError}</span>
+									</div>
+								)}
+							</div>
+						</CardSection>
+
+						<CardSection noBorder>
+							<div className="flex items-center justify-end gap-3">
+								{isEditing && (
+									<button
+										type="button"
+										onClick={() => setIsEditing(false)}
+										className="rounded-xl border border-gray-300 px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+									>
+										Cancel
+									</button>
+								)}
+								<button
+									type="submit"
+									disabled={isSaving || isResolving || !resolvedAccountName}
+									className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-gray-800 disabled:opacity-50"
+								>
+									{isSaving ? (
+										<Loader2 className="h-4 w-4 animate-spin" />
+									) : (
+										<Check className="h-4 w-4" />
+									)}
+									{isSaving ? "Connecting with Paystack…" : "Verify & Save Settlement Account"}
+								</button>
+							</div>
+						</CardSection>
+					</form>
+				</Card>
+			)}
+		</div>
+	);
+}
+
 // ── Main Page ──────────────────────────────────────────────────────────────────
 const sectionComponents: Record<Section, React.ComponentType> = {
 	workspace: WorkspaceSection,
@@ -2438,6 +2814,7 @@ const sectionComponents: Record<Section, React.ComponentType> = {
 	team: TeamSection,
 	notifications: NotificationsSection,
 	billing: BillingSection,
+	payouts: PayoutsSection,
 	integrations: IntegrationsSection,
 	security: SecuritySection,
 	danger: DangerSection,
