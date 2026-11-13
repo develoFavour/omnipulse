@@ -11,6 +11,7 @@ interface DispatchPreflightModalProps {
 	preflight: CampaignPreflight | null;
 	isLoading?: boolean;
 	isDispatching?: boolean;
+	needsApproval?: boolean;
 	onConfirm: () => void;
 	onCancel: () => void;
 }
@@ -55,6 +56,7 @@ export function DispatchPreflightModal({
 	preflight,
 	isLoading = false,
 	isDispatching = false,
+	needsApproval = false,
 	onConfirm,
 	onCancel,
 }: DispatchPreflightModalProps) {
@@ -230,8 +232,12 @@ export function DispatchPreflightModal({
 									<Send className="h-4 w-4" />
 								)}
 								{isDispatching
-									? "Sending…"
-									: `Send to ${(preflight?.sendable ?? 0).toLocaleString()}`}
+									? needsApproval
+										? "Submitting…"
+										: "Sending…"
+									: needsApproval
+										? `Submit for Approval (${(preflight?.sendable ?? 0).toLocaleString()})`
+										: `Send to ${(preflight?.sendable ?? 0).toLocaleString()}`}
 							</button>
 						</div>
 					</motion.div>

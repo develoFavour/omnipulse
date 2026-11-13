@@ -143,6 +143,9 @@ export const ENDPOINTS = {
 		PAYMENT_LINK: (conversationId: string) => `${API_VERSION}/conversations/${conversationId}/payment-link`,
 		CONVERSATION_LINKS: (conversationId: string) => `${API_VERSION}/conversations/${conversationId}/payment-links`,
 		CONTACT_LINKS: (contactId: string) => `${API_VERSION}/contacts/${contactId}/payment-links`,
+		SETTLEMENT: `${API_VERSION}/commerce/settlement`,
+		BANKS: `${API_VERSION}/commerce/banks`,
+		RESOLVE_ACCOUNT: `${API_VERSION}/commerce/resolve-account`,
 	},
 
 	// Team Management & RBAC

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { CreditCard, Loader2, X, Zap, ShieldCheck } from "lucide-react";
+import { CreditCard, Loader2, X, Zap, ShieldCheck, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { apiMessage } from "@/lib/api/axios-error";
-import { commerceService, type PaymentTransaction } from "@/lib/services/commerce.service";
+import { commerceService, type PaymentTransaction, type SettlementAccount } from "@/lib/services/commerce.service";
 import { cn } from "@/lib/utils";
 
 interface SendPaymentLinkModalProps {
@@ -27,6 +28,24 @@ export function SendPaymentLinkModal({
 	const [description, setDescription] = useState("");
 	const [customerEmail, setCustomerEmail] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [settlement, setSettlement] = useState<SettlementAccount | null>(null);
+	const [isLoadingSettlement, setIsLoadingSettlement] = useState(true);
+
+	useEffect(() => {
+		if (!isOpen) return;
+		let isMounted = true;
+		commerceService
+			.getSettlementAccount()
+			.then((acc) => {
+				if (isMounted) setSettlement(acc);
+			})
+			.finally(() => {
+				if (isMounted) setIsLoadingSettlement(false);
+			});
+		return () => {
+			isMounted = false;
+		};
+	}, [isOpen]);
 
 	const parsedAmount = parseFloat(amountNaira.replace(/,/g, "")) || 0;
 	const amountKobo = Math.round(parsedAmount * 100);
@@ -165,14 +184,54 @@ export function SendPaymentLinkModal({
 								/>
 							</div>
 
-							{/* Paystack Rails note */}
-							<div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 text-xs text-emerald-900 flex items-start gap-2.5">
-								<ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
-								<div className="leading-relaxed text-[11px]">
-									When paid, the customer will be automatically tagged{" "}
-									<span className="font-bold text-emerald-800">&quot;Customer - Paid&quot;</span> and
-									revenue will be attributed to this campaign.
+							{/* Paystack Settlement & Rails note */}
+							{settlement ? (
+								<div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 text-xs text-emerald-950 space-y-1.5">
+									<div className="flex items-center justify-between font-bold">
+										<span className="flex items-center gap-1.5 text-emerald-900">
+											<ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+											Direct Bank Payout Active
+										</span>
+										<span className="text-[10px] bg-emerald-200/80 text-emerald-900 font-mono px-2 py-0.5 rounded-full font-bold">
+											Paystack T+1
+										</span>
+									</div>
+									<p className="text-[11px] text-emerald-800 leading-tight">
+										Settles into <strong>{settlement.bank_name} ({settlement.account_number.slice(0, 3)}****{settlement.account_number.slice(-3)})</strong> — {settlement.account_name}
+									</p>
+									<p className="text-[10px] text-emerald-700 font-medium pt-1 border-t border-emerald-200/50 flex items-center justify-between">
+										<span>Agency receives: <strong>98.5%</strong></span>
+										<span>MessageRail fee: <strong>1.5%</strong></span>
+									</p>
 								</div>
+							) : !isLoadingSettlement ? (
+								<div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-xs text-amber-950 space-y-1.5">
+									<div className="flex items-center justify-between font-bold">
+										<span className="flex items-center gap-1.5 text-amber-900">
+											<AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+											No Settlement Bank Linked
+										</span>
+										<Link
+											href="/settings?tab=payouts"
+											target="_blank"
+											className="text-[10px] underline text-amber-900 hover:text-black font-bold"
+										>
+											Link Bank Account →
+										</Link>
+									</div>
+									<p className="text-[11px] text-amber-800 leading-relaxed">
+										Connect your Nigerian bank in <strong>Settings → Settlement & Payouts</strong> so payments deposit automatically on next-day payout (T+1).
+									</p>
+									<p className="text-[10px] text-amber-700 font-medium pt-1 border-t border-amber-200/60">
+										Standard Platform Split: <strong>98.5%</strong> directly to your bank · <strong>1.5%</strong> platform fee.
+									</p>
+								</div>
+							) : null}
+
+							{/* Automatic attribution indicator */}
+							<div className="flex items-center gap-2 text-[11px] text-gray-500 px-1">
+								<span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+								<span>Auto-tags contact &ldquo;Customer - Paid&rdquo; & attributes revenue to broadcast upon payment.</span>
 							</div>
 
 							{/* Actions */}

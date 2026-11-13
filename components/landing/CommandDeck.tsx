@@ -136,7 +136,7 @@ export function CommandDeck({
                     Active Client Campaign
                   </label>
                   <div className="rounded-xl bg-white/5 border border-white/15 px-4 py-3 text-sm font-semibold text-white font-mono flex items-center justify-between">
-                      <span>Spring Product Announcement</span>
+                    <span>Spring Product Announcement</span>
                     <span className="text-[10px] bg-[#9fe870]/20 text-[#9fe870] px-2 py-0.5 rounded font-bold uppercase">
                       Scheduled · 11:00 AM
                     </span>
