@@ -31,6 +31,16 @@ export const APP_ROUTES = {
     SETTINGS: '/settings',
   },
 
+  // Platform Admin (allowlisted identities only)
+  ADMIN: {
+    BASE: '/admin',
+    GROWTH: '/admin/growth',
+    REVENUE: '/admin/revenue',
+    HEALTH: '/admin/health',
+    WORKSPACES: '/admin/workspaces',
+    WORKSPACE: (id: string) => `/admin/workspaces/${id}`,
+  },
+
   // Public/Marketing
   HOME: '/',
 } as const;
