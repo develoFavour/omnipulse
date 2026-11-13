@@ -1,16 +1,17 @@
 import { TransmissionItem, FeatureItem, PipelineStep, ComparisonRow, BenchmarkStat } from './types';
 
 export const TRANSMISSIONS: TransmissionItem[] = [
-  { text: "WhatsApp update → +1 (555) 912-8821 delivered", latency: "Delivered", channel: "WhatsApp Cloud API" },
+  { text: "Payment of ₦25,000 received via WhatsApp DM link", latency: "Paid", channel: "Paystack Commerce" },
+  { text: "Brand approved 'Q4 VIP Flash Drop' via Review Link", latency: "Approved", channel: "Client Portal" },
+  { text: "WhatsApp update → +234 802 345 6789 delivered", latency: "Delivered", channel: "WhatsApp API" },
   { text: "Published to Telegram 'VIP Announcements' Channel", latency: "Delivered", channel: "@MessageRailBot" },
-  { text: "New opted-in subscriber tagged from WhatsApp reply", latency: "Captured", channel: "Audience Sync" },
-  { text: "WhatsApp update → +44 7700 900142 delivered", latency: "Delivered", channel: "WhatsApp Cloud API" },
-  { text: "Scheduled 3 client campaigns for 11:00 AM", latency: "Queued", channel: "Campaign Manager" },
+  { text: "New subscriber opted in from broadcast reply", latency: "Captured", channel: "Audience Sync" },
+  { text: "Campaign generated ₦1,450,000 in verified sales", latency: "Attributed", channel: "Revenue Engine" },
 ];
 
 export const NAV_LINKS = [
   { label: "Studio", href: "#engine" },
-  { label: "How It Works", href: "#workflow" },
+  { label: "Revenue Loop", href: "#workflow" },
   { label: "Channels", href: "#channels" },
   { label: "Capabilities", href: "#capabilities" },
   { label: "Pricing", href: "#pricing" },
@@ -20,31 +21,47 @@ export const NAV_LINKS = [
 export const TRUST_BADGES = [
   "Separate workspace per client",
   "WhatsApp + Telegram inbox",
-  "Campaigns and conversations together",
-  "Team assignments and visibility",
+  "1-Click Brand Review Links",
+  "In-Chat Paystack Checkout",
+  "Live Revenue Attribution",
+  "Battle-Tested Playbooks",
 ] as const;
 
 export const PIPELINE_STEPS: PipelineStep[] = [
   {
     step: "01",
-    tag: "CAPTURE",
-    title: "Bring Every Client Conversation Together",
-    body: "Capture WhatsApp and Telegram replies in the right client workspace, keep contact context attached, and stop losing conversations across separate tools.",
-    tags: ["Unified inbox", "Client context"],
+    tag: "APPROVE",
+    title: "1-Click Client Review & Sign-Off",
+    body: "Send a secure, tokenized review link to brand stakeholders. Clients review live phone simulations and approve copy in one tap without account logins.",
+    tags: ["Brand review portal", "Zero client friction"],
   },
   {
     step: "02",
-    tag: "COMPOSE",
-    title: "Build Campaigns Without Starting Over",
-    body: "Create client-ready broadcasts with reusable templates, audience targeting, and personalisation from one campaign workspace.",
-    tags: ["Reusable templates", "Audience targeting"],
+    tag: "DISPATCH",
+    title: "Omnichannel Campaign Broadcast",
+    body: "Dispatch across WhatsApp and Telegram simultaneously with human-speed rate limiting, NDPA compliance, and 1-click conversion playbooks.",
+    tags: ["Simultaneous reach", "Rate-safe pacing"],
   },
   {
     step: "03",
-    tag: "DELIVER",
-    title: "Know What Happened After Send",
-    body: "Track delivery status, replies, and conversations that need attention so your team can report clearly and follow up quickly.",
-    tags: ["Delivery visibility", "Follow-up clarity"],
+    tag: "CONVERSE",
+    title: "Unified Two-Way Inbox & AI",
+    body: "Answer incoming replies instantly in a shared team inbox. Backed by workspace-specific knowledge bases and automated AI closing.",
+    tags: ["Shared inbox", "AI assistant context"],
+  },
+  {
+    step: "04",
+    tag: "COLLECT",
+    title: "In-Chat Conversational Commerce",
+    body: "Drop 1-click Paystack checkout links inside conversations. Customers pay via Bank Transfer, Card, or USSD without leaving chat.",
+    tags: ["Paystack checkout", "Auto customer tagging"],
+  },
+  {
+    step: "05",
+    tag: "PROVE",
+    title: "Verified Brand Outcome & ROI Reports",
+    body: "Show clients exact proof of value: live delivery rates, read receipts, and verified revenue attributed directly to the campaign.",
+    tags: ["Verified ROI proof", "Retainer retention"],
   },
 ];
 
@@ -57,6 +74,36 @@ export const FEATURE_ITEMS: FeatureItem[] = [
     stats: [
       { value: "2 channels", label: "Simultaneous Reach" },
       { value: "Live", label: "Delivery Tracking" },
+    ],
+  },
+  {
+    id: "commerce",
+    tag: "CONVERSATIONAL COMMERCE & CHECKOUT",
+    headline: "Turn WhatsApp & Telegram Chats Directly into Bank Alerts.",
+    body: "Close sales without sending customers away to slow websites or manual bank account numbers. Drop 1-click Paystack checkout links inside conversations, collect payments via Transfer, Card, or USSD, and automatically attribute revenue to the broadcast that started the chat.",
+    stats: [
+      { value: "1-Click", label: "Paystack Link In-Chat" },
+      { value: "100%", label: "Automated ROI Attribution" },
+    ],
+  },
+  {
+    id: "review_portal",
+    tag: "CLIENT CAMPAIGN REVIEW PORTAL",
+    headline: "Client Sign-Off and Revisions Without Account Friction.",
+    body: "Stop sending messy screenshots and draft docs over personal WhatsApp. Generate secure, tokenized review pages where brand CMOs review simulation previews, request copy tweaks, or approve broadcasts in seconds.",
+    stats: [
+      { value: "Zero Login", label: "Secure Token Access" },
+      { value: "Live", label: "Simulator Previews" },
+    ],
+  },
+  {
+    id: "playbooks",
+    tag: "HIGH-CONVERSION CAMPAIGN PLAYBOOKS",
+    headline: "Launch In 60 Seconds with Battle-Tested Industry Blueprints.",
+    body: "Kill the blank slate. Access pre-built playbooks for Flash Drops, DM Order Closers, VIP Early Access, Event Reminders, and NDPA/GDPR Opt-in Reconfirmations, ready to dispatch with one click.",
+    stats: [
+      { value: "10+", label: "Battle-Tested Playbooks" },
+      { value: "60s", label: "Time to First Broadcast" },
     ],
   },
   {
@@ -105,6 +152,21 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
     legacy: "✕ Disconnected single-channel bots",
   },
   {
+    feature: "Client Campaign Sign-Off",
+    omni: "✓ Public 1-click token review link with live device simulator",
+    legacy: "✕ Messy Google Docs, screenshots & email threads",
+  },
+  {
+    feature: "Conversational Commerce",
+    omni: "✓ 1-Click Paystack checkout (Card, Transfer, USSD) with automated revenue attribution",
+    legacy: "✕ Manually typing bank numbers with zero tracking",
+  },
+  {
+    feature: "Campaign Playbooks",
+    omni: "✓ 1-Click proven industry playbooks (Flash Drops, DM Closers, Event Reminders)",
+    legacy: "✕ Blank text box with zero conversion guidance",
+  },
+  {
     feature: "Inbound Audience Capture",
     omni: "✓ Automatic capture from /start and replies, plus consent-aware imports",
     legacy: "✕ Spreadsheet imports with no consent trail",
@@ -125,4 +187,3 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
     legacy: "✕ Blind sending with high ban risk",
   },
 ];
-

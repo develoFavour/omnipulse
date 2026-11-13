@@ -49,7 +49,7 @@ export function HeroSection({
 				className="inline-flex items-center gap-2 rounded-full bg-[#e2f6d5] border border-[#9fe870]/70 px-4 py-1.5 mb-8 z-10"
 			>
 				<span className="text-xs font-bold uppercase tracking-wider text-[#163300]">
-					Agency Messaging Operations · One Workspace Per Client
+					Agency Messaging & Conversational Revenue · One Workspace Per Client
 				</span>
 			</motion.div>
 
@@ -129,7 +129,7 @@ export function HeroSection({
 				transition={{ duration: 0.8, delay: 0.45, ease: EASE_EXPO }}
 			>
 				<p className="text-base sm:text-xl text-[#454745] max-w-2xl mx-auto leading-relaxed">
-					Run every client broadcast from one reliable command center, with campaigns, conversations, and team activity together in one workspace.
+					Run every client broadcast from one reliable command center: 1-click brand approval, multi-channel broadcast, unified inbox closing, and verified Paystack revenue proof.
 				</p>
 				<div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
 					<motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>

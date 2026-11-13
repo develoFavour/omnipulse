@@ -93,6 +93,9 @@ export function CommandDeck({
                 <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 border border-white/15 flex items-center gap-1.5">
                   <FaTelegram className="h-3.5 w-3.5 text-[#229ED9]" /> Telegram Native
                 </span>
+                <span className="rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 text-xs font-bold flex items-center gap-1">
+                  ⚡ Paystack In-Chat
+                </span>
                 <span className="rounded-full bg-[#9fe870] text-[#163300] px-3 py-1 text-xs font-black uppercase">
                   Live Receipts
                 </span>
