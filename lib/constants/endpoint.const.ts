@@ -209,5 +209,16 @@ export const ENDPOINTS = {
 		RESOLVE_GAP: (id: string) => `${API_VERSION}/ai-agent/gaps/${id}/resolve`,
 		DISMISS_GAP: (id: string) => `${API_VERSION}/ai-agent/gaps/${id}/dismiss`,
 	},
+
+	// Platform Admin — cross-tenant, read-only. Only allowlisted Clerk IDs get in.
+	ADMIN: {
+		ME: `${API_VERSION}/admin/me`,
+		OVERVIEW: (days: number = 30) => `${API_VERSION}/admin/overview?days=${days}`,
+		GROWTH: (days: number = 30) => `${API_VERSION}/admin/growth?days=${days}`,
+		REVENUE: (days: number = 30) => `${API_VERSION}/admin/revenue?days=${days}`,
+		HEALTH: `${API_VERSION}/admin/health`,
+		WORKSPACES: `${API_VERSION}/admin/workspaces`,
+		WORKSPACE: (id: string) => `${API_VERSION}/admin/workspaces/${id}`,
+	},
 } as const;
 

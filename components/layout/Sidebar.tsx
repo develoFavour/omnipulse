@@ -19,12 +19,18 @@ import {
 	FileText,
 	BarChart3,
 	ShieldCheck,
+	Gauge,
+	TrendingUp,
+	CreditCard,
+	HeartPulse,
+	Building2,
 	X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { usePermissions, RoleType } from "@/lib/hooks/usePermissions";
 import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
+import { usePlatformAdmin } from "@/lib/api/hooks/useAdmin";
 import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
 
 interface NavItem {
@@ -92,6 +98,16 @@ const secondaryNavigation = [
 	{ name: "Help & Support", href: "/support", icon: HelpCircle },
 ];
 
+// Cross-tenant platform surface. Only rendered for Clerk IDs on the backend
+// PLATFORM_ADMIN_USER_IDS allowlist — never for a workspace role.
+const platformNavigation = [
+	{ name: "Overview", href: APP_ROUTES.ADMIN.BASE, icon: Gauge },
+	{ name: "Growth", href: APP_ROUTES.ADMIN.GROWTH, icon: TrendingUp },
+	{ name: "Revenue", href: APP_ROUTES.ADMIN.REVENUE, icon: CreditCard },
+	{ name: "System Health", href: APP_ROUTES.ADMIN.HEALTH, icon: HeartPulse },
+	{ name: "Workspaces", href: APP_ROUTES.ADMIN.WORKSPACES, icon: Building2 },
+];
+
 interface SidebarProps {
 	/** Whether the mobile drawer is open */
 	isMobileOpen?: boolean;
@@ -102,6 +118,7 @@ interface SidebarProps {
 export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
 	const pathname = usePathname();
 	const { role } = usePermissions();
+	const { isPlatformAdmin } = usePlatformAdmin();
 	const {
 		tier,
 		isAgency,
@@ -169,6 +186,48 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
 						);
 					})}
 				</nav>
+
+				{/* Platform Admin Navigation — allowlisted identities only */}
+				{isPlatformAdmin && (
+					<div className="mt-6 border-t border-gray-100 pt-4">
+						<p className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">
+							Platform
+						</p>
+						<nav className="space-y-1">
+							{platformNavigation.map((item) => {
+								const isActive =
+									item.href === APP_ROUTES.ADMIN.BASE
+										? pathname === item.href
+										: pathname.startsWith(item.href);
+								return (
+									<Link
+										key={item.name}
+										href={item.href}
+										onClick={onMobileClose}
+										className={cn(
+											"group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-200",
+											isActive
+												? "bg-[#163300] text-white"
+												: "text-gray-600 hover:text-gray-900",
+										)}
+									>
+										{!isActive && (
+											<div className="absolute inset-0 rounded-lg bg-gray-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 -z-10" />
+										)}
+										<item.icon
+											className={cn(
+												"h-4 w-4 shrink-0 relative z-10",
+												isActive ? "text-[#9fe870]" : "text-gray-400 group-hover:text-gray-600",
+											)}
+											aria-hidden="true"
+										/>
+										<span className="relative z-10">{item.name}</span>
+									</Link>
+								);
+							})}
+						</nav>
+					</div>
+				)}
 
 				{/* Secondary Navigation */}
 				<div className="mt-8">
