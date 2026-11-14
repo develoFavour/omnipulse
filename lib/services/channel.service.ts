@@ -26,6 +26,22 @@ export interface ChannelResponse {
   last_error_at?: string | null;
 }
 
+export interface ChannelContactSyncResult {
+  synced_count: number;
+  imported_count?: number;
+  skipped_count?: number;
+  total_count?: number;
+  limit?: number;
+  limit_reached?: boolean;
+  over_capacity?: boolean;
+  message: string;
+}
+
+export interface TelegramContactSyncResult extends ChannelContactSyncResult {
+  bot_username?: string;
+  bot_link?: string;
+}
+
 export interface WhatsAppOAuthConfig {
   app_id: string;
   config_id: string;
@@ -103,30 +119,18 @@ class ChannelService {
     return response.data as unknown as { message: string };
   }
 
-  async syncWhatsAppContacts(): Promise<{ synced_count: number; message: string }> {
-    const response = await apiClient.post<ApiResponse<{ synced_count: number; message: string }>>(
+  async syncWhatsAppContacts(): Promise<ChannelContactSyncResult> {
+    const response = await apiClient.post<ApiResponse<ChannelContactSyncResult>>(
       ENDPOINTS.WHATSAPP.SYNC_CONTACTS
     );
-    return response.data as unknown as { synced_count: number; message: string };
+    return response.data as unknown as ChannelContactSyncResult;
   }
 
-  async syncTelegramContacts(): Promise<{
-    synced_count: number;
-    total_count: number;
-    message: string;
-    bot_username?: string;
-    bot_link?: string;
-  }> {
-    const response = await apiClient.post<
-      ApiResponse<{ synced_count: number; total_count: number; message: string; bot_username?: string; bot_link?: string }>
-    >(ENDPOINTS.TELEGRAM.SYNC_CONTACTS);
-    return response.data as unknown as {
-      synced_count: number;
-      total_count: number;
-      message: string;
-      bot_username?: string;
-      bot_link?: string;
-    };
+  async syncTelegramContacts(): Promise<TelegramContactSyncResult> {
+    const response = await apiClient.post<ApiResponse<TelegramContactSyncResult>>(
+      ENDPOINTS.TELEGRAM.SYNC_CONTACTS
+    );
+    return response.data as unknown as TelegramContactSyncResult;
   }
 }
 

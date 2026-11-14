@@ -357,8 +357,20 @@ export function BroadcastStudio() {
 		try {
 			const res = await channelService.syncWhatsAppContacts();
 			await refetchContacts();
+			if (res.limit_reached) {
+				toast.warning(res.message, {
+					description: "Existing contacts were kept; new ones were left out.",
+				});
+				openUpgradeModal({
+					featureName: "Higher Audience Quotas",
+					title: "Audience Contact Limit Reached",
+					description: res.message,
+					recommendedTier: "growth",
+				});
+				return;
+			}
 			toast.success(res.message || "WhatsApp contacts synced!", {
-				description: `Imported ${res.synced_count} contacts to your Audience directory.`,
+				description: `${res.imported_count ?? res.synced_count} new contact(s) imported to your Audience directory.`,
 			});
 		} catch (error: any) {
 			const msg =
@@ -378,8 +390,20 @@ export function BroadcastStudio() {
 		try {
 			const res = await channelService.syncTelegramContacts();
 			await refetchContacts();
+			if (res.limit_reached) {
+				toast.warning(res.message, {
+					description: "Existing contacts were kept; new ones were left out.",
+				});
+				openUpgradeModal({
+					featureName: "Higher Audience Quotas",
+					title: "Audience Contact Limit Reached",
+					description: res.message,
+					recommendedTier: "growth",
+				});
+				return;
+			}
 			toast.success(res.message || "Telegram contacts synced!", {
-				description: `Imported ${res.synced_count} contacts to your Audience directory.`,
+				description: `${res.imported_count ?? res.synced_count} new contact(s) imported to your Audience directory.`,
 			});
 		} catch (error: any) {
 			const msg =
