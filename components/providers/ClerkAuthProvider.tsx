@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { setAuthTokenGetter, setUserInfoGetter } from "@/lib/api/axios-instance";
+import { APP_ROUTES } from "@/lib/constants/routes.const";
 import { useAppStore } from "@/lib/store";
 
 interface ClerkAuthProviderProps {
@@ -12,8 +14,12 @@ interface ClerkAuthProviderProps {
 export function ClerkAuthProvider({ children }: ClerkAuthProviderProps) {
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
+  const pathname = usePathname();
   const syncUser = useAppStore((state) => state.syncUser);
   const resetAuth = useAppStore((state) => state.resetAuth);
+  // Platform identities have no workspace to provision, so the workspace sync
+  // is skipped on the platform surface; the API would refuse it anyway.
+  const onPlatformSurface = pathname.startsWith(APP_ROUTES.ADMIN.BASE);
 
   useEffect(() => {
     // 1. Inject the dynamic token getter so Axios can fetch fresh tokens on-demand
@@ -51,6 +57,7 @@ export function ClerkAuthProvider({ children }: ClerkAuthProviderProps) {
       if (!isLoaded) return;
 
       if (isSignedIn) {
+        if (onPlatformSurface) return;
         try {
           await syncUser();
         } catch (error) {
@@ -63,7 +70,7 @@ export function ClerkAuthProvider({ children }: ClerkAuthProviderProps) {
     };
 
     syncSession();
-  }, [isLoaded, isSignedIn, getToken, user, syncUser, resetAuth]);
+  }, [isLoaded, isSignedIn, getToken, user, onPlatformSurface, syncUser, resetAuth]);
 
   return <>{children}</>;
 }
