@@ -205,8 +205,24 @@ export default function AudiencePage() {
     try {
       const res = await channelService.syncWhatsAppContacts();
       await refetch();
+      if (res.limit_reached) {
+        toast.warning(res.message, {
+          description: "Existing recipients were kept; new ones were left out.",
+          action: {
+            label: "Upgrade",
+            onClick: () =>
+              openUpgradeModal({
+                featureName: "Higher Audience Quotas",
+                title: "Audience Contact Limit Reached",
+                description: res.message,
+                recommendedTier: "growth",
+              }),
+          },
+        });
+        return;
+      }
       toast.success(res.message || "WhatsApp contacts synced!", {
-        description: `Imported ${res.synced_count} contacts from active chats and groups. Keep WhatsApp open on your phone for further background history syncing.`,
+        description: `${res.imported_count ?? res.synced_count} new contact(s) imported. ${res.synced_count} WhatsApp contact(s) now in your audience. Keep WhatsApp open on your phone for further background history syncing.`,
       });
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Failed to sync WhatsApp contacts");
@@ -224,7 +240,21 @@ export default function AudiencePage() {
     try {
       const res = await channelService.syncTelegramContacts();
       await refetch();
-      if (res.synced_count > 0) {
+      if (res.limit_reached) {
+        toast.warning(res.message, {
+          description: "Existing contacts were kept. Upgrade to import the rest.",
+          action: {
+            label: "Upgrade",
+            onClick: () =>
+              openUpgradeModal({
+                featureName: "Higher Audience Quotas",
+                title: "Audience Contact Limit Reached",
+                description: res.message,
+                recommendedTier: "growth",
+              }),
+          },
+        });
+      } else if (res.synced_count > 0) {
         toast.success("Telegram Contacts Synced!", { description: `Imported ${res.synced_count} new contact(s).` });
       } else if ((res.total_count ?? 0) > 0) {
         toast.success("Telegram Directory Up to Date");
