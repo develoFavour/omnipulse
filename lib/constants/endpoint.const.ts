@@ -138,6 +138,12 @@ export const ENDPOINTS = {
 		DELETE_MESSAGE: (msgID: string) => `${API_VERSION}/inbox/messages/${msgID}`,
 	},
 
+	// Canned / Quick Replies
+	CANNED_REPLIES: {
+		BASE: `${API_VERSION}/canned-replies`,
+		BY_ID: (id: string) => `${API_VERSION}/canned-replies/${id}`,
+	},
+
 	// Conversational Commerce & Payment Links
 	COMMERCE: {
 		PAYMENT_LINK: (conversationId: string) => `${API_VERSION}/conversations/${conversationId}/payment-link`,

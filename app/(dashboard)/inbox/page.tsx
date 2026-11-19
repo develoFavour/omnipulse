@@ -32,6 +32,10 @@ import {
   CreditCard,
 } from "lucide-react";
 import { SendPaymentLinkModal } from "@/components/inbox/SendPaymentLinkModal";
+import { CannedReplyPicker } from "@/components/inbox/CannedReplyPicker";
+import { useCannedReplies } from "@/lib/api/hooks/useCannedReplies";
+import type { CannedReply } from "@/lib/services/canned-reply.service";
+import type { ConversationContact } from "@/lib/services/inbox.service";
 import { cn } from "@/lib/utils";
 import {
   useInboxConversations,
@@ -638,13 +642,19 @@ function ComposeBar({
   isSending,
   disabled,
   onOpenPaymentModal,
+  cannedReplies = [],
+  contact,
 }: {
   onSend: (body: string) => void;
   isSending: boolean;
   disabled: boolean;
   onOpenPaymentModal?: () => void;
+  cannedReplies?: CannedReply[];
+  contact?: ConversationContact;
 }) {
   const [message, setMessage] = useState("");
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerQuery, setPickerQuery] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = useCallback(() => {
@@ -652,19 +662,61 @@ function ComposeBar({
     if (!trimmed || isSending || disabled) return;
     onSend(trimmed);
     setMessage("");
+    setShowPicker(false);
+    setPickerQuery("");
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
   }, [message, isSending, disabled, onSend]);
 
+  const handleSelectCannedReply = useCallback(
+    (reply: CannedReply) => {
+      const firstName = contact?.first_name || "there";
+      const contactName = contact?.first_name
+        ? `${contact.first_name} ${contact.last_name || ""}`.trim()
+        : "there";
+
+      const substituted = reply.body
+        .replace(/\{\{\s*contact_name\s*\}\}/gi, contactName)
+        .replace(/\{\{\s*first_name\s*\}\}/gi, firstName);
+
+      setMessage(substituted);
+      setShowPicker(false);
+      setPickerQuery("");
+
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.height = `${Math.min(
+          textareaRef.current.scrollHeight,
+          120
+        )}px`;
+      }
+    },
+    [contact]
+  );
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (
+        showPicker &&
+        (e.key === "ArrowDown" ||
+          e.key === "ArrowUp" ||
+          e.key === "Enter" ||
+          e.key === "Escape")
+      ) {
+        // Let CannedReplyPicker handle navigation/selection when visible
+        if (e.key !== "Escape") {
+          e.preventDefault();
+        }
+        return;
+      }
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         handleSubmit();
       }
     },
-    [handleSubmit]
+    [handleSubmit, showPicker]
   );
 
   // Auto-resize textarea
@@ -679,15 +731,35 @@ function ComposeBar({
     <div className="border-t border-gray-200 bg-white px-4 py-3">
       <div className="flex items-end gap-2">
         <div className="flex-1 relative">
+          {showPicker && (
+            <CannedReplyPicker
+              query={pickerQuery}
+              replies={cannedReplies}
+              onSelect={handleSelectCannedReply}
+              onDismiss={() => setShowPicker(false)}
+            />
+          )}
           <textarea
             ref={textareaRef}
             value={message}
             onChange={(e) => {
-              setMessage(e.target.value);
+              const val = e.target.value;
+              setMessage(val);
               handleInput();
+              if (val.startsWith("/")) {
+                setPickerQuery(val.slice(1));
+                setShowPicker(true);
+              } else {
+                setShowPicker(false);
+                setPickerQuery("");
+              }
             }}
             onKeyDown={handleKeyDown}
-            placeholder={disabled ? "Select a conversation to reply..." : "Type a message..."}
+            placeholder={
+              disabled
+                ? "Select a conversation to reply..."
+                : "Type a message or '/' for quick replies..."
+            }
             disabled={disabled || isSending}
             rows={1}
             className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#163300]/20 focus:border-[#163300]/40 transition-all disabled:opacity-50"
@@ -920,6 +992,7 @@ export default function InboxPage() {
   const { messages, isLoading: isMessagesLoading, isSending, sendReply, markAsRead, refetch: refetchMessages } =
     useInboxMessages(activeConversationId);
   const { updateStatus, assignConversation, editMessage: editMsg, deleteMessage: deleteMsg, toggleAI, bulkAssignConversations, isUpdating } = useInboxActions();
+  const { replies: cannedReplies } = useCannedReplies();
 
 	useEffect(() => {
 		teamService.listTeam().then((data) => setMembers(data.members ?? [])).catch(() => setMembers([]));
@@ -1318,6 +1391,8 @@ export default function InboxPage() {
               isSending={isSending}
               disabled={activeConversation.status === "closed"}
               onOpenPaymentModal={() => setIsPaymentModalOpen(true)}
+              cannedReplies={cannedReplies}
+              contact={activeConversation.contact}
             />
           </>
         ) : (
