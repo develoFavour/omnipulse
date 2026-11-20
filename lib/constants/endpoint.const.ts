@@ -33,6 +33,7 @@ export const ENDPOINTS = {
 		BASE: `${API_VERSION}/campaigns`,
 		BY_ID: (id: string) => `${API_VERSION}/campaigns/${id}`,
 		DISPATCH: (id: string) => `${API_VERSION}/campaigns/${id}/dispatch`,
+		SIMULATE: (id: string) => `${API_VERSION}/campaigns/${id}/simulate`,
 		PAUSE: (id: string) => `${API_VERSION}/campaigns/${id}/pause`,
 		RESUME: (id: string) => `${API_VERSION}/campaigns/${id}/resume`,
 		CANCEL: (id: string) => `${API_VERSION}/campaigns/${id}/cancel`,

@@ -128,6 +128,14 @@ export interface CampaignPreflight {
   reasons: PreflightReason[];
 }
 
+export interface SimulationResult {
+  campaign_id: string;
+  total_targets: number;
+  delivered: number;
+  status: string;
+  is_simulated: boolean;
+}
+
 class CampaignService {
   async createCampaign(payload: CampaignPayload): Promise<CampaignResponse> {
     const response = await apiClient.post<ApiResponse<CampaignResponse>>(ENDPOINTS.CAMPAIGNS.BASE, payload);
@@ -160,6 +168,13 @@ class CampaignService {
       ENDPOINTS.CAMPAIGNS.DISPATCH(campaignId)
     );
     return response.data as unknown as { message: string; campaign_id: string };
+  }
+
+  async simulateDispatch(campaignId: string): Promise<SimulationResult> {
+    const response = await apiClient.post<ApiResponse<SimulationResult>>(
+      ENDPOINTS.CAMPAIGNS.SIMULATE(campaignId)
+    );
+    return response.data as unknown as SimulationResult;
   }
 
   async pauseCampaign(campaignId: string): Promise<{ message: string; campaign_id: string; status: string }> {

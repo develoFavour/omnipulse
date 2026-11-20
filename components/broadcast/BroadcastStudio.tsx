@@ -192,10 +192,12 @@ export function BroadcastStudio() {
 	const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
 	const [isPreflightOpen, setIsPreflightOpen] = useState(false);
 	const [isPreflightLoading, setIsPreflightLoading] = useState(false);
+	const [isSimulating, setIsSimulating] = useState(false);
 	const [preflight, setPreflight] = useState<CampaignPreflight | null>(null);
 	const [pendingCampaignId, setPendingCampaignId] = useState<string | null>(null);
 	const [dispatched, setDispatched] = useState(false);
 	const [dispatchedCampaignId, setDispatchedCampaignId] = useState<string>("");
+	const [isSimulatedDispatch, setIsSimulatedDispatch] = useState(false);
 
 	// Scheduling state
 	const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -457,7 +459,7 @@ export function BroadcastStudio() {
 		return count;
 	}, [targetContacts.length, isTelegramChannel, selectedDestinationIds.length]);
 
-	const isProcessing = isCreating || isDispatching || isScheduling || isSavingEdit;
+	const isProcessing = isCreating || isDispatching || isScheduling || isSavingEdit || isSimulating;
 
 	// Human-readable summary of active placements for the schedule modal
 	const channelsSummary = useMemo(() => {
@@ -824,6 +826,27 @@ export function BroadcastStudio() {
 		}
 	};
 
+	const handleSimulateDispatch = async () => {
+		if (!pendingCampaignId) return;
+		setIsSimulating(true);
+		try {
+			const res = await campaignService.simulateDispatch(pendingCampaignId);
+			setIsPreflightOpen(false);
+			setIsSimulatedDispatch(true);
+			setDispatchedCampaignId(pendingCampaignId);
+			setDispatched(true);
+			setPendingCampaignId(null);
+			toast.success("Simulation complete!", {
+				description: `${res.delivered} messages validated in dry-run mode. Zero quota used.`,
+			});
+		} catch (err: unknown) {
+			const msg = apiMessage(err, "Simulation failed");
+			toast.error(msg);
+		} finally {
+			setIsSimulating(false);
+		}
+	};
+
 	const handleCancelPreflight = () => {
 		setIsPreflightOpen(false);
 		setPendingCampaignId(null);
@@ -929,6 +952,7 @@ export function BroadcastStudio() {
 		setSelectedDestinationIds([]);
 		setSelectedContactIds([]);
 		setDispatched(false);
+		setIsSimulatedDispatch(false);
 		setIsScheduleModalOpen(false);
 		setScheduledAt("");
 		setScheduledConfirmed(false);
@@ -946,6 +970,7 @@ export function BroadcastStudio() {
 					selectedPlacements={selectedPlacements}
 					mediaUrl={mediaUrl}
 					isWhatsAppStory={isWhatsAppStory}
+					isSimulated={isSimulatedDispatch}
 					onReset={handleResetStudio}
 					onOpenStoryModal={() => setIsStoryModalOpen(true)}
 				/>
@@ -1554,8 +1579,10 @@ export function BroadcastStudio() {
 				preflight={preflight}
 				isLoading={isPreflightLoading}
 				isDispatching={isDispatching}
+				isSimulating={isSimulating}
 				needsApproval={needsApproval}
 				onConfirm={handleConfirmDispatch}
+				onSimulate={handleSimulateDispatch}
 				onCancel={handleCancelPreflight}
 			/>
 

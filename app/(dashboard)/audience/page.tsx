@@ -7,7 +7,7 @@ import {
   Users, Webhook, CheckCircle2, Copy, RefreshCw, Loader2, ExternalLink,
   Bot, Tag as TagIcon, Plus, X, Filter, Trash2, Search, ChevronDown,
   CheckSquare, Square, Pencil, Tags, ArrowUpDown, ChevronLeft, ChevronRight,
-  ChevronsLeft, ChevronsRight, Check, Download, Upload, Clock,
+  ChevronsLeft, ChevronsRight, Check, Download, Upload, Clock, Sparkles,
 } from "lucide-react";
 import { FaWhatsapp, FaTelegram } from "react-icons/fa";
 import { useContacts, Contact } from "@/lib/api/hooks/useContacts";
@@ -121,6 +121,7 @@ export default function AudiencePage() {
   // Recipient erasure
   const [deletingContact, setDeletingContact] = useState<Contact | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoadingDemoContacts, setIsLoadingDemoContacts] = useState(false);
 
   // Clock for the permanent-deletion countdown. Kept in state (ticked every
   // minute) because deriving it during render trips React's purity rules; the
@@ -160,6 +161,34 @@ export default function AudiencePage() {
       toast.error(err.response?.data?.error || "Failed to erase recipient");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleLoadDemoContacts = async () => {
+    setIsLoadingDemoContacts(true);
+    try {
+      const summary = await contactService.importContacts({
+        default_channel: "whatsapp",
+        default_consent: "granted",
+        consent_note: "Sample trial contact",
+        rows: [
+          { first_name: "Ada", last_name: "Okoye", channel: "whatsapp", routing_value: "+2348012345671", consent: "granted", consent_note: "Trial Demo Contact" },
+          { first_name: "Bola", last_name: "Adamu", channel: "whatsapp", routing_value: "+2348012345672", consent: "granted", consent_note: "Trial Demo Contact" },
+          { first_name: "Chidi", last_name: "Eze", channel: "whatsapp", routing_value: "+2348012345673", consent: "granted", consent_note: "Trial Demo Contact" },
+          { first_name: "Damilola", last_name: "Bakare", channel: "whatsapp", routing_value: "+2348012345674", consent: "granted", consent_note: "Trial Demo Contact" },
+          { first_name: "Emeka", last_name: "Nwosu", channel: "whatsapp", routing_value: "+2348012345675", consent: "granted", consent_note: "Trial Demo Contact" },
+        ],
+      });
+      toast.success(`Loaded ${summary.created} demo contacts!`, {
+        description: "You can now test broadcasts, dynamic variables, and simulation.",
+      });
+      await refetch();
+      void refetchPlanUsage();
+    } catch (error) {
+      const err = error as { response?: { data?: { error?: string } } };
+      toast.error(err.response?.data?.error || "Failed to load demo contacts");
+    } finally {
+      setIsLoadingDemoContacts(false);
     }
   };
 
@@ -763,13 +792,27 @@ export default function AudiencePage() {
                         Connect a channel
                       </Link>
                       {canSyncContacts && (
-                        <button
-                          onClick={() => setShowImportModal(true)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-gray-700 transition-colors hover:bg-gray-50"
-                        >
-                          <Upload className="h-3.5 w-3.5" />
-                          Import contacts
-                        </button>
+                        <>
+                          <button
+                            onClick={handleLoadDemoContacts}
+                            disabled={isLoadingDemoContacts}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-900 transition-colors hover:bg-emerald-100 disabled:opacity-50"
+                          >
+                            {isLoadingDemoContacts ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3.5 w-3.5 text-emerald-700" />
+                            )}
+                            {isLoadingDemoContacts ? "Loading Demo Contacts…" : "Load 5 Demo Contacts"}
+                          </button>
+                          <button
+                            onClick={() => setShowImportModal(true)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-xs font-bold text-gray-700 transition-colors hover:bg-gray-50"
+                          >
+                            <Upload className="h-3.5 w-3.5" />
+                            Import contacts
+                          </button>
+                        </>
                       )}
                     </div>
                   )}

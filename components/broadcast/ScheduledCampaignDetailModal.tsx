@@ -460,8 +460,17 @@ export function ScheduledCampaignDetailModal({
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                   Delivery Mode & Targets
                 </p>
-                <p className="text-sm font-bold text-gray-800 capitalize">
-                  {campaign.delivery_type.replace(/_/g, " ")}
+                <p className="text-sm font-bold text-gray-800 capitalize flex items-center gap-2">
+                  {campaign.delivery_type === "simulation" ? (
+                    <>
+                      <span>Simulated Dispatch (Dry Run)</span>
+                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                        Zero Quota
+                      </span>
+                    </>
+                  ) : (
+                    campaign.delivery_type.replace(/_/g, " ")
+                  )}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
                   {campaign.parsedContacts.length > 0
