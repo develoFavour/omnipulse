@@ -677,8 +677,8 @@ function ComposeBar({
         : "there";
 
       const substituted = reply.body
-        .replace(/\{\{\s*contact_name\s*\}\}/gi, contactName)
-        .replace(/\{\{\s*first_name\s*\}\}/gi, firstName);
+        .replace(/\{{1,2}\s*contact_name\s*\}{1,2}/gi, contactName)
+        .replace(/\{{1,2}\s*first_name\s*\}{1,2}/gi, firstName);
 
       setMessage(substituted);
       setShowPicker(false);

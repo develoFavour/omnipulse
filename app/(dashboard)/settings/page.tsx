@@ -3091,7 +3091,7 @@ function CannedRepliesSection() {
 								<textarea
 									value={form.body}
 									onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
-									placeholder="Hi {{contact_name}}, thank you for your order! Please use the link below to complete your payment..."
+									placeholder="Hi {contact_name}, thank you for your order! Please use the link below to complete your payment..."
 									rows={5}
 									required
 									className="w-full rounded-xl border border-gray-200 p-3.5 text-xs text-gray-900 focus:border-[#163300] focus:ring-2 focus:ring-[#163300]/20 focus:outline-none resize-none leading-relaxed"
@@ -3099,10 +3099,10 @@ function CannedRepliesSection() {
 								<div className="mt-1.5 flex flex-wrap gap-1 text-[11px] text-gray-500 items-center">
 									<span>Variables supported:</span>
 									<span className="font-mono bg-gray-100 px-1 py-0.5 rounded text-[10px] text-gray-700">
-										{"{{contact_name}}"}
+										{"{contact_name}"}
 									</span>
 									<span className="font-mono bg-gray-100 px-1 py-0.5 rounded text-[10px] text-gray-700">
-										{"{{first_name}}"}
+										{"{first_name}"}
 									</span>
 								</div>
 							</div>
