@@ -586,6 +586,28 @@ export default function AudiencePage() {
         className="mb-8"
       />
 
+      {isChannelConnected("whatsapp") && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/70 p-3.5 px-4 text-xs text-emerald-950">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
+            </span>
+            <span>
+              <strong>WhatsApp Linked:</strong> WhatsApp transfers conversation history in chunks after pairing. Keep WhatsApp open on your phone for full sync.
+            </span>
+          </div>
+          <button
+            onClick={handleSyncWhatsApp}
+            disabled={isSyncingWA}
+            className="flex items-center gap-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 px-3 py-1.5 text-[11px] font-bold text-white transition-colors disabled:opacity-50"
+          >
+            {isSyncingWA ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+            {isSyncingWA ? "Syncing..." : "Sync WhatsApp Now"}
+          </button>
+        </div>
+      )}
+
       {/* Inbound Auto-Sync Card */}
       <div className="mb-8 rounded-3xl border border-[#9fe870]/30 bg-gradient-to-br from-[#e2f6d5]/40 via-white to-[#f4f5f2] p-6 sm:p-7 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none"><Webhook className="w-36 h-36 text-[#163300]" /></div>
