@@ -67,13 +67,15 @@ export function ChannelPlacementSelector({
       activeBadge: "bg-[#0088cc]/10 text-[#0088cc]",
       type: "1-on-1 Automated",
       description: "Direct personalized message to all subscribers who started your bot.",
-      reach: !isTelegramConnected 
-        ? "Bot not linked" 
-        : `${telegramContactCount} subscriber${telegramContactCount === 1 ? "" : "s"}`,
-      disabled: !isTelegramConnected,
+      reach: isTelegramConnected 
+        ? `${telegramContactCount} subscriber${telegramContactCount === 1 ? "" : "s"}`
+        : telegramContactCount > 0
+        ? `${telegramContactCount} subscriber${telegramContactCount === 1 ? "" : "s"} (Trial Simulation)`
+        : "Bot not linked",
+      disabled: false,
       connected: isTelegramConnected,
       identity: telegramSender,
-      badge: isTelegramConnected ? "Active Gateway" : "Action Required",
+      badge: isTelegramConnected ? "Active Gateway" : telegramContactCount > 0 ? "Simulation Ready" : "Action Required",
       actionType: !isTelegramConnected ? "connect_telegram" : telegramContactCount === 0 ? "sync_telegram" : null,
     },
     {
@@ -107,13 +109,15 @@ export function ChannelPlacementSelector({
       activeBadge: "bg-[#25D366]/10 text-[#128C7E]",
       type: "1-on-1 Automated",
       description: "High-engagement private broadcast to your verified WhatsApp subscribers.",
-      reach: !isWhatsAppConnected 
-        ? "WhatsApp not linked" 
-        : `${whatsappContactCount} subscriber${whatsappContactCount === 1 ? "" : "s"}`,
-      disabled: !isWhatsAppConnected,
+      reach: isWhatsAppConnected 
+        ? `${whatsappContactCount} subscriber${whatsappContactCount === 1 ? "" : "s"}`
+        : whatsappContactCount > 0
+        ? `${whatsappContactCount} subscriber${whatsappContactCount === 1 ? "" : "s"} (Trial Simulation)`
+        : "WhatsApp not linked",
+      disabled: false,
       connected: isWhatsAppConnected,
       identity: whatsappSender,
-      badge: isWhatsAppConnected ? "Verified Gateway" : "Action Required",
+      badge: isWhatsAppConnected ? "Verified Gateway" : whatsappContactCount > 0 ? "Simulation Ready" : "Trial Mode",
       actionType: !isWhatsAppConnected ? "connect_whatsapp" : whatsappContactCount === 0 ? "sync_whatsapp" : null,
     },
     {

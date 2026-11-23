@@ -183,7 +183,7 @@ export function BroadcastStudio() {
 	}, []);
 	const [selectedPlacements, setSelectedPlacements] = useState<
 		ChannelPlacement[]
-	>(["telegram_dm", "telegram_channel"]);
+	>(["whatsapp_dm", "telegram_dm"]);
 	const [selectedDestinationIds, setSelectedDestinationIds] = useState<
 		string[]
 	>([]);
@@ -290,13 +290,15 @@ export function BroadcastStudio() {
 		"MessageRail Business",
 	);
 
-	// Automatically enable WhatsApp DM if WhatsApp channel is connected
+	// Automatically enable WhatsApp DM if WhatsApp channel is connected OR if user has WhatsApp contacts
 	useEffect(() => {
 		if (editingCampaignId) return;
-		if (isWhatsAppConnected && !selectedPlacements.includes("whatsapp_dm")) {
-			setSelectedPlacements((prev) => [...prev, "whatsapp_dm"]);
+		if (isWhatsAppConnected || whatsappContacts.length > 0) {
+			if (!selectedPlacements.includes("whatsapp_dm")) {
+				setSelectedPlacements((prev) => [...prev, "whatsapp_dm"]);
+			}
 		}
-	}, [isWhatsAppConnected, editingCampaignId]);
+	}, [isWhatsAppConnected, whatsappContacts.length, editingCampaignId, selectedPlacements]);
 
 	// Handle template preloading from /templates route or query param
 	useEffect(() => {
@@ -948,7 +950,7 @@ export function BroadcastStudio() {
 		setTitle("");
 		setMessageBody("");
 		setMediaUrl("");
-		setSelectedPlacements(["telegram_dm", "telegram_channel"]);
+		setSelectedPlacements(["whatsapp_dm", "telegram_dm"]);
 		setSelectedDestinationIds([]);
 		setSelectedContactIds([]);
 		setDispatched(false);
