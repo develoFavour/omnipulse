@@ -25,6 +25,7 @@ import { useChannelConnection } from "@/lib/api/hooks/useChannelConnection";
 import { useWhatsAppOAuth } from "@/lib/api/hooks/useWhatsAppOAuth";
 import { TelegramConnectionForm } from "@/components/features/onboarding/TelegramConnectionForm";
 import { WhatsAppQRModal } from "@/components/channels/WhatsAppQRModal";
+import { channelService } from "@/lib/services/channel.service";
 import { usePlanUsage } from "@/lib/hooks/usePlanUsage";
 import { UpgradeModal } from "@/components/features/billing/UpgradeModal";
 import { PlanQuotaBanner, QuotaPill } from "@/components/features/billing/PlanQuotaBanner";
@@ -739,11 +740,12 @@ export default function ConnectionsCatalogPage() {
 			<WhatsAppQRModal
 				isOpen={isWhatsAppQRModalOpen}
 				onClose={() => setIsWhatsAppQRModalOpen(false)}
-				onConnected={(phone, name) => {
+				onConnected={async (phone, name) => {
 					toast.success("WhatsApp connected!", {
-						description: `${name || phone} is now linked and active.`,
+						description: `${name || phone} is now linked. Syncing contacts in the background...`,
 					});
-					refetchChannels();
+					await refetchChannels();
+					void channelService.syncWhatsAppContacts().catch(() => {});
 					setIsWhatsAppQRModalOpen(false);
 				}}
 			/>

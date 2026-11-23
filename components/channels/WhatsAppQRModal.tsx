@@ -98,6 +98,9 @@ export function WhatsAppQRModal({
 										</span>
 									)}
 								</p>
+								<p className="mt-2 text-xs text-white/50 max-w-xs mx-auto leading-relaxed">
+									Your contacts and conversation history are syncing in the background. Keep WhatsApp open on your phone for a moment to ensure all contacts transfer.
+								</p>
 							</div>
 							<div className="flex gap-3 w-full">
 								<button

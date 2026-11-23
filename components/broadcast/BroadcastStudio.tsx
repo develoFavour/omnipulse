@@ -1569,10 +1569,16 @@ export function BroadcastStudio() {
 				onClose={() => setIsWhatsAppQRModalOpen(false)}
 				onConnected={async (phone, name) => {
 					toast.success("WhatsApp connected!", {
-						description: `${name || phone} is now linked and active for broadcasts.`,
+						description: `${name || phone} is now linked. Syncing contacts...`,
 					});
 					setIsWhatsAppQRModalOpen(false);
 					await refetchChannels();
+					try {
+						await channelService.syncWhatsAppContacts();
+						await refetchContacts();
+					} catch {
+						// Ignored, background sync will catch up
+					}
 				}}
 			/>
 
