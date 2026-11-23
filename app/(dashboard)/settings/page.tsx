@@ -77,9 +77,12 @@ import {
 	ShieldCheck,
 	RefreshCw,
 	Crown,
+	MessageSquareQuote,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { TenantMember } from "@/lib/services/team.service";
+import { useCannedReplies } from "@/lib/api/hooks/useCannedReplies";
+import type { CannedReply } from "@/lib/services/canned-reply.service";
 
 type Section =
 	| "workspace"
@@ -88,6 +91,7 @@ type Section =
 	| "notifications"
 	| "billing"
 	| "payouts"
+	| "canned-replies"
 	| "integrations"
 	| "security"
 	| "danger";
@@ -109,6 +113,11 @@ const navItems: NavItem[] = [
 		label: "Settlement & Payouts",
 		icon: Zap,
 		adminAndOwner: true,
+	},
+	{
+		id: "canned-replies",
+		label: "Canned Replies",
+		icon: MessageSquareQuote,
 	},
 	{
 		id: "integrations",
@@ -2807,6 +2816,322 @@ function PayoutsSection() {
 	);
 }
 
+// ── Canned Replies Section ───────────────────────────────────────────────────
+function CannedRepliesSection() {
+	const { replies, isLoading, create, update, remove } = useCannedReplies();
+	const { isOwner, isAdmin } = usePermissions();
+	const canManage = isOwner || isAdmin;
+
+	const [search, setSearch] = useState("");
+	const [modalOpen, setModalOpen] = useState(false);
+	const [editing, setEditing] = useState<CannedReply | null>(null);
+	const [form, setForm] = useState({ shortcut: "", title: "", body: "" });
+	const [saving, setSaving] = useState(false);
+	const [deletingId, setDeletingId] = useState<string | null>(null);
+
+	const openCreate = () => {
+		setEditing(null);
+		setForm({ shortcut: "", title: "", body: "" });
+		setModalOpen(true);
+	};
+
+	const openEdit = (r: CannedReply) => {
+		setEditing(r);
+		setForm({ shortcut: r.shortcut, title: r.title, body: r.body });
+		setModalOpen(true);
+	};
+
+	const handleSave = async (e: React.FormEvent) => {
+		e.preventDefault();
+		const cleanShortcut = form.shortcut.trim().toLowerCase().replace(/^\//, "");
+		if (!cleanShortcut || !form.title.trim() || !form.body.trim()) {
+			toast.error("Please fill in all fields");
+			return;
+		}
+
+		setSaving(true);
+		try {
+			if (editing) {
+				await update(editing.id, {
+					shortcut: cleanShortcut,
+					title: form.title.trim(),
+					body: form.body.trim(),
+				});
+				toast.success("Canned reply updated successfully");
+			} else {
+				await create({
+					shortcut: cleanShortcut,
+					title: form.title.trim(),
+					body: form.body.trim(),
+				});
+				toast.success("Canned reply created successfully");
+			}
+			setModalOpen(false);
+		} catch (err: unknown) {
+			toast.error(apiMessage(err, "Failed to save canned reply"));
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	const handleDelete = async (id: string) => {
+		if (!confirm("Are you sure you want to delete this canned reply?")) return;
+		setDeletingId(id);
+		try {
+			await remove(id);
+			toast.success("Canned reply deleted");
+		} catch (err: unknown) {
+			toast.error(apiMessage(err, "Failed to delete canned reply"));
+		} finally {
+			setDeletingId(null);
+		}
+	};
+
+	const filteredReplies = replies.filter((r) => {
+		const q = search.toLowerCase();
+		return (
+			!q ||
+			r.shortcut.toLowerCase().includes(q) ||
+			r.title.toLowerCase().includes(q) ||
+			r.body.toLowerCase().includes(q)
+		);
+	});
+
+	return (
+		<div className="space-y-6">
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<SectionHeader
+					title="Canned Replies"
+					description="Save standard reply templates so agents can instantly insert them in chat by typing /shortcut."
+				/>
+				{canManage && (
+					<button
+						type="button"
+						onClick={openCreate}
+						className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-gray-800 self-start sm:self-auto shrink-0"
+					>
+						<Plus className="h-4 w-4" />
+						New Canned Reply
+					</button>
+				)}
+			</div>
+
+			{/* Search Bar */}
+			<div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 shadow-2xs">
+				<MessageSquareQuote className="h-4 w-4 text-gray-400 shrink-0" />
+				<input
+					type="text"
+					value={search}
+					onChange={(e) => setSearch(e.target.value)}
+					placeholder="Search replies by shortcut, title, or text..."
+					className="w-full text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none bg-transparent"
+				/>
+				{search && (
+					<button
+						type="button"
+						onClick={() => setSearch("")}
+						className="text-xs text-gray-400 hover:text-gray-600"
+					>
+						Clear
+					</button>
+				)}
+			</div>
+
+			{/* Content List */}
+			{isLoading ? (
+				<div className="flex items-center justify-center py-16">
+					<Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+				</div>
+			) : filteredReplies.length === 0 ? (
+				<div className="rounded-2xl border border-dashed border-gray-200 bg-white p-12 text-center">
+					<MessageSquareQuote className="mx-auto h-10 w-10 text-gray-300" />
+					<h3 className="mt-3 text-sm font-bold text-gray-800">
+						{search ? "No matching canned replies" : "No canned replies yet"}
+					</h3>
+					<p className="mt-1 text-xs text-gray-500 max-w-sm mx-auto">
+						{search
+							? "Try refining your search keyword."
+							: "Create standard replies for FAQs, payment instructions, greetings, and common agent responses."}
+					</p>
+					{canManage && !search && (
+						<button
+							type="button"
+							onClick={openCreate}
+							className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#163300] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#1e4a00] transition"
+						>
+							<Plus className="h-3.5 w-3.5" />
+							Create your first template
+						</button>
+					)}
+				</div>
+			) : (
+				<Card>
+					<div className="overflow-x-auto">
+						<table className="w-full text-left text-xs">
+							<thead className="border-b border-gray-100 bg-gray-50/75 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+								<tr>
+									<th className="px-5 py-3.5">Shortcut</th>
+									<th className="px-5 py-3.5">Title</th>
+									<th className="px-5 py-3.5 hidden md:table-cell">Message Content</th>
+									{canManage && <th className="px-5 py-3.5 text-right">Actions</th>}
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-gray-100">
+								{filteredReplies.map((r) => (
+									<tr key={r.id} className="hover:bg-gray-50/60 transition-colors">
+										<td className="px-5 py-3.5 whitespace-nowrap">
+											<span className="inline-flex items-center rounded-md bg-[#163300]/10 px-2 py-0.5 font-mono text-xs font-bold text-[#163300]">
+												/{r.shortcut}
+											</span>
+										</td>
+										<td className="px-5 py-3.5 font-semibold text-gray-900 whitespace-nowrap">
+											{r.title}
+										</td>
+										<td className="px-5 py-3.5 text-gray-600 hidden md:table-cell max-w-md truncate">
+											{r.body}
+										</td>
+										{canManage && (
+											<td className="px-5 py-3.5 text-right whitespace-nowrap">
+												<div className="flex items-center justify-end gap-2">
+													<button
+														type="button"
+														onClick={() => openEdit(r)}
+														className="rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition"
+														title="Edit template"
+													>
+														<Pencil className="h-3.5 w-3.5" />
+													</button>
+													<button
+														type="button"
+														onClick={() => handleDelete(r.id)}
+														disabled={deletingId === r.id}
+														className="rounded-lg p-1 text-red-500 hover:bg-red-50 hover:text-red-700 transition disabled:opacity-50"
+														title="Delete template"
+													>
+														{deletingId === r.id ? (
+															<Loader2 className="h-3.5 w-3.5 animate-spin" />
+														) : (
+															<Trash2 className="h-3.5 w-3.5" />
+														)}
+													</button>
+												</div>
+											</td>
+										)}
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				</Card>
+			)}
+
+			{/* Create / Edit Modal */}
+			{modalOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+					<div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl border border-gray-100 space-y-5 animate-in fade-in-50 zoom-in-95">
+						<div className="flex items-center justify-between border-b border-gray-100 pb-3">
+							<h3 className="text-base font-bold text-gray-900">
+								{editing ? "Edit Canned Reply" : "Create New Canned Reply"}
+							</h3>
+							<button
+								type="button"
+								onClick={() => setModalOpen(false)}
+								className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+							>
+								<X className="h-4 w-4" />
+							</button>
+						</div>
+
+						<form onSubmit={handleSave} className="space-y-4">
+							<div>
+								<label className="block text-xs font-bold text-gray-700 mb-1">
+									Shortcut
+								</label>
+								<div className="flex items-center rounded-xl border border-gray-200 bg-gray-50/50 overflow-hidden focus-within:border-[#163300] focus-within:ring-2 focus-within:ring-[#163300]/20">
+									<span className="px-3 text-xs font-mono font-bold text-gray-400 border-r border-gray-200 bg-gray-100/50 py-2.5">
+										/
+									</span>
+									<input
+										type="text"
+										value={form.shortcut}
+										onChange={(e) =>
+											setForm((f) => ({
+												...f,
+												shortcut: e.target.value.toLowerCase().replace(/[\s/]/g, ""),
+											}))
+										}
+										placeholder="e.g. payment"
+										required
+										className="w-full px-3 py-2 text-xs text-gray-900 bg-transparent focus:outline-none font-mono"
+									/>
+								</div>
+								<p className="mt-1 text-[11px] text-gray-400">
+									Agents type this shortcut in chat to trigger this quick reply.
+								</p>
+							</div>
+
+							<div>
+								<label className="block text-xs font-bold text-gray-700 mb-1">
+									Title
+								</label>
+								<input
+									type="text"
+									value={form.title}
+									onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+									placeholder="e.g. Paystack Payment Link Request"
+									required
+									className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-xs text-gray-900 focus:border-[#163300] focus:ring-2 focus:ring-[#163300]/20 focus:outline-none"
+								/>
+							</div>
+
+							<div>
+								<label className="block text-xs font-bold text-gray-700 mb-1">
+									Message Template Body
+								</label>
+								<textarea
+									value={form.body}
+									onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
+									placeholder="Hi {contact_name}, thank you for your order! Please use the link below to complete your payment..."
+									rows={5}
+									required
+									className="w-full rounded-xl border border-gray-200 p-3.5 text-xs text-gray-900 focus:border-[#163300] focus:ring-2 focus:ring-[#163300]/20 focus:outline-none resize-none leading-relaxed"
+								/>
+								<div className="mt-1.5 flex flex-wrap gap-1 text-[11px] text-gray-500 items-center">
+									<span>Variables supported:</span>
+									<span className="font-mono bg-gray-100 px-1 py-0.5 rounded text-[10px] text-gray-700">
+										{"{contact_name}"}
+									</span>
+									<span className="font-mono bg-gray-100 px-1 py-0.5 rounded text-[10px] text-gray-700">
+										{"{first_name}"}
+									</span>
+								</div>
+							</div>
+
+							<div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-100">
+								<button
+									type="button"
+									onClick={() => setModalOpen(false)}
+									className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+								>
+									Cancel
+								</button>
+								<button
+									type="submit"
+									disabled={saving}
+									className="inline-flex items-center gap-1.5 rounded-xl bg-[#163300] px-4 py-2 text-xs font-bold text-white hover:bg-[#1e4a00] transition disabled:opacity-50"
+								>
+									{saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+									{saving ? "Saving..." : editing ? "Save Changes" : "Create Reply"}
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
 // ── Main Page ──────────────────────────────────────────────────────────────────
 const sectionComponents: Record<Section, React.ComponentType> = {
 	workspace: WorkspaceSection,
@@ -2815,6 +3140,7 @@ const sectionComponents: Record<Section, React.ComponentType> = {
 	notifications: NotificationsSection,
 	billing: BillingSection,
 	payouts: PayoutsSection,
+	"canned-replies": CannedRepliesSection,
 	integrations: IntegrationsSection,
 	security: SecuritySection,
 	danger: DangerSection,

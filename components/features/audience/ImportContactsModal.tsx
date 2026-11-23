@@ -217,9 +217,10 @@ export function ImportContactsModal({ onClose, onImported }: ImportContactsModal
                   type="button"
                   onClick={downloadTemplate}
                   className="ml-auto flex items-center gap-1.5 text-xs font-bold text-[#163300] hover:underline"
+                  title="Download sample 10-contact CSV for quick testing"
                 >
                   <Download className="h-3.5 w-3.5" />
-                  Template
+                  Sample 10-Contact CSV
                 </button>
               </div>
 

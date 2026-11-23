@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, Loader2, Send, ShieldCheck, UserX, FileWarning } from "lucide-react";
+import { AlertTriangle, Loader2, Send, ShieldCheck, UserX, FileWarning, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CampaignPreflight } from "@/lib/services/campaign.service";
 
@@ -11,8 +11,10 @@ interface DispatchPreflightModalProps {
 	preflight: CampaignPreflight | null;
 	isLoading?: boolean;
 	isDispatching?: boolean;
+	isSimulating?: boolean;
 	needsApproval?: boolean;
 	onConfirm: () => void;
+	onSimulate?: () => void;
 	onCancel: () => void;
 }
 
@@ -56,18 +58,20 @@ export function DispatchPreflightModal({
 	preflight,
 	isLoading = false,
 	isDispatching = false,
+	isSimulating = false,
 	needsApproval = false,
 	onConfirm,
+	onSimulate,
 	onCancel,
 }: DispatchPreflightModalProps) {
 	useEffect(() => {
 		if (!isOpen) return;
 		const onKeyDown = (event: KeyboardEvent) => {
-			if (event.key === "Escape" && !isDispatching) onCancel();
+			if (event.key === "Escape" && !isDispatching && !isSimulating) onCancel();
 		};
 		window.addEventListener("keydown", onKeyDown);
 		return () => window.removeEventListener("keydown", onKeyDown);
-	}, [isOpen, isDispatching, onCancel]);
+	}, [isOpen, isDispatching, isSimulating, onCancel]);
 
 	const blockedTotal = preflight
 		? preflight.opted_out + preflight.blocked + preflight.quiet_hours
@@ -143,12 +147,16 @@ export function DispatchPreflightModal({
 								</div>
 
 								{!preflight.whatsapp_connected && (
-									<div className="flex items-start gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
-										<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-										<p>
-											WhatsApp is not connected, so these recipients cannot be reached.
-											Reconnect the WhatsApp channel in Channels before dispatching.
-										</p>
+									<div className="flex items-start gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5 text-xs text-emerald-950">
+										<Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
+										<div className="space-y-1">
+											<p className="font-semibold text-emerald-900">
+												WhatsApp is not connected yet (Free Trial Mode)
+											</p>
+											<p className="text-emerald-800 leading-relaxed">
+												You can run a <strong>Simulated Dispatch (Dry Run)</strong> to preview the entire delivery pipeline, personalized variables, and telemetry reporting without scanning a QR code or spending message quota.
+											</p>
+										</div>
 									</div>
 								)}
 
@@ -215,30 +223,48 @@ export function DispatchPreflightModal({
 							<button
 								type="button"
 								onClick={onCancel}
-								disabled={isDispatching}
+								disabled={isDispatching || isSimulating}
 								className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
 							>
 								Keep as draft
 							</button>
-							<button
-								type="button"
-								onClick={onConfirm}
-								disabled={isLoading || isDispatching || cannotSend || !preflight}
-								className="flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
-							>
-								{isDispatching ? (
-									<Loader2 className="h-4 w-4 animate-spin" />
-								) : (
-									<Send className="h-4 w-4" />
-								)}
-								{isDispatching
-									? needsApproval
-										? "Submitting…"
-										: "Sending…"
-									: needsApproval
-										? `Submit for Approval (${(preflight?.sendable ?? 0).toLocaleString()})`
-										: `Send to ${(preflight?.sendable ?? 0).toLocaleString()}`}
-							</button>
+							{!preflight?.whatsapp_connected && onSimulate ? (
+								<button
+									type="button"
+									onClick={onSimulate}
+									disabled={isLoading || isDispatching || isSimulating || nobodyToSend || !preflight}
+									className="flex items-center justify-center gap-2 rounded-xl bg-[#163300] px-5 py-2.5 text-sm font-bold text-[#9fe870] shadow-sm transition-all hover:bg-[#1f4700] hover:shadow-md disabled:opacity-50"
+								>
+									{isSimulating ? (
+										<Loader2 className="h-4 w-4 animate-spin" />
+									) : (
+										<Sparkles className="h-4 w-4" />
+									)}
+									{isSimulating
+										? "Simulating Dispatch…"
+										: `Run Simulated Dispatch (${(preflight?.sendable ?? 0).toLocaleString()})`}
+								</button>
+							) : (
+								<button
+									type="button"
+									onClick={onConfirm}
+									disabled={isLoading || isDispatching || cannotSend || !preflight}
+									className="flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
+								>
+									{isDispatching ? (
+										<Loader2 className="h-4 w-4 animate-spin" />
+									) : (
+										<Send className="h-4 w-4" />
+									)}
+									{isDispatching
+										? needsApproval
+											? "Submitting…"
+											: "Sending…"
+										: needsApproval
+											? `Submit for Approval (${(preflight?.sendable ?? 0).toLocaleString()})`
+											: `Send to ${(preflight?.sendable ?? 0).toLocaleString()}`}
+								</button>
+							)}
 						</div>
 					</motion.div>
 				</div>

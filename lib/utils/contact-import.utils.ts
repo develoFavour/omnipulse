@@ -367,8 +367,15 @@ export function buildImportPreview(text: string, defaults: ImportDefaults): Impo
 export function importTemplateCsv(): string {
   return [
     "first_name,last_name,channel,routing_value,consent,consent_note",
-    'Ada,Okoye,whatsapp,+2348012345678,granted,"Signed up on the October landing page"',
-    "Bola,Adamu,telegram,@bola_adamu,revoked,",
-    "Chidi,,whatsapp,+2348098765432,,",
+    'Ada,Okoye,whatsapp,+2348012345671,granted,"Website Newsletter Opt-in"',
+    'Bola,Adamu,whatsapp,+2348012345672,granted,"October Promo Waitlist"',
+    'Chidi,Eze,whatsapp,+2348012345673,granted,"In-store Checkout Consent"',
+    'Damilola,Bakare,whatsapp,+2348012345674,granted,"Webinar Registration"',
+    'Emeka,Nwosu,whatsapp,+2348012345675,granted,"VIP Club Member"',
+    'Fatima,Bello,telegram,@fatima_bello,granted,"Telegram Community Channel"',
+    'Grace,Okon,whatsapp,+2348012345677,granted,"Product Launch Lead"',
+    'Hassan,Aliyu,whatsapp,+2348012345678,granted,"Black Friday Alert"',
+    'Ibrahim,Musa,telegram,@ibrahim_musa,granted,"Customer Support Inquiry"',
+    'Joy,Amadi,whatsapp,+2348012345680,granted,"Referral Program"',
   ].join("\r\n");
 }

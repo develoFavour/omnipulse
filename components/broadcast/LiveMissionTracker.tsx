@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
@@ -40,6 +41,7 @@ interface LiveMissionTrackerProps {
   selectedPlacements: string[];
   mediaUrl?: string;
   isWhatsAppStory?: boolean;
+  isSimulated?: boolean;
   onReset: () => void;
   onOpenStoryModal?: () => void;
 }
@@ -51,6 +53,7 @@ export function LiveMissionTracker({
   selectedPlacements,
   mediaUrl,
   isWhatsAppStory,
+  isSimulated = false,
   onReset,
   onOpenStoryModal,
 }: LiveMissionTrackerProps) {
@@ -247,6 +250,31 @@ export function LiveMissionTracker({
 
   return (
     <div className="max-w-4xl mx-auto py-8 animate-in fade-in duration-500 space-y-6">
+      {/* Simulation Banner */}
+      {isSimulated && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-3xl border border-emerald-300 bg-emerald-50/90 p-5 text-emerald-950 shadow-md">
+          <div className="flex items-start sm:items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#163300] text-lg shadow">
+              🧪
+            </span>
+            <div>
+              <p className="font-bold text-emerald-950 text-sm">
+                Simulated Broadcast Preview (Dry Run)
+              </p>
+              <p className="text-xs text-emerald-800 leading-relaxed">
+                This was a safe test drive with zero live outbound messages and zero quota used. Ready to send to real phones?
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/connections"
+            className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-[#163300] px-4 py-2 text-xs font-bold text-[#9fe870] shadow-sm transition-all hover:bg-[#1f4700]"
+          >
+            Connect WhatsApp Now →
+          </Link>
+        </div>
+      )}
+
       {/* Top Banner Card: Mission Command */}
       <div className="relative overflow-hidden rounded-3xl border border-gray-200/90 dark:border-white/10 bg-white/95 dark:bg-zinc-950/90 p-8 shadow-2xl backdrop-blur-xl">
         {/* Subtle Ambient Glow */}

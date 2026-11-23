@@ -33,6 +33,7 @@ export const ENDPOINTS = {
 		BASE: `${API_VERSION}/campaigns`,
 		BY_ID: (id: string) => `${API_VERSION}/campaigns/${id}`,
 		DISPATCH: (id: string) => `${API_VERSION}/campaigns/${id}/dispatch`,
+		SIMULATE: (id: string) => `${API_VERSION}/campaigns/${id}/simulate`,
 		PAUSE: (id: string) => `${API_VERSION}/campaigns/${id}/pause`,
 		RESUME: (id: string) => `${API_VERSION}/campaigns/${id}/resume`,
 		CANCEL: (id: string) => `${API_VERSION}/campaigns/${id}/cancel`,
@@ -136,6 +137,12 @@ export const ENDPOINTS = {
 		MARK_READ: (id: string) => `${API_VERSION}/inbox/conversations/${id}/read`,
 		EDIT_MESSAGE: (msgID: string) => `${API_VERSION}/inbox/messages/${msgID}`,
 		DELETE_MESSAGE: (msgID: string) => `${API_VERSION}/inbox/messages/${msgID}`,
+	},
+
+	// Canned / Quick Replies
+	CANNED_REPLIES: {
+		BASE: `${API_VERSION}/canned-replies`,
+		BY_ID: (id: string) => `${API_VERSION}/canned-replies/${id}`,
 	},
 
 	// Conversational Commerce & Payment Links
