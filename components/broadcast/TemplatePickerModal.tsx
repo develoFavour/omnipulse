@@ -27,83 +27,31 @@ export interface StarterPlaybook {
 
 export const STARTER_PLAYBOOKS: StarterPlaybook[] = [
   {
-    title: "⚡ 24-Hour Flash Sale & Exclusive Voucher",
-    category: "promotions",
-    badge: "🔥 High Conversion",
-    recommendedThrottle: "Human Speed (1 msg / 4s)",
-    body: "Hey {first_name}! ⚡ For the next 24 hours only, get 25% off our entire catalog with private code FLASH25.\n\nShop the private vault here: https://messagerail.link/flash\n\nStock is strictly limited. Reply to this chat if you have any questions!\n\nReply STOP to unsubscribe.",
-    variables: ["first_name"],
-  },
-  {
-    title: "💬 Order Hold & Instant Checkout Closer",
-    category: "commerce",
-    badge: "⚡ Revenue Closer",
-    recommendedThrottle: "Direct Send",
-    body: "Hi {first_name}! 👋 We’ve reserved the item you inquired about for the next 4 hours so it doesn't sell out.\n\nComplete your checkout securely via Card, Bank Transfer, or USSD using this direct link:\nhttps://messagerail.link/pay\n\nOnce completed, reply \"PAID\" here and our dispatch team will assign your tracking number immediately!",
-    variables: ["first_name"],
-  },
-  {
-    title: "⭐ VIP Private Drop — 48H Advance Access",
-    category: "promotions",
-    badge: "⭐ VIP Retention",
-    recommendedThrottle: "Safe Pace (1 msg / 5s)",
-    body: "Hello {first_name}, as one of our top-tier VIP clients, you get exclusive private access to our upcoming release 48 hours before the public.\n\nExplore the secret catalog & reserve your pieces:\nhttps://messagerail.link/vip-access\n\nNeed personal concierge styling? Reply directly to this chat!",
-    variables: ["first_name"],
-  },
-  {
-    title: "⏰ Live Masterclass / Event Starts in 1 Hour",
-    category: "reminders",
-    badge: "📢 85% Attendance",
-    recommendedThrottle: "Burst (1 msg / 2s)",
-    body: "Quick heads-up {first_name}: Our live session begins in exactly 60 minutes! 🎙️\n\nGrab your notepad, test your audio, and enter the live room here:\nhttps://messagerail.link/live-room\n\nSee you inside!",
-    variables: ["first_name"],
-  },
-  {
-    title: "🙏 Special Service & Gathering Invitation",
-    category: "reminders",
-    badge: "🤝 Community",
-    recommendedThrottle: "Safe Pace (1 msg / 4s)",
-    body: "Hello {first_name}! We warmly invite you to join us this Sunday for our gathering at 9:00 AM.\n\n📍 In-Person: Main Auditorium\n🌐 Live Stream: https://messagerail.link/live\n\nInvite your family and friends—we look forward to welcoming you!",
-    variables: ["first_name"],
-  },
-  {
-    title: "🔥 Restock Alert: Limited Inventory Remaining",
-    category: "commerce",
-    badge: "⚡ Urgency Scarcity",
-    recommendedThrottle: "Human Speed (1 msg / 4s)",
-    body: "Great news {first_name}! 🎉 The item you were eyeing is officially BACK IN STOCK, but we only received a shipment of 35 units.\n\nClaim yours before it sells out again: https://messagerail.link/restock\n\nExpress dispatch guaranteed on all orders placed today!",
-    variables: ["first_name"],
-  },
-  {
-    title: "💔 We Miss You — Exclusive Comeback Credit",
-    category: "re_engagement",
-    badge: "🎯 Win-Back",
-    recommendedThrottle: "Safe Pace (1 msg / 6s)",
-    body: "Hey {first_name}, we noticed it's been a while! We've made massive upgrades to our products and services and would love to welcome you back.\n\nEnjoy a complimentary credit on your next order with voucher WELCOMEBACK: https://messagerail.link/welcome-back\n\nTell us what you think—we read every reply right here in WhatsApp.",
-    variables: ["first_name"],
-  },
-  {
-    title: "🛡️ Verified Consent & VIP Channel Re-Confirmation",
+    title: "📢 General Announcement",
     category: "urgent",
-    badge: "🛡️ 100% Compliant",
-    recommendedThrottle: "Safe Pace (1 msg / 5s)",
-    body: "Hello {first_name}! In accordance with global privacy & NDPA consent standards, we want to make sure you still want to receive our VIP broadcasts and exclusive offers.\n\nIf you love our updates, no action is needed! ✨\nIf you prefer to pause broadcasts, simply reply \"STOP\" at any time to instantly unsubscribe.",
+    badge: "Universal",
+    body: "Hi {first_name}, we have an important update to share with you:\n\n[Write your announcement here]\n\nLearn more here: [Your Link]\n\nReply to this message if you have any questions.",
     variables: ["first_name"],
   },
   {
-    title: "💰 Payday Weekend Special — 48H Bundle Drop",
-    category: "promotions",
-    badge: "💳 High Volume",
-    recommendedThrottle: "Human Speed (1 msg / 4s)",
-    body: "Payday is here {first_name}! 💰 Treat yourself this weekend with our exclusive bundle deals, only available to our private subscriber list.\n\nView the weekend bundles: https://messagerail.link/payday\n\nIncludes free shipping nationwide on orders completed before Sunday midnight!",
+    title: "💬 Quick Check-In / Follow-Up",
+    category: "commerce",
+    badge: "Conversational",
+    body: "Hi {first_name}, just checking in! 👋\n\n[Add a short note or question for your contact here]\n\nLet us know how we can help — just reply directly to this chat.",
     variables: ["first_name"],
   },
   {
-    title: "🚀 Major Feature Launch & Agency Case Study",
+    title: "⏰ Event / Appointment Reminder",
+    category: "reminders",
+    badge: "Reminder",
+    body: "Hi {first_name}, quick reminder about [Event or Appointment Name] coming up on [Date & Time].\n\nDetails / join link: [Your Link]\n\nWe look forward to seeing you!",
+    variables: ["first_name"],
+  },
+  {
+    title: "🎉 Special Offer / Promotion",
     category: "promotions",
-    badge: "🚀 B2B & SaaS",
-    recommendedThrottle: "Human Speed (1 msg / 5s)",
-    body: "Hey {first_name}, big news! 🚀 We just rolled out our most requested upgrade, engineered to help you 10x your client results with zero manual friction.\n\nRead the full release notes and see the live demo:\nhttps://messagerail.link/announcement\n\nReply \"DEMO\" to hop on a 5-minute walkthrough with our team.",
+    badge: "Promo",
+    body: "Hi {first_name}! We’re offering [Offer Details, e.g. 15% off] through [End Date].\n\nClaim or learn more here: [Your Link]\n\nReply STOP to opt out.",
     variables: ["first_name"],
   },
 ];
@@ -112,12 +60,12 @@ export const STARTER_PLAYBOOKS: StarterPlaybook[] = [
 export const STARTER_TEMPLATES = STARTER_PLAYBOOKS;
 
 export const TEMPLATE_CATEGORIES = [
-  { id: "all", label: "All Playbooks", color: "bg-gray-100 text-gray-700" },
-  { id: "commerce", label: "Conversational & DMs", color: "bg-emerald-100 text-emerald-800" },
-  { id: "promotions", label: "Flash Drops & Sales", color: "bg-[#e2f6d5] text-[#163300]" },
-  { id: "reminders", label: "Events & Gatherings", color: "bg-sky-100 text-sky-800" },
-  { id: "re_engagement", label: "Retention & Winback", color: "bg-amber-100 text-amber-800" },
-  { id: "urgent", label: "Compliance & Notices", color: "bg-rose-100 text-rose-800" },
+  { id: "all", label: "All Templates", color: "bg-gray-100 text-gray-700" },
+  { id: "urgent", label: "Announcements", color: "bg-rose-100 text-rose-800" },
+  { id: "commerce", label: "Check-Ins & DMs", color: "bg-emerald-100 text-emerald-800" },
+  { id: "reminders", label: "Reminders", color: "bg-sky-100 text-sky-800" },
+  { id: "promotions", label: "Promotions", color: "bg-[#e2f6d5] text-[#163300]" },
+  { id: "re_engagement", label: "Follow-ups", color: "bg-amber-100 text-amber-800" },
 ];
 
 export interface QuickPlaybookShortcut {
@@ -129,34 +77,28 @@ export interface QuickPlaybookShortcut {
 
 export const QUICK_PLAYBOOK_SHORTCUTS: QuickPlaybookShortcut[] = [
   {
-    label: "Flash Deal",
-    icon: "⚡",
-    title: "⚡ 24-Hour Flash Sale & Exclusive Voucher",
-    body: "Hey {first_name}! ⚡ For the next 24 hours only, get 25% off our entire catalog with private code FLASH25.\n\nShop the private vault here: https://messagerail.link/flash\n\nStock is strictly limited. Reply to this chat if you have any questions!\n\nReply STOP to unsubscribe.",
+    label: "Announcement",
+    icon: "📢",
+    title: "📢 General Announcement",
+    body: "Hi {first_name}, we have an important update to share with you:\n\n[Write your announcement here]\n\nLearn more here: [Your Link]\n\nReply to this message if you have any questions.",
   },
   {
-    label: "DM Closer & Payment",
+    label: "Check-In",
     icon: "💬",
-    title: "💬 Order Hold & Instant Checkout Closer",
-    body: "Hi {first_name}! 👋 We’ve reserved the item you inquired about for the next 4 hours so it doesn't sell out.\n\nComplete your checkout securely via Card, Bank Transfer, or USSD using this direct link:\nhttps://messagerail.link/pay\n\nOnce completed, reply \"PAID\" here and our dispatch team will assign your tracking number immediately!",
+    title: "💬 Quick Check-In / Follow-Up",
+    body: "Hi {first_name}, just checking in! 👋\n\n[Add a short note or question for your contact here]\n\nLet us know how we can help — just reply directly to this chat.",
   },
   {
-    label: "VIP Early Access",
-    icon: "⭐",
-    title: "⭐ VIP Private Drop — 48H Advance Access",
-    body: "Hello {first_name}, as one of our top-tier VIP clients, you get exclusive private access to our upcoming release 48 hours before the public.\n\nExplore the secret catalog & reserve your pieces:\nhttps://messagerail.link/vip-access\n\nNeed personal concierge styling? Reply directly to this chat!",
-  },
-  {
-    label: "Event in 1 Hour",
+    label: "Reminder",
     icon: "⏰",
-    title: "⏰ Live Masterclass / Event Starts in 1 Hour",
-    body: "Quick heads-up {first_name}: Our live session begins in exactly 60 minutes! 🎙️\n\nGrab your notepad, test your audio, and enter the live room here:\nhttps://messagerail.link/live-room\n\nSee you inside!",
+    title: "⏰ Event / Appointment Reminder",
+    body: "Hi {first_name}, quick reminder about [Event or Appointment Name] coming up on [Date & Time].\n\nDetails / join link: [Your Link]\n\nWe look forward to seeing you!",
   },
   {
-    label: "Opt-in Reconfirm",
-    icon: "🛡️",
-    title: "🛡️ Verified Consent & VIP Channel Re-Confirmation",
-    body: "Hello {first_name}! In accordance with global privacy & NDPA consent standards, we want to make sure you still want to receive our VIP broadcasts and exclusive offers.\n\nIf you love our updates, no action is needed! ✨\nIf you prefer to pause broadcasts, simply reply \"STOP\" at any time to instantly unsubscribe.",
+    label: "Special Offer",
+    icon: "🎉",
+    title: "🎉 Special Offer / Promotion",
+    body: "Hi {first_name}! We’re offering [Offer Details, e.g. 15% off] through [End Date].\n\nClaim or learn more here: [Your Link]\n\nReply STOP to opt out.",
   },
 ];
 
@@ -190,7 +132,7 @@ export function TemplatePickerModal({
       isPlaybook: true,
     }));
 
-    return [...starterFormatted, ...dbTemplates];
+    return [...dbTemplates, ...starterFormatted];
   }, [dbTemplates]);
 
   const filteredTemplates = useMemo(() => {
@@ -246,13 +188,13 @@ export function TemplatePickerModal({
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                    Campaign Playbooks & Templates
+                    Templates & Starter Formats
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/40">
                       {filteredTemplates.length} available
                     </span>
                   </h2>
                   <p className="text-xs text-gray-500">
-                    Battle-tested, high-conversion playbooks designed for immediate launch across global markets.
+                    Your saved templates and universal starter formats — replace any bracketed placeholders before sending.
                   </p>
                 </div>
               </div>
@@ -365,7 +307,7 @@ export function TemplatePickerModal({
                                 key={v}
                                 className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-[#e2f6d5] text-[#163300] border border-[#9fe870]/30 truncate"
                               >
-                                &#123;&#123;{v}&#125;&#125;
+                                &#123;{v}&#125;
                               </span>
                             ))
                           ) : (
@@ -384,7 +326,7 @@ export function TemplatePickerModal({
                           }
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#e2f6d5] text-[#163300] hover:bg-[#163300] hover:text-[#9fe870] font-semibold text-xs transition-all shadow-2xs"
                         >
-                          Use Playbook
+                          Use Template
                           <ArrowRight className="h-3 w-3" />
                         </button>
                       </div>
