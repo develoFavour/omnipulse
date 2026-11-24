@@ -56,7 +56,7 @@ export function ClerkAuthProvider({ children }: ClerkAuthProviderProps) {
     const syncSession = async () => {
       if (!isLoaded) return;
 
-      if (isSignedIn) {
+      if (isSignedIn && user) {
         if (onPlatformSurface) return;
         try {
           await syncUser();
@@ -64,7 +64,7 @@ export function ClerkAuthProvider({ children }: ClerkAuthProviderProps) {
           console.error("Authentication synchronization failed:", error);
         }
       } else {
-        // Clear state on sign-out
+        // Clear state on sign-out or account deletion
         resetAuth();
       }
     };

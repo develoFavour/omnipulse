@@ -3,10 +3,17 @@ import { NextResponse } from 'next/server'
 
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
-  '/connections(.*)',
+  '/inbox(.*)',
+  '/ai-assistant(.*)',
   '/broadcast(.*)',
+  '/templates(.*)',
   '/audience(.*)',
+  '/connections(.*)',
+  '/analytics(.*)',
+  '/team(.*)',
   '/activity(.*)',
+  '/settings(.*)',
+  '/help(.*)',
   '/onboarding(.*)',
   '/admin(.*)',
 ])

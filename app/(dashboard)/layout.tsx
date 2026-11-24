@@ -29,6 +29,13 @@ export default function DashboardLayout({
     setMobileSidebarOpen(false);
   }, []);
 
+  // Redirect immediately if user signs out, session expires, or account is deleted
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace(APP_ROUTES.AUTH.SIGN_IN);
+    }
+  }, [isLoaded, isSignedIn, router]);
+
   // Platform accounts own no workspace: they belong on /admin, never here.
   useEffect(() => {
     if (isPlatformAdmin) {
@@ -43,12 +50,14 @@ export default function DashboardLayout({
     }
   }, [isLoaded, isSignedIn, adminCheckLoading, isPlatformAdmin, fetchChannels]);
 
-  if (!isLoaded || adminCheckLoading) {
+  if (!isLoaded || !isSignedIn || adminCheckLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#f4f5f2]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-[#163300]" />
-          <p className="text-sm font-medium text-gray-600">Initializing workspace...</p>
+          <p className="text-sm font-medium text-gray-600">
+            {isLoaded && !isSignedIn ? "Redirecting to sign in..." : "Initializing workspace..."}
+          </p>
         </div>
       </div>
     );
