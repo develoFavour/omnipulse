@@ -371,10 +371,12 @@ export default function TemplatesPage() {
 				<div className="text-center py-20 bg-white rounded-3xl border border-gray-200 p-8 shadow-xs">
 					<FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
 					<h3 className="text-base font-bold text-gray-800">
-						No matching templates
+						{dbTemplates.length === 0 ? "No templates saved yet" : "No matching templates"}
 					</h3>
 					<p className="text-xs text-gray-500 max-w-sm mx-auto mt-1 mb-5">
-						We couldn't find any templates matching your search criteria.
+						{dbTemplates.length === 0
+							? "Create reusable message templates with variables like {first_name} to speed up your broadcasts."
+							: "We couldn't find any templates matching your search criteria."}
 					</p>
 					<button
 						type="button"

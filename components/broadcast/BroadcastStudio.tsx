@@ -230,7 +230,6 @@ export function BroadcastStudio() {
 	// Template Library state
 	const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
-
 	// Prefill the studio when revising an existing campaign
 	useEffect(() => {
 		if (!editingCampaignId) return;
@@ -1409,14 +1408,14 @@ export function BroadcastStudio() {
 
 					{/* Card 2: Message & Creative Composer */}
 					<div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-xs space-y-5">
-						{/* Quick Campaign Playbooks */}
+						{/* Quick Starter Templates */}
 						<div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-3">
 							<div className="flex items-center justify-between mb-2">
 								<div className="flex items-center gap-1.5">
 									<Sparkles className="h-3.5 w-3.5 text-[#163300]" />
-									<span className="text-xs font-bold text-gray-900">Campaign Playbooks</span>
+									<span className="text-xs font-bold text-gray-900">Starter Templates</span>
 									<span className="text-[11px] text-gray-500 font-medium hidden sm:inline">
-										— 1-click high-conversion blueprints
+										— Quick customizable formats
 									</span>
 								</div>
 								<button
