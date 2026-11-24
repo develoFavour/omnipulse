@@ -220,12 +220,12 @@ export default function DashboardPage() {
         </div>
 
         {/* Column 2: Channel Distribution (5 cols width) */}
-        <div className="lg:col-span-5 h-full">
+        <div className="lg:col-span-5 self-start">
           <ChannelDistributionChart data={enhancedChannelData} delay={0.3} />
         </div>
 
         {/* Column 3: Recent Activity (4 cols width) */}
-        <div className="lg:col-span-4 h-full">
+        <div className="lg:col-span-4 self-start">
           <RecentActivityFeed activities={recentActivities} delay={0.35} />
         </div>
       </div>

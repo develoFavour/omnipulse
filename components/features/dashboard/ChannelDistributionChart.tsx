@@ -47,7 +47,7 @@ export function ChannelDistributionChart({ data, delay = 0 }: ChannelDistributio
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: "easeOut" }}
-      className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm h-full"
+      className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
     >
       <div className="mb-6 flex justify-between items-start">
         <div>
@@ -62,27 +62,33 @@ export function ChannelDistributionChart({ data, delay = 0 }: ChannelDistributio
       <div className="flex flex-col sm:flex-row items-center gap-8">
         {/* Donut Chart */}
         <div className="relative h-48 w-48 shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={85}
-                paddingAngle={4}
-                dataKey="value"
-                strokeWidth={0}
-                animationBegin={delay * 1000}
-                animationDuration={800}
-              >
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
+          {total === 0 ? (
+            <div className="h-full w-full flex items-center justify-center">
+              <div className="h-40 w-40 rounded-full border-[14px] border-gray-100" />
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={85}
+                  paddingAngle={4}
+                  dataKey="value"
+                  strokeWidth={0}
+                  animationBegin={delay * 1000}
+                  animationDuration={800}
+                >
+                  {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
           {/* Center Label (Total Audience Count) */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span className="text-2xl font-extrabold text-gray-900 tracking-tight font-mono">
@@ -99,7 +105,12 @@ export function ChannelDistributionChart({ data, delay = 0 }: ChannelDistributio
           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
             Top Platforms
           </div>
-          {data.map((item) => {
+          {total === 0 || data.length === 0 ? (
+            <p className="text-xs text-gray-400 leading-relaxed">
+              No contacts synced yet. Connect a channel or import contacts to view your platform split.
+            </p>
+          ) : (
+            data.map((item) => {
             const percentage = total > 0 ? ((item.value / total) * 100).toFixed(2) : "0";
             return (
               <div key={item.name} className="flex flex-col gap-1.5">
@@ -123,7 +134,8 @@ export function ChannelDistributionChart({ data, delay = 0 }: ChannelDistributio
                 </div>
               </div>
             );
-          })}
+          })
+          )}
         </div>
       </div>
 
