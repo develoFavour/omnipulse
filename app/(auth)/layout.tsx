@@ -81,7 +81,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             <div className="h-1.5 w-full bg-[#9fe870]" />
 
             {/* Clerk Form Slot */}
-            <div className="p-7 sm:p-9">{children}</div>
+            <div className="px-4 py-6 sm:p-9 w-full min-w-0">{children}</div>
           </div>
 
           {/* Trust Badges Row (Identical to Landing Hero) */}
