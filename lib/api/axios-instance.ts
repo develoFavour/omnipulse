@@ -117,6 +117,23 @@ apiClient.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${freshToken}`;
           return apiClient(originalRequest);
         }
+        // No valid session token remains (e.g. account deleted or session revoked)
+        if (typeof window !== 'undefined') {
+          const clerk = (window as any).Clerk;
+          if (clerk?.signOut) {
+            await clerk.signOut().catch(() => {});
+          }
+          const path = window.location.pathname;
+          if (
+            path !== '/' &&
+            !path.startsWith('/sign-in') &&
+            !path.startsWith('/sign-up') &&
+            !path.startsWith('/review/') &&
+            !path.startsWith('/invite')
+          ) {
+            window.location.replace('/sign-in');
+          }
+        }
       } catch (retryErr) {
         return Promise.reject(retryErr);
       }
