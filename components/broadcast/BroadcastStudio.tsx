@@ -103,6 +103,31 @@ export function BroadcastStudio() {
 	const templateIdParam = searchParams.get("templateId");
 	const { templates: dbTemplates } = useTemplates();
 
+	// In-Studio Connection & Sync Modals
+	const [isWhatsAppQRModalOpen, setIsWhatsAppQRModalOpen] = useState(false);
+	const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
+	const [isSyncingWhatsApp, setIsSyncingWhatsApp] = useState(false);
+	const [isSyncingTelegram, setIsSyncingTelegram] = useState(false);
+
+	const {
+		channels,
+		loading: loadingChannels,
+		refetch: refetchChannels,
+	} = useTenantChannels();
+
+	const isTelegramConnected = !!channels.find(
+		(c) => c.platform_name === "telegram" && c.status === "active",
+	);
+	const activeTelegramChannel = channels.find(
+		(c) => c.platform_name === "telegram" && c.status === "active",
+	);
+	const isWhatsAppConnected = !!channels.find(
+		(c) => c.platform_name === "whatsapp" && c.status === "active",
+	);
+	const activeWhatsAppChannel = channels.find(
+		(c) => c.platform_name === "whatsapp" && c.status === "active",
+	);
+
 	// The broadcast picker filters contacts client-side (including tag membership),
 	// so it must receive the complete audience rather than the audience page's
 	// default 50-contact page.
@@ -112,17 +137,14 @@ export function BroadcastStudio() {
 		refetch: refetchContacts,
 	} = useContacts({
 		pageSize: 500,
+	}, {
+		pollInterval: isSyncingWhatsApp ? 3000 : isWhatsAppConnected ? 8000 : 0,
 	});
 	const {
 		destinations,
 		isLoading: isLoadingDestinations,
 		refetch: refetchDestinations,
 	} = useTelegramDestinations();
-	const {
-		channels,
-		loading: loadingChannels,
-		refetch: refetchChannels,
-	} = useTenantChannels();
 	const { connectTelegram, loading: isConnectingTelegram } =
 		useChannelConnection();
 	const {
@@ -208,11 +230,6 @@ export function BroadcastStudio() {
 	// Template Library state
 	const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
-	// In-Studio Connection & Sync Modals
-	const [isWhatsAppQRModalOpen, setIsWhatsAppQRModalOpen] = useState(false);
-	const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
-	const [isSyncingWhatsApp, setIsSyncingWhatsApp] = useState(false);
-	const [isSyncingTelegram, setIsSyncingTelegram] = useState(false);
 
 	// Prefill the studio when revising an existing campaign
 	useEffect(() => {
@@ -269,19 +286,6 @@ export function BroadcastStudio() {
 		(c) => (c.channel ?? "").toLowerCase() === "whatsapp",
 	);
 	const activeDestinations = destinations.filter((d) => d.status === "active");
-
-	const isTelegramConnected = !!channels.find(
-		(c) => c.platform_name === "telegram" && c.status === "active",
-	);
-	const activeTelegramChannel = channels.find(
-		(c) => c.platform_name === "telegram" && c.status === "active",
-	);
-	const isWhatsAppConnected = !!channels.find(
-		(c) => c.platform_name === "whatsapp" && c.status === "active",
-	);
-	const activeWhatsAppChannel = channels.find(
-		(c) => c.platform_name === "whatsapp" && c.status === "active",
-	);
 
 	const botUsername =
 		activeTelegramChannel?.sender_identity || "@MessageRailBot";
