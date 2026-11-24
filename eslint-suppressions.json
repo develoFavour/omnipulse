@@ -68,9 +68,6 @@
   "app/(dashboard)/templates/page.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 3
-    },
-    "react/no-unescaped-entities": {
-      "count": 1
     }
   },
   "app/(onboarding)/onboarding/brand/page.tsx": {
@@ -181,11 +178,6 @@
     }
   },
   "components/providers/ClerkAuthProvider.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
-  "lib/api/axios-instance.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
     }
