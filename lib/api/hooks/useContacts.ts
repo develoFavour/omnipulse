@@ -17,7 +17,14 @@ export interface Contact {
   delete_after_at?: string | null;
 }
 
-export function useContacts(paramsOrChannel?: string | ContactQueryParams) {
+export interface UseContactsOptions {
+  pollInterval?: number;
+}
+
+export function useContacts(
+  paramsOrChannel?: string | ContactQueryParams,
+  options?: UseContactsOptions
+) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -25,6 +32,8 @@ export function useContacts(paramsOrChannel?: string | ContactQueryParams) {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const pollInterval = options?.pollInterval ?? 0;
 
   // Extract individual query primitives to prevent unnecessary re-fetches on object reference changes
   const queryChannel = typeof paramsOrChannel === "string" ? paramsOrChannel : paramsOrChannel?.channel;
@@ -35,9 +44,9 @@ export function useContacts(paramsOrChannel?: string | ContactQueryParams) {
   const queryPage = typeof paramsOrChannel === "object" ? paramsOrChannel?.page : undefined;
   const queryPageSize = typeof paramsOrChannel === "object" ? paramsOrChannel?.pageSize : undefined;
 
-  const fetchContacts = useCallback(async () => {
+  const fetchContacts = useCallback(async (isBackground = false) => {
     try {
-      setIsLoading(true);
+      if (!isBackground) setIsLoading(true);
       const res = await contactService.getContacts(
         typeof paramsOrChannel === "string"
           ? paramsOrChannel
@@ -58,15 +67,27 @@ export function useContacts(paramsOrChannel?: string | ContactQueryParams) {
       setTotalPages(res.totalPages);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to load contacts");
+      if (!isBackground) {
+        setError(err.response?.data?.error || "Failed to load contacts");
+      }
     } finally {
-      setIsLoading(false);
+      if (!isBackground) {
+        setIsLoading(false);
+      }
     }
   }, [queryChannel, queryTagId, querySearch, querySort, querySortDir, queryPage, queryPageSize]);
 
   useEffect(() => {
-    fetchContacts();
+    fetchContacts(false);
   }, [fetchContacts]);
+
+  useEffect(() => {
+    if (!pollInterval || pollInterval <= 0) return;
+    const timer = setInterval(() => {
+      void fetchContacts(true);
+    }, pollInterval);
+    return () => clearInterval(timer);
+  }, [pollInterval, fetchContacts]);
 
   return {
     contacts,

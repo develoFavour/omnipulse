@@ -83,7 +83,7 @@ export default function AudiencePage() {
     setCurrentPage(1);
   }, [selectedTagId, channelFilter, debouncedSearchQuery, sortKey, sortDir, pageSize]);
 
-  // Server-driven contacts hook
+  // Server-driven contacts hook with real-time background polling when syncing
   const {
     contacts,
     total,
@@ -98,7 +98,14 @@ export default function AudiencePage() {
     sortDir: sortDir,
     page: currentPage,
     pageSize: pageSize,
+  }, {
+    pollInterval: isSyncingWA ? 3000 : isChannelConnected("whatsapp") ? 5000 : 0,
   });
+
+  // Keep quota pill in sync whenever total changes
+  useEffect(() => {
+    void refetchPlanUsage();
+  }, [total, refetchPlanUsage]);
 
   // Tag creation & editing modals
   const [showCreateTagModal, setShowCreateTagModal] = useState(false);
