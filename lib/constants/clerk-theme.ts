@@ -25,19 +25,19 @@ export const clerkBrandAppearance = {
   },
   elements: {
     // Root & Card container - transparent to sit seamlessly in our architectural card
-    rootBox: "w-full",
-    card: "!bg-transparent !shadow-none !border-0 !p-0 w-full",
-    cardBox: "!shadow-none !border-0 w-full",
+    rootBox: "!w-full !max-w-full",
+    card: "!bg-transparent !shadow-none !border-0 !p-0 !w-full !max-w-full",
+    cardBox: "!shadow-none !border-0 !w-full !max-w-full",
 
     // Header Typography (Matches Hero Section font-heading & display bold)
     headerTitle:
-      "!font-heading !font-black !text-2xl !tracking-tight !text-[#163300] !uppercase !text-center",
+      "!font-heading !font-black !text-xl sm:!text-2xl !tracking-tight !text-[#163300] !uppercase !text-center",
     headerSubtitle:
       "!text-xs !font-medium !text-[#454745] !text-center !mt-1.5 !leading-relaxed",
 
     // Social Login Buttons (Google, etc.) - clean pill with border
     socialButtonsBlockButton:
-      "!rounded-full !border !border-[#e8ebe6] hover:!border-[#163300]/40 hover:!bg-[#f4f5f2] !text-[#0e0f0c] !font-bold !text-xs !py-3 !transition-all !shadow-none",
+      "!w-full !rounded-full !border !border-[#e8ebe6] hover:!border-[#163300]/40 hover:!bg-[#f4f5f2] !text-[#0e0f0c] !font-bold !text-xs !py-3 !transition-all !shadow-none",
     socialButtonsBlockButtonText: "!font-bold !text-xs !text-[#0e0f0c]",
     socialButtonsProviderIcon: "!w-4 !h-4 !mr-2",
 
@@ -52,16 +52,16 @@ export const clerkBrandAppearance = {
 
     // Form Inputs - crisp linen input with focus border
     formFieldInput:
-      "!rounded-xl !border !border-[#e8ebe6] !bg-[#f4f5f2] focus:!border-[#163300] focus:!bg-white focus:!ring-2 focus:!ring-[#9fe870]/50 !text-sm !text-[#0e0f0c] placeholder:!text-[#868685] !py-3 !px-4 !font-medium transition-all !shadow-none outline-none",
+      "!w-full !box-border !rounded-xl !border !border-[#e8ebe6] !bg-[#f4f5f2] focus:!border-[#163300] focus:!bg-white focus:!ring-2 focus:!ring-[#9fe870]/50 !text-sm !text-[#0e0f0c] placeholder:!text-[#868685] !py-3 !px-4 !font-medium transition-all !shadow-none outline-none",
     formFieldInputShowPasswordButton:
       "!text-[#454745] hover:!text-[#163300] !transition-colors",
 
     // Primary CTA Button - Signature Wise Lime Voltage Pill Button
     formButtonPrimary:
-      "!rounded-full !bg-[#9fe870] hover:!bg-[#8ee05c] !text-[#163300] !font-black !text-xs !uppercase !tracking-wider !py-3.5 !shadow-sm hover:!shadow-md !transition-all active:!scale-[0.98]",
+      "!w-full !rounded-full !bg-[#9fe870] hover:!bg-[#8ee05c] !text-[#163300] !font-black !text-xs !uppercase !tracking-wider !py-3.5 !shadow-sm hover:!shadow-md !transition-all active:!scale-[0.98]",
 
     // Footer Links & Actions
-    footer: "!bg-transparent !mt-4",
+    footer: "!bg-transparent !mt-4 !w-full",
     footerAction: "!mt-2",
     footerActionText: "!text-xs !font-medium !text-[#454745]",
     footerActionLink:
@@ -81,8 +81,8 @@ export const clerkBrandAppearance = {
     alertText: "!text-xs !font-medium !text-[#cb272f]",
 
     // Internal containers
-    main: "!bg-transparent",
-    form: "!bg-transparent",
+    main: "!bg-transparent !w-full !max-w-full",
+    form: "!bg-transparent !w-full",
     footerPages: "!bg-transparent",
     badge:
       "!bg-[#e2f6d5] !text-[#163300] !font-bold !text-xs !rounded-full !border !border-[#9fe870]/70",
