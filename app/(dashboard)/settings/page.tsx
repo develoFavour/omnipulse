@@ -2351,7 +2351,9 @@ function SecuritySection() {
 // ── Danger Zone Section ────────────────────────────────────────────────────────
 function DangerSection() {
 	const { canDeleteWorkspace } = usePermissions();
+	const { signOut } = useClerk();
 	const tenant = useAppStore((s) => s.tenant);
+	const workspaces = useAppStore((s) => s.workspaces);
 	const [confirmInput, setConfirmInput] = useState("");
 	const [deleting, setDeleting] = useState(false);
 	if (!canDeleteWorkspace) {
@@ -2380,7 +2382,11 @@ function DangerSection() {
 			await apiClient.delete(ENDPOINTS.WORKSPACES.DELETE);
 			useAppStore.getState().resetAuth();
 			toast.success("Workspace deleted");
-			window.location.href = "/";
+			if (workspaces.length <= 1) {
+				await signOut({ redirectUrl: "/" });
+			} else {
+				window.location.href = "/dashboard";
+			}
 		} catch {
 			toast.error("Failed to delete workspace");
 			setDeleting(false);

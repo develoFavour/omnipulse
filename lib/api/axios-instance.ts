@@ -79,6 +79,17 @@ apiClient.interceptors.request.use(
   }
 );
 
+interface ApiClientError extends Error {
+  response?: unknown;
+  isApiError?: boolean;
+}
+
+interface WindowWithClerk extends Window {
+  Clerk?: {
+    signOut?: () => Promise<void>;
+  };
+}
+
 // Response interceptor – unwrap backend envelope { success, data } / { success, error }
 // so all callers receive the inner payload directly via response.data.
 apiClient.interceptors.response.use(
@@ -89,9 +100,9 @@ apiClient.interceptors.response.use(
     if (body && typeof body === 'object' && 'success' in body) {
       if (body.success === false) {
         // Surface the backend error message as a proper rejection
-        const err = new Error(body.error ?? 'An unexpected error occurred');
-        (err as any).response = response;
-        (err as any).isApiError = true;
+        const err: ApiClientError = new Error(body.error ?? 'An unexpected error occurred');
+        err.response = response;
+        err.isApiError = true;
         return Promise.reject(err);
       }
       // Unwrap: replace response.data with the inner payload
@@ -119,7 +130,7 @@ apiClient.interceptors.response.use(
         }
         // No valid session token remains (e.g. account deleted or session revoked)
         if (typeof window !== 'undefined') {
-          const clerk = (window as any).Clerk;
+          const clerk = (window as WindowWithClerk).Clerk;
           if (clerk?.signOut) {
             await clerk.signOut().catch(() => {});
           }
