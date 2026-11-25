@@ -1739,7 +1739,7 @@ function BillingSection() {
 			</Card>
 
 			{/* Plan Selection Cards */}
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-5 pt-3">
+			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pt-3">
 				{planCards.map((plan) => {
 					const isCurrent = plan.current;
 					const isButtonLoading = checkoutLoading === plan.tier;
@@ -1748,7 +1748,7 @@ function BillingSection() {
 						<div
 							key={plan.tier}
 							className={cn(
-								"relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-200",
+								"relative flex flex-col justify-between rounded-2xl border p-5 transition-all duration-200",
 								plan.popular
 									? "border-[#163300] bg-gradient-to-b from-white to-[#f4fbe9]/40 shadow-md ring-2 ring-[#9fe870]/40"
 									: isCurrent
@@ -1763,26 +1763,28 @@ function BillingSection() {
 							)}
 
 							<div>
-								<div className="flex items-center justify-between gap-2 mt-1 mb-2">
-									<span className="text-xs font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap">
+								<div className="mt-1 mb-1.5">
+									<span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
 										{plan.badge}
 									</span>
+								</div>
+
+								<div className="flex items-center justify-between gap-2">
+									<h3 className="text-xl font-extrabold text-gray-900">
+										{plan.name}
+									</h3>
 									{isCurrent && (
-										<span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-[#9fe870]/60 bg-[#e2f6d5] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#163300]">
-											<Check className="h-2.5 w-2.5" /> Active Plan
+										<span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-[#9fe870]/60 bg-[#e2f6d5] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#163300]">
+											<Check className="h-2.5 w-2.5" /> Active
 										</span>
 									)}
 								</div>
 
-								<h3 className="text-xl font-extrabold text-gray-900">
-									{plan.name}
-								</h3>
-
-								<div className="mt-2.5 mb-1 flex items-baseline gap-1.5">
-									<span className="text-3xl font-extrabold text-gray-900 tracking-tight">
+								<div className="mt-2.5 mb-1 flex flex-wrap items-baseline gap-1">
+									<span className="text-2xl xl:text-[26px] font-extrabold text-gray-900 tracking-tight">
 										{plan.priceDisplay}
 									</span>
-									<span className="text-sm font-semibold text-gray-400">
+									<span className="text-xs font-semibold text-gray-400">
 										{plan.periodDisplay}
 									</span>
 								</div>
