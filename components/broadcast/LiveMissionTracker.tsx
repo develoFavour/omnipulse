@@ -233,8 +233,12 @@ export function LiveMissionTracker({
   const inFlightCount = Math.max(0, totalTargets - (deliveredCount + failedCount));
   
   const rawProgress = stats?.progress_percent ?? (totalTargets > 0 ? (processedTargets / totalTargets) * 100 : 0);
-  const isCompleted = stats?.status?.toLowerCase() === "completed" || (totalTargets > 0 && processedTargets >= totalTargets);
+  const isCompleted = stats?.status?.toLowerCase() === "completed" || stats?.status?.toLowerCase() === "failed" || (totalTargets > 0 && processedTargets >= totalTargets);
+  const isAllFailed = stats?.status?.toLowerCase() === "failed" || (isCompleted && deliveredCount === 0 && failedCount > 0) || (deliveredCount === 0 && failedCount > 0);
+  const hasFailures = failedCount > 0;
   const progressPercent = isCompleted ? 100 : Math.min(Math.round(rawProgress), 99);
+  const deliveredPercent = totalTargets > 0 ? Math.min(100, Math.round((deliveredCount / totalTargets) * 100)) : 0;
+  const failedPercent = totalTargets > 0 ? Math.min(100 - deliveredPercent, Math.round((failedCount / totalTargets) * 100)) : 0;
 
   const formatTimer = (sec: number) => {
     const m = Math.floor(sec / 60);
@@ -278,12 +282,30 @@ export function LiveMissionTracker({
       {/* Top Banner Card: Mission Command */}
       <div className="relative overflow-hidden rounded-3xl border border-gray-200/90 dark:border-white/10 bg-white/95 dark:bg-zinc-950/90 p-8 shadow-2xl backdrop-blur-xl">
         {/* Subtle Ambient Glow */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-gradient-to-br from-[#9fe870]/20 via-emerald-500/10 to-[#163300]/10 blur-3xl pointer-events-none" />
+        <div
+          className={`absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full blur-3xl pointer-events-none ${
+            isAllFailed
+              ? "bg-gradient-to-br from-rose-500/25 via-red-500/15 to-rose-900/10"
+              : hasFailures && isCompleted
+              ? "bg-gradient-to-br from-amber-400/20 via-rose-500/10 to-amber-900/10"
+              : "bg-gradient-to-br from-[#9fe870]/20 via-emerald-500/10 to-[#163300]/10"
+          }`}
+        />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100 dark:border-white/5">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2.5">
-              {isCompleted ? (
+              {isAllFailed && isCompleted ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-xs font-bold text-rose-700 dark:text-rose-400">
+                  <AlertCircle className="h-3.5 w-3.5 text-rose-600" />
+                  Broadcast Failed
+                </span>
+              ) : isCompleted && hasFailures ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-xs font-bold text-amber-800 dark:text-amber-400">
+                  <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                  Completed with Failures
+                </span>
+              ) : isCompleted ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-xs font-bold text-emerald-700 dark:text-emerald-400">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                   Broadcast Mission Accomplished
@@ -365,11 +387,23 @@ export function LiveMissionTracker({
         <div className="py-6 space-y-3">
           <div className="flex items-baseline justify-between">
             <div>
-              <span className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 dark:text-white font-mono">
-                {progressPercent}%
+              <span
+                className={`text-3xl sm:text-4xl font-black tracking-tight font-mono ${
+                  isAllFailed ? "text-rose-600 dark:text-rose-400" : "text-gray-900 dark:text-white"
+                }`}
+              >
+                {isAllFailed ? `${failedPercent || progressPercent}%` : `${deliveredPercent || progressPercent}%`}
               </span>
-              <span className="ml-2 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Delivered & Confirmed
+              <span
+                className={`ml-2 text-xs font-medium uppercase tracking-wider ${
+                  isAllFailed ? "text-rose-500" : "text-gray-400"
+                }`}
+              >
+                {isAllFailed
+                  ? "Failed — 0 Delivered"
+                  : hasFailures
+                  ? `Delivered (${failedCount} Failed)`
+                  : "Delivered & Confirmed"}
               </span>
             </div>
             <div className="text-xs sm:text-sm font-mono text-gray-500 dark:text-zinc-400">
@@ -378,17 +412,47 @@ export function LiveMissionTracker({
             </div>
           </div>
 
-          <div className="relative w-full h-3.5 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden p-0.5 shadow-inner">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="h-full rounded-full bg-gradient-to-r from-[#163300] via-emerald-600 to-[#9fe870] shadow-sm relative overflow-hidden"
-            >
-              {!isCompleted && (
-                <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)]" />
-              )}
-            </motion.div>
+          <div className="relative w-full h-3.5 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden p-0.5 shadow-inner flex">
+            {deliveredPercent > 0 && (
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${deliveredPercent}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className={`h-full ${
+                  failedPercent > 0 ? "rounded-l-full" : "rounded-full"
+                } bg-gradient-to-r from-[#163300] via-emerald-600 to-[#9fe870] shadow-sm relative overflow-hidden`}
+              >
+                {!isCompleted && (
+                  <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)]" />
+                )}
+              </motion.div>
+            )}
+            {failedPercent > 0 && (
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${failedPercent}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className={`h-full ${
+                  deliveredPercent > 0 ? "rounded-r-full" : "rounded-full"
+                } bg-gradient-to-r from-rose-700 via-red-600 to-rose-400 shadow-sm relative overflow-hidden`}
+              />
+            )}
+            {deliveredPercent === 0 && failedPercent === 0 && progressPercent > 0 && (
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className={`h-full rounded-full shadow-sm relative overflow-hidden ${
+                  isAllFailed
+                    ? "bg-gradient-to-r from-rose-700 via-red-600 to-rose-400"
+                    : "bg-gradient-to-r from-[#163300] via-emerald-600 to-[#9fe870]"
+                }`}
+              >
+                {!isCompleted && (
+                  <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)]" />
+                )}
+              </motion.div>
+            )}
           </div>
         </div>
 
