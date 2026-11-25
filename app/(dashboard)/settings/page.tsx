@@ -1600,7 +1600,9 @@ function BillingSection() {
 				<CardSection title="Workspace Plan & Resource Quotas">
 					<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-gray-100">
 						<div className="flex items-center gap-3.5">
-							<div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#163300] text-[#9fe870] shadow-md"></div>
+							<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#163300] text-[#9fe870] shadow-md">
+								<CreditCard className="h-5 w-5" />
+							</div>
 							<div>
 								<div className="flex items-center gap-2">
 									<h4 className="text-base font-bold text-gray-900 capitalize">
@@ -1737,7 +1739,7 @@ function BillingSection() {
 			</Card>
 
 			{/* Plan Selection Cards */}
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-5 pt-3">
 				{planCards.map((plan) => {
 					const isCurrent = plan.current;
 					const isButtonLoading = checkoutLoading === plan.tier;
@@ -1755,18 +1757,18 @@ function BillingSection() {
 							)}
 						>
 							{plan.popular && (
-								<div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#163300] px-3.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider text-[#9fe870] shadow-sm">
+								<div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#163300] px-3.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider text-[#9fe870] shadow-sm">
 									Most Popular
 								</div>
 							)}
 
 							<div>
-								<div className="flex items-center justify-between gap-2 mb-2">
-									<span className="text-xs font-bold uppercase tracking-wider text-gray-400">
+								<div className="flex items-center justify-between gap-2 mt-1 mb-2">
+									<span className="text-xs font-bold uppercase tracking-wider text-gray-400 whitespace-nowrap">
 										{plan.badge}
 									</span>
 									{isCurrent && (
-										<span className="inline-flex items-center gap-1 rounded-full bg-[#163300] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#9fe870]">
+										<span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-[#9fe870]/60 bg-[#e2f6d5] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#163300]">
 											<Check className="h-2.5 w-2.5" /> Active Plan
 										</span>
 									)}
