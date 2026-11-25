@@ -1741,7 +1741,13 @@ function BillingSection() {
 			{/* Plan Selection Cards */}
 			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pt-3">
 				{planCards.map((plan) => {
+					const tierRank: Record<PlanTier, number> = {
+						starter: 0,
+						growth: 1,
+						agency: 2,
+					};
 					const isCurrent = plan.current;
+					const isLowerTier = tierRank[plan.tier] < tierRank[currentTier];
 					const isButtonLoading = checkoutLoading === plan.tier;
 
 					return (
@@ -1821,23 +1827,25 @@ function BillingSection() {
 								{isCurrent ? (
 									<button
 										disabled
-										className="w-full rounded-xl bg-gray-100 py-2.5 text-xs font-bold text-gray-500 cursor-default"
+										className="w-full rounded-xl bg-gray-100 px-4 py-2.5 text-xs font-bold text-gray-500 cursor-default"
 									>
 										Current Active Tier
 									</button>
-								) : plan.tier === "starter" ? (
+								) : isLowerTier || plan.tier === "starter" ? (
 									<button
 										disabled
-										className="w-full rounded-xl border border-gray-200 bg-white py-2.5 text-xs font-semibold text-gray-400 cursor-not-allowed"
+										className="w-full rounded-xl border border-gray-200 bg-gray-50/70 px-4 py-2.5 text-xs font-semibold text-gray-400 cursor-not-allowed"
 									>
-										Included Default
+										{plan.tier === "starter" && currentTier === "starter"
+											? "Included Default"
+											: `Included in ${currentTier.charAt(0).toUpperCase() + currentTier.slice(1)}`}
 									</button>
 								) : (
 									<button
 										onClick={() => handleCheckout(plan.tier)}
 										disabled={isButtonLoading}
 										className={cn(
-											"w-full inline-flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all duration-150 active:scale-98 shadow-sm",
+											"w-full inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-bold transition-all duration-150 active:scale-98 shadow-sm",
 											plan.popular
 												? "bg-[#163300] text-[#9fe870] hover:bg-[#163300]/90"
 												: "border border-gray-300 bg-white text-gray-900 hover:border-gray-400 hover:bg-gray-50",
@@ -1846,16 +1854,13 @@ function BillingSection() {
 									>
 										{isButtonLoading ? (
 											<>
-												<Loader2 className="h-4 w-4 animate-spin" />
-												Initializing Checkout...
+												<Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+												<span>Initializing Checkout...</span>
 											</>
 										) : (
 											<>
-												<Zap className="h-3.5 w-3.5 fill-current" />
-												Upgrade to {plan.name}
-												<span className="text-[10px] font-normal opacity-80">
-													(Paystack)
-												</span>
+												<Zap className="h-3.5 w-3.5 shrink-0 fill-current" />
+												<span>Upgrade to {plan.name}</span>
 											</>
 										)}
 									</button>
